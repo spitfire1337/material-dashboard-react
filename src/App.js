@@ -48,6 +48,8 @@ import routes from "routes";
 
 // Material Dashboard 2 React contexts
 import { useMaterialUIController, setMiniSidenav, setOpenConfigurator } from "context";
+import SignIn from "layouts/authentication/sign-in";
+import Square from "layouts/authentication/square_setup";
 
 // Images
 import brandWhite from "assets/images/logo-ct.png";
@@ -67,7 +69,10 @@ export default function App() {
   } = controller;
   const [onMouseEnter, setOnMouseEnter] = useState(false);
   const [rtlCache, setRtlCache] = useState(null);
+  const [isLoggedin, setLoggedIn] = useState(false);
+  const [isSquare, setSquare] = useState(false);
   const { pathname } = useLocation();
+  const server = "http://localhost:3005";
 
   // Cache for the rtl
   useMemo(() => {
@@ -87,6 +92,35 @@ export default function App() {
     }
   };
 
+  // Open sidenav when mouse enter on mini sidenav
+  const checkLogin = async () => {
+    if (!isLoggedin) {
+      const response = await fetch(`${server}/auth/authCheck`, {
+        credentials: "include",
+      });
+      const res = await response.json();
+      if (res.res === 401) {
+        setLoggedIn(false);
+      } else {
+        setLoggedIn(true);
+      }
+    }
+  };
+
+  const checkSquare = async () => {
+    if (!isLoggedin) {
+      const response = await fetch(`${server}/auth/authCheck`, {
+        credentials: "include",
+      });
+      const res = await response.json();
+      if (res.res === 401) {
+        setLoggedIn(false);
+      } else {
+        setLoggedIn(true);
+      }
+    }
+  };
+
   // Close sidenav when mouse leave mini sidenav
   const handleOnMouseLeave = () => {
     if (onMouseEnter) {
@@ -102,6 +136,10 @@ export default function App() {
   useEffect(() => {
     document.body.setAttribute("dir", direction);
   }, [direction]);
+
+  useEffect(() => {
+    checkLogin();
+  }, []);
 
   // Setting page scroll to 0 when changing the route
   useEffect(() => {
@@ -146,9 +184,48 @@ export default function App() {
     </MDBox>
   );
 
-  return direction === "rtl" ? (
-    <CacheProvider value={rtlCache}>
+  if (isLoggedin == false) {
+    return (
       <ThemeProvider theme={darkMode ? themeDarkRTL : themeRTL}>
+        <CssBaseline />
+        <SignIn />
+      </ThemeProvider>
+    );
+  } else if (isSquare == false) {
+    return (
+      <ThemeProvider theme={darkMode ? themeDarkRTL : themeRTL}>
+        <CssBaseline />
+        <Square />
+      </ThemeProvider>
+    );
+  } else {
+    return direction === "rtl" ? (
+      <CacheProvider value={rtlCache}>
+        <ThemeProvider theme={darkMode ? themeDarkRTL : themeRTL}>
+          <CssBaseline />
+          {layout === "dashboard" && (
+            <>
+              <Sidenav
+                color={sidenavColor}
+                brand={(transparentSidenav && !darkMode) || whiteSidenav ? brandDark : brandWhite}
+                brandName="Material Dashboard 2"
+                routes={routes}
+                onMouseEnter={handleOnMouseEnter}
+                onMouseLeave={handleOnMouseLeave}
+              />
+              <Configurator />
+              {configsButton}
+            </>
+          )}
+          {layout === "vr" && <Configurator />}
+          <Routes>
+            {getRoutes(routes)}
+            <Route path="*" element={<Navigate to="/dashboard" />} />
+          </Routes>
+        </ThemeProvider>
+      </CacheProvider>
+    ) : (
+      <ThemeProvider theme={darkMode ? themeDark : theme}>
         <CssBaseline />
         {layout === "dashboard" && (
           <>
@@ -170,29 +247,6 @@ export default function App() {
           <Route path="*" element={<Navigate to="/dashboard" />} />
         </Routes>
       </ThemeProvider>
-    </CacheProvider>
-  ) : (
-    <ThemeProvider theme={darkMode ? themeDark : theme}>
-      <CssBaseline />
-      {layout === "dashboard" && (
-        <>
-          <Sidenav
-            color={sidenavColor}
-            brand={(transparentSidenav && !darkMode) || whiteSidenav ? brandDark : brandWhite}
-            brandName="Material Dashboard 2"
-            routes={routes}
-            onMouseEnter={handleOnMouseEnter}
-            onMouseLeave={handleOnMouseLeave}
-          />
-          <Configurator />
-          {configsButton}
-        </>
-      )}
-      {layout === "vr" && <Configurator />}
-      <Routes>
-        {getRoutes(routes)}
-        <Route path="*" element={<Navigate to="/dashboard" />} />
-      </Routes>
-    </ThemeProvider>
-  );
+    );
+  }
 }

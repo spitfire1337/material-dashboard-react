@@ -46,7 +46,6 @@ function Basic() {
   const [rememberMe, setRememberMe] = useState(false);
 
   const authServer = "http://localhost:3005";
-
   return (
     <BasicLayout image={bgImage}>
       <Card>
@@ -62,15 +61,15 @@ function Basic() {
           textAlign="center"
         >
           <MDTypography variant="h4" fontWeight="medium" color="white" mt={1}>
-            Sign in
+            Square set up
           </MDTypography>
         </MDBox>
         <MDBox pt={4} pb={3} px={3}>
           <MDBox component="form" role="form">
             <MDBox mt={4} mb={1}>
-              <MuiLink href={authServer + "/auth/signin"}>
+              <MuiLink href={authServer + "/square/request_token"}>
                 <MDButton variant="gradient" color="info" fullWidth>
-                  <MicrosoftIcon /> Sign in with Microsoft
+                  Sign in to square
                 </MDButton>
               </MuiLink>
             </MDBox>
