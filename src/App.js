@@ -71,6 +71,7 @@ export default function App() {
   const [rtlCache, setRtlCache] = useState(null);
   const [isLoggedin, setLoggedIn] = useState(false);
   const [isSquare, setSquare] = useState(false);
+  const [customers, setCustomers] = useState([]);
   const { pathname } = useLocation();
   const server = "http://localhost:3005";
 
@@ -108,15 +109,29 @@ export default function App() {
   };
 
   const checkSquare = async () => {
-    if (!isLoggedin) {
-      const response = await fetch(`${server}/auth/authCheck`, {
+    if (isLoggedin) {
+      const response = await fetch(`${server}/square/checkconfig`, {
         credentials: "include",
       });
       const res = await response.json();
+      console.log("Square res", res);
       if (res.res === 401) {
-        setLoggedIn(false);
+        setSquare(false);
       } else {
-        setLoggedIn(true);
+        setSquare(true);
+      }
+    }
+  };
+
+  const getCustomers = async () => {
+    if (isLoggedin) {
+      const response = await fetch(`${server}/square/getSquare?action=getCustomers`, {
+        credentials: "include",
+      });
+      const res = await response.json();
+      if (res.res === 200) {
+        setCustomers(res.data);
+        console.log(res.data);
       }
     }
   };
@@ -138,8 +153,17 @@ export default function App() {
   }, [direction]);
 
   useEffect(() => {
-    checkLogin();
-  }, []);
+    if (!isLoggedin) {
+      console.log("Use effect login");
+      checkLogin();
+    } else if (!isSquare) {
+      console.log("Use effect square");
+      checkSquare();
+    } else {
+      console.log("Use effect customers");
+      getCustomers();
+    }
+  }, [isLoggedin, isSquare]);
 
   // Setting page scroll to 0 when changing the route
   useEffect(() => {
@@ -184,14 +208,14 @@ export default function App() {
     </MDBox>
   );
 
-  if (isLoggedin == false) {
+  if (!isLoggedin) {
     return (
       <ThemeProvider theme={darkMode ? themeDarkRTL : themeRTL}>
         <CssBaseline />
         <SignIn />
       </ThemeProvider>
     );
-  } else if (isSquare == false) {
+  } else if (!isSquare) {
     return (
       <ThemeProvider theme={darkMode ? themeDarkRTL : themeRTL}>
         <CssBaseline />
