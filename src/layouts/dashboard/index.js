@@ -15,7 +15,6 @@ Coded by www.creative-tim.com
 
 // @mui material components
 import Grid from "@mui/material/Grid";
-
 // Material Dashboard 2 React components
 import MDBox from "components/MDBox";
 
@@ -48,7 +47,7 @@ function Dashboard() {
               <ComplexStatisticsCard
                 color="dark"
                 icon="weekend"
-                title="Bookings"
+                title="Sales"
                 count={281}
                 percentage={{
                   color: "success",
