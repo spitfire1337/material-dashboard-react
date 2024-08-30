@@ -14,7 +14,7 @@ Coded by www.creative-tim.com
 */
 
 import { useState, useEffect, useMemo } from "react";
-
+import vars from "./config";
 // react-router components
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 
@@ -71,9 +71,7 @@ export default function App() {
   const [rtlCache, setRtlCache] = useState(null);
   const [isLoggedin, setLoggedIn] = useState(false);
   const [isSquare, setSquare] = useState(false);
-  const [customers, setCustomers] = useState([]);
   const { pathname } = useLocation();
-  const server = "http://localhost:3005";
 
   // Cache for the rtl
   useMemo(() => {
@@ -96,7 +94,7 @@ export default function App() {
   // Open sidenav when mouse enter on mini sidenav
   const checkLogin = async () => {
     if (!isLoggedin) {
-      const response = await fetch(`${server}/auth/authCheck`, {
+      const response = await fetch(`${vars.serverUrl}/auth/authCheck`, {
         credentials: "include",
       });
       const res = await response.json();
@@ -110,7 +108,7 @@ export default function App() {
 
   const checkSquare = async () => {
     if (isLoggedin) {
-      const response = await fetch(`${server}/square/checkconfig`, {
+      const response = await fetch(`${vars.serverUrl}/square/checkconfig`, {
         credentials: "include",
       });
       const res = await response.json();
@@ -119,19 +117,6 @@ export default function App() {
         setSquare(false);
       } else {
         setSquare(true);
-      }
-    }
-  };
-
-  const getCustomers = async () => {
-    if (isLoggedin) {
-      const response = await fetch(`${server}/square/getSquare?action=getCustomers`, {
-        credentials: "include",
-      });
-      const res = await response.json();
-      if (res.res === 200) {
-        setCustomers(res.data);
-        console.log(res.data);
       }
     }
   };
@@ -159,9 +144,6 @@ export default function App() {
     } else if (!isSquare) {
       console.log("Use effect square");
       checkSquare();
-    } else {
-      console.log("Use effect customers");
-      getCustomers();
     }
   }, [isLoggedin, isSquare]);
 

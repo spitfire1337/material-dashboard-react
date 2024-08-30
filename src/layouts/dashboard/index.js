@@ -12,9 +12,11 @@ Coded by www.creative-tim.com
 
 * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 */
+import { useState, useEffect, useMemo } from "react";
 
 // @mui material components
 import Grid from "@mui/material/Grid";
+import vars from "../../config";
 
 // Material Dashboard 2 React components
 import MDBox from "components/MDBox";
@@ -36,7 +38,29 @@ import Projects from "layouts/dashboard/components/Projects";
 import OrdersOverview from "layouts/dashboard/components/OrdersOverview";
 
 function Dashboard() {
+  const [mysales, setSales] = useState({ lastweek: 0, thisweek: 0 });
+  const [salesChange, setSalesChange] = useState(0);
   const { sales, tasks } = reportsLineChartData;
+
+  const getSales = async () => {
+    const response = await fetch(`${vars.serverUrl}/square/getsales`, {
+      credentials: "include",
+    });
+    const res = await response.json();
+    if (res.res === 200) {
+      setSales(res.sales);
+      console.log(res.sales.thisweek);
+      setSalesChange(
+        Math.round(((res.sales.thisweek - res.sales.lastweek) / res.sales.lastweek) * 100)
+      );
+      console.log(res.data);
+    }
+  };
+
+  useEffect(() => {
+    console.log("Use effect customers");
+    getSales();
+  }, []);
 
   return (
     <DashboardLayout>
@@ -47,12 +71,14 @@ function Dashboard() {
             <MDBox mb={1.5}>
               <ComplexStatisticsCard
                 color="dark"
-                icon="weekend"
-                title="Bookings"
-                count={281}
+                icon="leaderboard"
+                title="Sales"
+                count={(mysales.thisweek / 100)
+                  .toFixed(2)
+                  .toLocaleString(undefined, { minimumFractionDigits: 2 })}
                 percentage={{
-                  color: "success",
-                  amount: "+55%",
+                  color: salesChange > 0 ? "success" : "error",
+                  amount: `${salesChange > 0 ? "+" : "-"}${salesChange}%`,
                   label: "than lask week",
                 }}
               />
