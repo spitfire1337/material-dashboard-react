@@ -14,6 +14,8 @@ Coded by www.creative-tim.com
 */
 
 import { useState, useEffect, useMemo } from "react";
+
+// Vars
 import vars from "./config";
 // react-router components
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
@@ -46,14 +48,36 @@ import createCache from "@emotion/cache";
 // Material Dashboard 2 React routes
 import routes from "routes";
 
+import LocationSelect from "./layouts/LocationSelect";
+
 // Material Dashboard 2 React contexts
 import { useMaterialUIController, setMiniSidenav, setOpenConfigurator } from "context";
 import SignIn from "layouts/authentication/sign-in";
 import Square from "layouts/authentication/square_setup";
-
+import Cookies from "universal-cookie";
 // Images
 import brandWhite from "assets/images/logo-ct.png";
 import brandDark from "assets/images/logo-ct-dark.png";
+import { MyLocation } from "@mui/icons-material";
+
+export function getCookie(name) {
+  var dc = document.cookie;
+  var prefix = name + "=";
+  var begin = dc.indexOf("; " + prefix);
+  if (begin == -1) {
+    begin = dc.indexOf(prefix);
+    if (begin != 0) return null;
+  } else {
+    begin += 2;
+    var end = document.cookie.indexOf(";", begin);
+    if (end == -1) {
+      end = dc.length;
+    }
+  }
+  // because unescape has been deprecated, replaced with decodeURI
+  //return unescape(dc.substring(begin + prefix.length, end));
+  return decodeURI(dc.substring(begin + prefix.length, end));
+}
 
 export default function App() {
   const [controller, dispatch] = useMaterialUIController();
@@ -71,8 +95,14 @@ export default function App() {
   const [rtlCache, setRtlCache] = useState(null);
   const [isLoggedin, setLoggedIn] = useState(false);
   const [isSquare, setSquare] = useState(false);
+  const [customers, setCustomers] = useState([]);
+  const [sales, setSales] = useState([]);
+  const [locations, setLocations] = useState({ locations: [] });
+  const [location, setLocation] = useState(null);
+  const [loading, setLoading] = useState(true);
   const { pathname } = useLocation();
 
+  const cookies = new Cookies(null, { path: "/" });
   // Cache for the rtl
   useMemo(() => {
     const cacheRtl = createCache({
@@ -94,13 +124,15 @@ export default function App() {
   // Open sidenav when mouse enter on mini sidenav
   const checkLogin = async () => {
     if (!isLoggedin) {
-      const response = await fetch(`${vars.serverUrl}/auth/authCheck`, {
+      const response = await fetch(`${vars.server}/auth/authCheck`, {
         credentials: "include",
       });
       const res = await response.json();
       if (res.res === 401) {
+        setLoading(false);
         setLoggedIn(false);
       } else {
+        setLoading(false);
         setLoggedIn(true);
       }
     }
@@ -108,16 +140,46 @@ export default function App() {
 
   const checkSquare = async () => {
     if (isLoggedin) {
-      const response = await fetch(`${vars.serverUrl}/square/checkconfig`, {
+      const response = await fetch(`${vars.server}/square/checkconfig`, {
         credentials: "include",
       });
       const res = await response.json();
       console.log("Square res", res);
       if (res.res === 401) {
+        setLoading(false);
         setSquare(false);
       } else {
+        setLoading(false);
         setSquare(true);
       }
+    }
+  };
+
+  const getInitData = async () => {
+    if (isLoggedin) {
+      const response = await fetch(`${vars.server}/square/getSquare?action=getInitData`, {
+        credentials: "include",
+      });
+      const res = await response.json();
+      if (res.res === 200) {
+        setCustomers(res.customers);
+        setLocations(res.locations);
+        setLoading(false);
+        console.log(res);
+      }
+      if (location !== undefined) {
+        const response = await fetch(`${vars.server}/square/getSquare?action=getSales`, {
+          credentials: "include",
+        });
+        const res = await response.json();
+        if (res.res === 200) {
+          setSaless(res.sales);
+          setLoading(false);
+          console.log(res);
+        }
+      }
+    } else {
+      setLoading(false);
     }
   };
 
@@ -139,13 +201,16 @@ export default function App() {
 
   useEffect(() => {
     if (!isLoggedin) {
-      console.log("Use effect login");
       checkLogin();
     } else if (!isSquare) {
-      console.log("Use effect square");
       checkSquare();
+    } else {
+      console.log("Use effect getInitData");
+      setLocation(cookies.get("mylocation"));
+      console.log(cookies.get("mylocation")); // Pacman
+      getInitData();
     }
-  }, [isLoggedin, isSquare]);
+  }, [isLoggedin, isSquare, location]);
 
   // Setting page scroll to 0 when changing the route
   useEffect(() => {
@@ -190,7 +255,9 @@ export default function App() {
     </MDBox>
   );
 
-  if (!isLoggedin) {
+  if (loading) {
+    return null;
+  } else if (!isLoggedin) {
     return (
       <ThemeProvider theme={darkMode ? themeDarkRTL : themeRTL}>
         <CssBaseline />
@@ -248,6 +315,7 @@ export default function App() {
           </>
         )}
         {layout === "vr" && <Configurator />}
+        {/* {location == null && <LocationSelect locations={locations.locations} />} */}
         <Routes>
           {getRoutes(routes)}
           <Route path="*" element={<Navigate to="/dashboard" />} />
