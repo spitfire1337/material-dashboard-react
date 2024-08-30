@@ -15,6 +15,9 @@ Coded by www.creative-tim.com
 
 import { useState, useEffect, useMemo } from "react";
 
+// Vars
+import vars from "./vars";
+
 // react-router components
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 
@@ -122,7 +125,7 @@ export default function App() {
   // Open sidenav when mouse enter on mini sidenav
   const checkLogin = async () => {
     if (!isLoggedin) {
-      const response = await fetch(`${server}/auth/authCheck`, {
+      const response = await fetch(`${vars.server}/auth/authCheck`, {
         credentials: "include",
       });
       const res = await response.json();
@@ -138,7 +141,7 @@ export default function App() {
 
   const checkSquare = async () => {
     if (isLoggedin) {
-      const response = await fetch(`${server}/square/checkconfig`, {
+      const response = await fetch(`${vars.server}/square/checkconfig`, {
         credentials: "include",
       });
       const res = await response.json();
@@ -155,7 +158,7 @@ export default function App() {
 
   const getInitData = async () => {
     if (isLoggedin) {
-      const response = await fetch(`${server}/square/getSquare?action=getInitData`, {
+      const response = await fetch(`${vars.server}/square/getSquare?action=getInitData`, {
         credentials: "include",
       });
       const res = await response.json();
@@ -166,7 +169,7 @@ export default function App() {
         console.log(res);
       }
       if (location !== undefined) {
-        const response = await fetch(`${server}/square/getSquare?action=getSales`, {
+        const response = await fetch(`${vars.server}/square/getSquare?action=getSales`, {
           credentials: "include",
         });
         const res = await response.json();
