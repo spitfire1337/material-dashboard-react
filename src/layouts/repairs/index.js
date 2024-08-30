@@ -279,11 +279,35 @@ function Repairs() {
                     </Grid>
                     <Grid item sm={12}>
                       <TextField
-                        label="Street Address"
+                        label="Address line 1"
                         fullWidth
                         value={
                           selectedcustomer.address != undefined
                             ? selectedcustomer.address.address_line_1
+                            : ""
+                        }
+                      />
+                    </Grid>
+                    <Grid item sm={12}>
+                      <TextField
+                        label="Address line 2"
+                        fullWidth
+                        value={
+                          selectedcustomer.address != undefined &&
+                          selectedcustomer.address.address_line_2 != undefined
+                            ? selectedcustomer.address.address_line_2
+                            : ""
+                        }
+                      />
+                    </Grid>
+                    <Grid item sm={12}>
+                      <TextField
+                        label="Address line 3"
+                        fullWidth
+                        value={
+                          selectedcustomer.address != undefined &&
+                          selectedcustomer.address.address_line_3 != undefined
+                            ? selectedcustomer.address.address_line_3
                             : ""
                         }
                       />
