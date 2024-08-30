@@ -65,7 +65,7 @@ const routes = [
     icon: <Icon fontSize="small">assignment</Icon>,
     route: "/repairs",
     component: <Repairs />,
-  },
+  } /*,
   {
     type: "collapse",
     name: "Tables",
@@ -121,7 +121,7 @@ const routes = [
     icon: <Icon fontSize="small">assignment</Icon>,
     route: "/authentication/sign-up",
     component: <SignUp />,
-  },
+  }*/,
 ];
 
 export default routes;

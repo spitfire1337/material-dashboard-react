@@ -13,7 +13,7 @@ Coded by www.creative-tim.com
 * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 */
 // React components
-import { useState } from "react";
+import { useState, React } from "react";
 
 // Vars
 import vars from "../../vars";
@@ -30,11 +30,13 @@ import {
   InputLabel,
   Autocomplete,
   TextField,
+  Divider,
 } from "@mui/material";
 
 // Material Dashboard 2 React components
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
+import MDButton from "components/MDButton";
 
 // Material Dashboard 2 React example components
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
@@ -45,14 +47,18 @@ import DataTable from "examples/Tables/DataTable";
 // Data
 import authorsTableData from "layouts/tables/data/authorsTableData";
 import projectsTableData from "layouts/tables/data/projectsTableData";
+import { Label } from "@mui/icons-material";
 
 function Repairs() {
   const { columns, rows } = authorsTableData();
   const { columns: pColumns, rows: pRows } = projectsTableData();
   const [newRepair, setNewRepair] = useState(false);
+  const [showCustForm, setShowCustForm] = useState(false);
   const [customers, setCustomers] = useState([]);
   const [customersSelection, setCustomersSelection] = useState([]);
-  const [selectedcustomer, setSelectedCustomer] = useState("");
+  const [selectedcustomer, setSelectedCustomer] = useState([]);
+  const [repairStep, setRepairStep] = useState(1);
+
   const style = {
     position: "absolute",
     top: "50%",
@@ -64,6 +70,10 @@ function Repairs() {
     boxShadow: 24,
     p: 4,
     borderRadius: "25px",
+  };
+
+  const respairStepTwo = async () => {
+    return null;
   };
 
   const showNewRepair = async () => {
@@ -87,7 +97,10 @@ function Repairs() {
           });
         });
         setCustomersSelection(custList);
+        setSelectedCustomer({});
+        setShowCustForm(false);
         setNewRepair(true);
+        setRepairStep(0);
       } else {
         console.log(res);
       }
@@ -99,13 +112,19 @@ function Repairs() {
 
   const chooseCustomer = (cust) => {
     console.log(cust);
-    setSelectedCustomer(cust.id);
-    if (cust.id == 0) {
+    if (cust == null) {
+      setSelectedCustomer({});
+      setShowCustForm(false);
+    } else if (cust.id == 0) {
       //NEW CUSTOMER
       console.log("New customer");
+      setSelectedCustomer({});
+      setShowCustForm(true);
     } else {
-      let custData = customers.filter((mycust) => (mycust.id = cust.id));
+      let custData = customers.filter((mycust) => mycust.id == cust.id)[0];
+      setSelectedCustomer(custData);
       console.log("Selected customer", custData);
+      setShowCustForm(true);
     }
   };
   return (
@@ -132,7 +151,7 @@ function Repairs() {
                     </MDTypography>
                   </Grid>
                   <Grid item xs={6} alignItems="center" textAlign="right">
-                    <Button
+                    <MDButton
                       variant="contained"
                       color="success"
                       onClick={() => {
@@ -140,7 +159,7 @@ function Repairs() {
                       }}
                     >
                       New Repair
-                    </Button>
+                    </MDButton>
                   </Grid>
                 </Grid>
               </MDBox>
@@ -193,24 +212,133 @@ function Repairs() {
         aria-labelledby="modal-modal-title"
         aria-describedby="modal-modal-description"
       >
-        <MDBox sx={style}>
-          <MDTypography id="modal-modal-title" variant="h6" component="h2">
-            Customer details
-          </MDTypography>
-          <MDTypography id="modal-modal-description" sx={{ mt: 2 }}>
-            <FormControl fullWidth>
-              <Autocomplete
-                onChange={(event, newValue) => {
-                  chooseCustomer(newValue);
-                }}
-                disablePortal
-                options={customersSelection}
-                fullWidth
-                renderInput={(params) => <TextField {...params} label="Customer" />}
-              />
-            </FormControl>
-          </MDTypography>
-        </MDBox>
+        {repairStep == 0 ? (
+          <MDBox sx={style}>
+            <MDTypography id="modal-modal-title" variant="h6" component="h2">
+              Customer details
+            </MDTypography>
+            <MDTypography id="modal-modal-description" sx={{ mt: 2 }}>
+              <FormControl fullWidth>
+                <Autocomplete
+                  onChange={(event, newValue) => {
+                    chooseCustomer(newValue);
+                  }}
+                  disablePortal
+                  options={customersSelection}
+                  fullWidth
+                  renderInput={(params) => <TextField {...params} label="Customer" />}
+                />
+              </FormControl>
+              {showCustForm == true ? (
+                <FormControl fullWidth>
+                  <Divider fullWidth></Divider>
+                  <Grid container spacing={1} marginTop={1}>
+                    <Grid item md={6} sm={12}>
+                      <TextField
+                        label="First Name"
+                        fullWidth
+                        value={
+                          selectedcustomer.given_name != undefined
+                            ? selectedcustomer.given_name
+                            : ""
+                        }
+                      />
+                    </Grid>
+                    <Grid item md={6} sm={12}>
+                      <TextField
+                        label="Last Name"
+                        fullWidth
+                        value={
+                          selectedcustomer.family_name != undefined
+                            ? selectedcustomer.family_name
+                            : ""
+                        }
+                      />
+                    </Grid>
+                    <Grid item sm={12}>
+                      <TextField
+                        label="Email address"
+                        fullWidth
+                        value={
+                          selectedcustomer.email_address != undefined
+                            ? selectedcustomer.email_address
+                            : ""
+                        }
+                      />
+                    </Grid>
+                    <Grid item sm={12}>
+                      <TextField
+                        label="Phone number"
+                        fullWidth
+                        value={
+                          selectedcustomer.phone_number != undefined
+                            ? selectedcustomer.phone_number
+                            : ""
+                        }
+                      />
+                    </Grid>
+                    <Grid item sm={12}>
+                      <TextField
+                        label="Street Address"
+                        fullWidth
+                        value={
+                          selectedcustomer.address != undefined
+                            ? selectedcustomer.address.address_line_1
+                            : ""
+                        }
+                      />
+                    </Grid>
+                    <Grid item sm={12} md={6}>
+                      <TextField
+                        label="City"
+                        fullWidth
+                        value={
+                          selectedcustomer.address != undefined
+                            ? selectedcustomer.address.locality
+                            : ""
+                        }
+                      />
+                    </Grid>
+                    <Grid item sm={12} md={3}>
+                      <TextField
+                        label="State"
+                        fullWidth
+                        value={
+                          selectedcustomer.address != undefined
+                            ? selectedcustomer.address.administrative_district_level_1
+                            : ""
+                        }
+                      />
+                    </Grid>
+                    <Grid item sm={12} md={3}>
+                      <TextField
+                        label="Zip"
+                        fullWidth
+                        value={
+                          selectedcustomer.address != undefined
+                            ? selectedcustomer.address.postal_code
+                            : ""
+                        }
+                      />
+                    </Grid>
+                    <Grid item sm={12}>
+                      <MDButton
+                        fullWidth
+                        variant="outlined"
+                        color="primary"
+                        onClick={() => respairStepTwo()}
+                      >
+                        Next
+                      </MDButton>
+                    </Grid>
+                  </Grid>
+                </FormControl>
+              ) : null}
+            </MDTypography>
+          </MDBox>
+        ) : (
+          <MDBox></MDBox>
+        )}
       </Modal>
     </DashboardLayout>
   );
