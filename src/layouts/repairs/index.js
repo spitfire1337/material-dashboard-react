@@ -86,18 +86,27 @@ function Repairs() {
 
   const nextRepairStep = async (val) => {
     if (val == 2) {
-      try {
-        const response = await fetch(`${vars.server}/square/createCustomer`, {
-          method: "post",
-          body: JSON.stringify(selectedcustomer),
-          credentials: "include",
-        });
-        const json = await response.json();
-        console.log(json);
-        setRepairStep(val);
-        return null;
-      } catch (e) {
-        console.error(e);
+      if (selectedcustomer.id == undefined) {
+        //New Customer
+        try {
+          const response = await fetch(`${vars.server}/square/createCustomer`, {
+            method: "POST",
+            headers: {
+              Accept: "application/json",
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(selectedcustomer),
+            credentials: "include",
+          });
+          const json = await response.json();
+          console.log(json);
+          setRepairStep(val);
+          return null;
+        } catch (e) {
+          console.error(e);
+        }
+      } else {
+        //Existing customer, let's update square of any changes
       }
     }
   };

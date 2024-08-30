@@ -16,7 +16,7 @@ Coded by www.creative-tim.com
 import { useState, useEffect, useMemo } from "react";
 
 // Vars
-import vars from "./config";
+import vars from "./vars";
 // react-router components
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 
