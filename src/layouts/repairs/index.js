@@ -56,7 +56,19 @@ function Repairs() {
   const [showCustForm, setShowCustForm] = useState(false);
   const [customers, setCustomers] = useState([]);
   const [customersSelection, setCustomersSelection] = useState([]);
-  const [selectedcustomer, setSelectedCustomer] = useState([]);
+  const useForm = (initialValues) => {
+    const [values, setValues] = useState(initialValues);
+    return [
+      values,
+      (newValue) => {
+        setValues({
+          ...values,
+          ...newValue,
+        });
+      },
+    ];
+  };
+  const [selectedcustomer, setSelectedCustomer] = useForm({});
   const [repairStep, setRepairStep] = useState(1);
 
   const style = {
@@ -72,8 +84,22 @@ function Repairs() {
     borderRadius: "25px",
   };
 
-  const respairStepTwo = async () => {
-    return null;
+  const nextRepairStep = async (val) => {
+    if (val == 2) {
+      try {
+        const response = await fetch(`${vars.server}/square/createCustomer`, {
+          method: "post",
+          body: JSON.stringify(selectedcustomer),
+          credentials: "include",
+        });
+        const json = await response.json();
+        console.log(json);
+        setRepairStep(val);
+        return null;
+      } catch (e) {
+        console.error(e);
+      }
+    }
   };
 
   const showNewRepair = async () => {
@@ -126,6 +152,11 @@ function Repairs() {
       console.log("Selected customer", custData);
       setShowCustForm(true);
     }
+  };
+
+  const updateCustomer = (value) => {
+    setSelectedCustomer(value);
+    console.log("Updated customer:", selectedcustomer);
   };
   return (
     <DashboardLayout>
@@ -242,6 +273,10 @@ function Repairs() {
                             ? selectedcustomer.given_name
                             : ""
                         }
+                        onChange={(e) => {
+                          selectedcustomer.given_name = e.target.value;
+                          updateCustomer(selectedcustomer);
+                        }}
                       />
                     </Grid>
                     <Grid item md={6} sm={12}>
@@ -253,6 +288,10 @@ function Repairs() {
                             ? selectedcustomer.family_name
                             : ""
                         }
+                        onChange={(e) => {
+                          selectedcustomer.family_name = e.target.value;
+                          updateCustomer(selectedcustomer);
+                        }}
                       />
                     </Grid>
                     <Grid item sm={12}>
@@ -264,6 +303,10 @@ function Repairs() {
                             ? selectedcustomer.email_address
                             : ""
                         }
+                        onChange={(e) => {
+                          selectedcustomer.email_address = e.target.value;
+                          updateCustomer(selectedcustomer);
+                        }}
                       />
                     </Grid>
                     <Grid item sm={12}>
@@ -275,6 +318,10 @@ function Repairs() {
                             ? selectedcustomer.phone_number
                             : ""
                         }
+                        onChange={(e) => {
+                          selectedcustomer.phone_number = e.target.value;
+                          updateCustomer(selectedcustomer);
+                        }}
                       />
                     </Grid>
                     <Grid item sm={12}>
@@ -286,6 +333,13 @@ function Repairs() {
                             ? selectedcustomer.address.address_line_1
                             : ""
                         }
+                        onChange={(e) => {
+                          selectedcustomer.address == undefined
+                            ? (selectedcustomer.address = {})
+                            : null;
+                          selectedcustomer.address.address_line_1 = e.target.value;
+                          updateCustomer(selectedcustomer);
+                        }}
                       />
                     </Grid>
                     <Grid item sm={12}>
@@ -298,6 +352,13 @@ function Repairs() {
                             ? selectedcustomer.address.address_line_2
                             : ""
                         }
+                        onChange={(e) => {
+                          selectedcustomer.address == undefined
+                            ? (selectedcustomer.address = {})
+                            : null;
+                          selectedcustomer.address.address_line_2 = e.target.value;
+                          updateCustomer(selectedcustomer);
+                        }}
                       />
                     </Grid>
                     <Grid item sm={12}>
@@ -310,6 +371,13 @@ function Repairs() {
                             ? selectedcustomer.address.address_line_3
                             : ""
                         }
+                        onChange={(e) => {
+                          selectedcustomer.address == undefined
+                            ? (selectedcustomer.address = {})
+                            : null;
+                          selectedcustomer.address.address_line_3 = e.target.value;
+                          updateCustomer(selectedcustomer);
+                        }}
                       />
                     </Grid>
                     <Grid item sm={12} md={6}>
@@ -321,6 +389,13 @@ function Repairs() {
                             ? selectedcustomer.address.locality
                             : ""
                         }
+                        onChange={(e) => {
+                          selectedcustomer.address == undefined
+                            ? (selectedcustomer.address = {})
+                            : null;
+                          selectedcustomer.address.locality = e.target.value;
+                          updateCustomer(selectedcustomer);
+                        }}
                       />
                     </Grid>
                     <Grid item sm={12} md={3}>
@@ -332,6 +407,13 @@ function Repairs() {
                             ? selectedcustomer.address.administrative_district_level_1
                             : ""
                         }
+                        onChange={(e) => {
+                          selectedcustomer.address == undefined
+                            ? (selectedcustomer.address = {})
+                            : null;
+                          selectedcustomer.address.administrative_district_level_1 = e.target.value;
+                          updateCustomer(selectedcustomer);
+                        }}
                       />
                     </Grid>
                     <Grid item sm={12} md={3}>
@@ -343,6 +425,13 @@ function Repairs() {
                             ? selectedcustomer.address.postal_code
                             : ""
                         }
+                        onChange={(e) => {
+                          selectedcustomer.address == undefined
+                            ? (selectedcustomer.address = {})
+                            : null;
+                          selectedcustomer.address.postal_code = e.target.value;
+                          updateCustomer(selectedcustomer);
+                        }}
                       />
                     </Grid>
                     <Grid item sm={12}>
@@ -350,7 +439,7 @@ function Repairs() {
                         fullWidth
                         variant="outlined"
                         color="primary"
-                        onClick={() => respairStepTwo()}
+                        onClick={() => nextRepairStep(2)}
                       >
                         Next
                       </MDButton>
