@@ -45,7 +45,7 @@ import bgImage from "assets/images/bg-sign-in-basic.jpeg";
 function Basic() {
   const [rememberMe, setRememberMe] = useState(false);
 
-  const authServer = "http://localhost:3005";
+  const authServer = "http://localhost:3006";
   return (
     <BasicLayout image={bgImage}>
       <Card>

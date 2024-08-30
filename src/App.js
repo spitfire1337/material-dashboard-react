@@ -99,7 +99,7 @@ export default function App() {
   const [location, setLocation] = useState(null);
   const [loading, setLoading] = useState(true);
   const { pathname } = useLocation();
-  const server = "http://localhost:3005";
+  
   const cookies = new Cookies(null, { path: "/" });
   // Cache for the rtl
   useMemo(() => {
