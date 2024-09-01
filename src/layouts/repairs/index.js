@@ -104,9 +104,28 @@ function Repairs() {
           return null;
         } catch (e) {
           console.error(e);
+          // TODO: Add error notification
         }
       } else {
         //Existing customer, let's update square of any changes
+        try {
+          const response = await fetch(`${vars.server}/square/updateCustomer`, {
+            method: "POST",
+            headers: {
+              Accept: "application/json",
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(selectedcustomer),
+            credentials: "include",
+          });
+          const json = await response.json();
+          console.log(json);
+          setRepairStep(val);
+          return null;
+        } catch (e) {
+          console.error(e);
+          // TODO: Add error notification
+        }
       }
     }
   };
