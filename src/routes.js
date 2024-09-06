@@ -49,23 +49,24 @@ import SignUp from "layouts/authentication/sign-up";
 // @mui icons
 import Icon from "@mui/material/Icon";
 
-const routes = [
-  {
-    type: "collapse",
-    name: "Dashboard",
-    key: "dashboard",
-    icon: <Icon fontSize="small">dashboard</Icon>,
-    route: "/dashboard",
-    component: <Dashboard />,
-  },
-  {
-    type: "collapse",
-    name: "Repairs",
-    key: "repairs",
-    icon: <Icon fontSize="small">assignment</Icon>,
-    route: "/repairs",
-    component: <Repairs />,
-  } /*,
+const routes = (setLoggedIn) => {
+  return [
+    {
+      type: "collapse",
+      name: "Dashboard",
+      key: "dashboard",
+      icon: <Icon fontSize="small">dashboard</Icon>,
+      route: "/dashboard",
+      component: <Dashboard setLoggedIn={setLoggedIn} />,
+    },
+    {
+      type: "collapse",
+      name: "Repairs",
+      key: "repairs",
+      icon: <Icon fontSize="small">assignment</Icon>,
+      route: "/repairs",
+      component: <Repairs setLoggedIn={setLoggedIn} />,
+    } /*,
   {
     type: "collapse",
     name: "Tables",
@@ -122,6 +123,7 @@ const routes = [
     route: "/authentication/sign-up",
     component: <SignUp />,
   }*/,
-];
+  ];
+};
 
 export default routes;

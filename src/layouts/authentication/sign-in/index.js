@@ -14,6 +14,7 @@ Coded by www.creative-tim.com
 */
 
 import { useState } from "react";
+import vars from "../../../config";
 
 // react-router-dom components
 import { Link } from "react-router-dom";
@@ -68,7 +69,7 @@ function Basic() {
         <MDBox pt={4} pb={3} px={3}>
           <MDBox component="form" role="form">
             <MDBox mt={4} mb={1}>
-              <MuiLink href={authServer + "/auth/signin"}>
+              <MuiLink href={vars.serverUrl + "/auth/signin"}>
                 <MDButton variant="gradient" color="info" fullWidth>
                   <MicrosoftIcon /> Sign in with Microsoft
                 </MDButton>

@@ -1,3 +1,3 @@
-const server = "http://localhost:3006";
+const server = "https://api.pevconnection.com";
 let vars = { serverUrl: server };
 export default vars;
