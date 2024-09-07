@@ -37,7 +37,8 @@ import reportsLineChartData from "layouts/dashboard/data/reportsLineChartData";
 import Projects from "layouts/dashboard/components/Projects";
 import OrdersOverview from "layouts/dashboard/components/OrdersOverview";
 
-function Dashboard() {
+// eslint-disable-next-line react/prop-types
+function Dashboard({ setLoggedIn }) {
   const [mysales, setSales] = useState({ lastweek: 0, thisweek: 0 });
   const [salesChange, setSalesChange] = useState(0);
   const { sales, tasks } = reportsLineChartData;

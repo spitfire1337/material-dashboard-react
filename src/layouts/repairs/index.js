@@ -44,18 +44,22 @@ import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import Footer from "examples/Footer";
 import DataTable from "examples/Tables/DataTable";
 
+import Step1 from "./components/step1";
+import Step2 from "./components/step2";
+
 // Data
 import authorsTableData from "layouts/tables/data/authorsTableData";
 import projectsTableData from "layouts/tables/data/projectsTableData";
 import { Label } from "@mui/icons-material";
 
-function Repairs() {
+// eslint-disable-next-line react/prop-types
+const Repairs = ({ setLoggedIn }) => {
   const { columns, rows } = authorsTableData();
   const { columns: pColumns, rows: pRows } = projectsTableData();
   const [newRepair, setNewRepair] = useState(false);
   const [showCustForm, setShowCustForm] = useState(false);
   const [customers, setCustomers] = useState([]);
-  const [customerID, setCustomerID] = useState(null);
+  const [PEVS, setPEVS] = useState([]);
   const [customersSelection, setCustomersSelection] = useState([]);
   const useForm = (initialValues) => {
     const [values, setValues] = useState(initialValues);
@@ -70,6 +74,7 @@ function Repairs() {
     ];
   };
   const [selectedcustomer, setSelectedCustomer] = useForm({});
+  const [selectedPEV, setSelectedPEV] = useForm({});
   const [repairStep, setRepairStep] = useState(1);
 
   const style = {
@@ -90,7 +95,7 @@ function Repairs() {
       if (selectedcustomer.id == undefined) {
         //New Customer
         try {
-          const response = await fetch(`${vars.server}/square/createCustomer`, {
+          const response = await fetch(`${vars.serverUrl}/square/createCustomer`, {
             method: "POST",
             headers: {
               Accept: "application/json",
@@ -106,11 +111,12 @@ function Repairs() {
           return null;
         } catch (e) {
           console.error(e);
+          // TODO: Add error notification
         }
       } else {
         //Existing customer, let's update square of any changes
         try {
-          const response = await fetch(`${vars.server}/square/updateCustomer`, {
+          const response = await fetch(`${vars.serverUrl}/square/updateCustomer`, {
             method: "POST",
             headers: {
               Accept: "application/json",
@@ -120,49 +126,20 @@ function Repairs() {
             credentials: "include",
           });
           const json = await response.json();
-          console.log(json.data);
-          setCustomerID(json.data.customer.id);
+          console.log(json);
           setRepairStep(val);
           return null;
         } catch (e) {
           console.error(e);
+          // TODO: Add error notification
         }
       }
     }
   };
 
   const showNewRepair = async () => {
-    const response = await fetch(`${vars.server}/square/getMyData?action=getCustomers`, {
-      credentials: "include",
-    });
-    if (response.status == 200) {
-      const res = await response.json();
-      if (res.res === 200) {
-        const useableCustomers = res.data.filter((cust) => cust.email_address != undefined);
-        setCustomers(useableCustomers);
-        let custList = [{ label: "New Customer", id: 0 }];
-        useableCustomers.map((cust) => {
-          custList.push({
-            label: `${cust.email_address} ${
-              cust.given_name != undefined && cust.family_name != undefined
-                ? `| ${cust.given_name} ${cust.family_name}`
-                : ""
-            }`,
-            id: cust.id,
-          });
-        });
-        setCustomersSelection(custList);
-        setSelectedCustomer({});
-        setShowCustForm(false);
-        setNewRepair(true);
-        setRepairStep(0);
-      } else {
-        console.log(res);
-      }
-    } else {
-      //Unauthorized or invalid response
-      console.log(response);
-    }
+    setNewRepair(true);
+    setRepairStep(0);
   };
 
   const chooseCustomer = (cust) => {
@@ -273,217 +250,247 @@ function Repairs() {
         aria-describedby="modal-modal-description"
       >
         {repairStep == 0 ? (
-          <MDBox sx={style}>
-            <MDTypography id="modal-modal-title" variant="h6" component="h2">
-              Customer details
-            </MDTypography>
-            <MDTypography id="modal-modal-description" sx={{ mt: 2 }}>
-              <FormControl fullWidth>
-                <Autocomplete
-                  onChange={(event, newValue) => {
-                    chooseCustomer(newValue);
-                  }}
-                  disablePortal
-                  options={customersSelection}
-                  fullWidth
-                  renderInput={(params) => <TextField {...params} label="Customer" />}
-                />
-              </FormControl>
-              {showCustForm == true ? (
-                <FormControl fullWidth>
-                  <Divider fullWidth></Divider>
-                  <Grid container spacing={1} marginTop={1}>
-                    <Grid item md={6} sm={12}>
-                      <TextField
-                        label="First Name"
-                        fullWidth
-                        value={
-                          selectedcustomer.given_name != undefined
-                            ? selectedcustomer.given_name
-                            : ""
-                        }
-                        onChange={(e) => {
-                          selectedcustomer.given_name = e.target.value;
-                          updateCustomer(selectedcustomer);
-                        }}
-                      />
-                    </Grid>
-                    <Grid item md={6} sm={12}>
-                      <TextField
-                        label="Last Name"
-                        fullWidth
-                        value={
-                          selectedcustomer.family_name != undefined
-                            ? selectedcustomer.family_name
-                            : ""
-                        }
-                        onChange={(e) => {
-                          selectedcustomer.family_name = e.target.value;
-                          updateCustomer(selectedcustomer);
-                        }}
-                      />
-                    </Grid>
-                    <Grid item sm={12}>
-                      <TextField
-                        label="Email address"
-                        fullWidth
-                        value={
-                          selectedcustomer.email_address != undefined
-                            ? selectedcustomer.email_address
-                            : ""
-                        }
-                        onChange={(e) => {
-                          selectedcustomer.email_address = e.target.value;
-                          updateCustomer(selectedcustomer);
-                        }}
-                      />
-                    </Grid>
-                    <Grid item sm={12}>
-                      <TextField
-                        label="Phone number"
-                        fullWidth
-                        value={
-                          selectedcustomer.phone_number != undefined
-                            ? selectedcustomer.phone_number
-                            : ""
-                        }
-                        onChange={(e) => {
-                          selectedcustomer.phone_number = e.target.value;
-                          updateCustomer(selectedcustomer);
-                        }}
-                      />
-                    </Grid>
-                    <Grid item sm={12}>
-                      <TextField
-                        label="Address line 1"
-                        fullWidth
-                        value={
-                          selectedcustomer.address != undefined
-                            ? selectedcustomer.address.address_line_1
-                            : ""
-                        }
-                        onChange={(e) => {
-                          selectedcustomer.address == undefined
-                            ? (selectedcustomer.address = {})
-                            : null;
-                          selectedcustomer.address.address_line_1 = e.target.value;
-                          updateCustomer(selectedcustomer);
-                        }}
-                      />
-                    </Grid>
-                    <Grid item sm={12}>
-                      <TextField
-                        label="Address line 2"
-                        fullWidth
-                        value={
-                          selectedcustomer.address != undefined &&
-                          selectedcustomer.address.address_line_2 != undefined
-                            ? selectedcustomer.address.address_line_2
-                            : ""
-                        }
-                        onChange={(e) => {
-                          selectedcustomer.address == undefined
-                            ? (selectedcustomer.address = {})
-                            : null;
-                          selectedcustomer.address.address_line_2 = e.target.value;
-                          updateCustomer(selectedcustomer);
-                        }}
-                      />
-                    </Grid>
-                    <Grid item sm={12}>
-                      <TextField
-                        label="Address line 3"
-                        fullWidth
-                        value={
-                          selectedcustomer.address != undefined &&
-                          selectedcustomer.address.address_line_3 != undefined
-                            ? selectedcustomer.address.address_line_3
-                            : ""
-                        }
-                        onChange={(e) => {
-                          selectedcustomer.address == undefined
-                            ? (selectedcustomer.address = {})
-                            : null;
-                          selectedcustomer.address.address_line_3 = e.target.value;
-                          updateCustomer(selectedcustomer);
-                        }}
-                      />
-                    </Grid>
-                    <Grid item sm={12} md={6}>
-                      <TextField
-                        label="City"
-                        fullWidth
-                        value={
-                          selectedcustomer.address != undefined
-                            ? selectedcustomer.address.locality
-                            : ""
-                        }
-                        onChange={(e) => {
-                          selectedcustomer.address == undefined
-                            ? (selectedcustomer.address = {})
-                            : null;
-                          selectedcustomer.address.locality = e.target.value;
-                          updateCustomer(selectedcustomer);
-                        }}
-                      />
-                    </Grid>
-                    <Grid item sm={12} md={3}>
-                      <TextField
-                        label="State"
-                        fullWidth
-                        value={
-                          selectedcustomer.address != undefined
-                            ? selectedcustomer.address.administrative_district_level_1
-                            : ""
-                        }
-                        onChange={(e) => {
-                          selectedcustomer.address == undefined
-                            ? (selectedcustomer.address = {})
-                            : null;
-                          selectedcustomer.address.administrative_district_level_1 = e.target.value;
-                          updateCustomer(selectedcustomer);
-                        }}
-                      />
-                    </Grid>
-                    <Grid item sm={12} md={3}>
-                      <TextField
-                        label="Zip"
-                        fullWidth
-                        value={
-                          selectedcustomer.address != undefined
-                            ? selectedcustomer.address.postal_code
-                            : ""
-                        }
-                        onChange={(e) => {
-                          selectedcustomer.address == undefined
-                            ? (selectedcustomer.address = {})
-                            : null;
-                          selectedcustomer.address.postal_code = e.target.value;
-                          updateCustomer(selectedcustomer);
-                        }}
-                      />
-                    </Grid>
-                    <Grid item sm={12}>
-                      <MDButton
-                        fullWidth
-                        variant="outlined"
-                        color="primary"
-                        onClick={() => nextRepairStep(2)}
-                      >
-                        Next
-                      </MDButton>
-                    </Grid>
-                  </Grid>
-                </FormControl>
-              ) : null}
-            </MDTypography>
-          </MDBox>
+          // <MDBox sx={style}>
+          //   <MDTypography id="modal-modal-title" variant="h6" component="h2">
+          //     Customer details
+          //   </MDTypography>
+          //   <MDTypography id="modal-modal-description" sx={{ mt: 2 }}>
+          //     <FormControl fullWidth>
+          //       <Autocomplete
+          //         onChange={(event, newValue) => {
+          //           chooseCustomer(newValue);
+          //         }}
+          //         disablePortal
+          //         options={customersSelection}
+          //         fullWidth
+          //         renderInput={(params) => <TextField {...params} label="Customer" />}
+          //       />
+          //     </FormControl>
+          //     {showCustForm == true ? (
+          //       <FormControl fullWidth>
+          //         <Divider fullWidth></Divider>
+          //         <Grid container spacing={1} marginTop={1}>
+          //           <Grid item md={6} sm={12}>
+          //             <TextField
+          //               label="First Name"
+          //               fullWidth
+          //               value={
+          //                 selectedcustomer.given_name != undefined
+          //                   ? selectedcustomer.given_name
+          //                   : ""
+          //               }
+          //               onChange={(e) => {
+          //                 selectedcustomer.given_name = e.target.value;
+          //                 updateCustomer(selectedcustomer);
+          //               }}
+          //             />
+          //           </Grid>
+          //           <Grid item md={6} sm={12}>
+          //             <TextField
+          //               label="Last Name"
+          //               fullWidth
+          //               value={
+          //                 selectedcustomer.family_name != undefined
+          //                   ? selectedcustomer.family_name
+          //                   : ""
+          //               }
+          //               onChange={(e) => {
+          //                 selectedcustomer.family_name = e.target.value;
+          //                 updateCustomer(selectedcustomer);
+          //               }}
+          //             />
+          //           </Grid>
+          //           <Grid item sm={12}>
+          //             <TextField
+          //               label="Email address"
+          //               fullWidth
+          //               value={
+          //                 selectedcustomer.email_address != undefined
+          //                   ? selectedcustomer.email_address
+          //                   : ""
+          //               }
+          //               onChange={(e) => {
+          //                 selectedcustomer.email_address = e.target.value;
+          //                 updateCustomer(selectedcustomer);
+          //               }}
+          //             />
+          //           </Grid>
+          //           <Grid item sm={12}>
+          //             <TextField
+          //               label="Phone number"
+          //               fullWidth
+          //               value={
+          //                 selectedcustomer.phone_number != undefined
+          //                   ? selectedcustomer.phone_number
+          //                   : ""
+          //               }
+          //               onChange={(e) => {
+          //                 selectedcustomer.phone_number = e.target.value;
+          //                 updateCustomer(selectedcustomer);
+          //               }}
+          //             />
+          //           </Grid>
+          //           <Grid item sm={12}>
+          //             <TextField
+          //               label="Address line 1"
+          //               fullWidth
+          //               value={
+          //                 selectedcustomer.address != undefined
+          //                   ? selectedcustomer.address.address_line_1
+          //                   : ""
+          //               }
+          //               onChange={(e) => {
+          //                 selectedcustomer.address == undefined
+          //                   ? (selectedcustomer.address = {})
+          //                   : null;
+          //                 selectedcustomer.address.address_line_1 = e.target.value;
+          //                 updateCustomer(selectedcustomer);
+          //               }}
+          //             />
+          //           </Grid>
+          //           <Grid item sm={12}>
+          //             <TextField
+          //               label="Address line 2"
+          //               fullWidth
+          //               value={
+          //                 selectedcustomer.address != undefined &&
+          //                 selectedcustomer.address.address_line_2 != undefined
+          //                   ? selectedcustomer.address.address_line_2
+          //                   : ""
+          //               }
+          //               onChange={(e) => {
+          //                 selectedcustomer.address == undefined
+          //                   ? (selectedcustomer.address = {})
+          //                   : null;
+          //                 selectedcustomer.address.address_line_2 = e.target.value;
+          //                 updateCustomer(selectedcustomer);
+          //               }}
+          //             />
+          //           </Grid>
+          //           <Grid item sm={12}>
+          //             <TextField
+          //               label="Address line 3"
+          //               fullWidth
+          //               value={
+          //                 selectedcustomer.address != undefined &&
+          //                 selectedcustomer.address.address_line_3 != undefined
+          //                   ? selectedcustomer.address.address_line_3
+          //                   : ""
+          //               }
+          //               onChange={(e) => {
+          //                 selectedcustomer.address == undefined
+          //                   ? (selectedcustomer.address = {})
+          //                   : null;
+          //                 selectedcustomer.address.address_line_3 = e.target.value;
+          //                 updateCustomer(selectedcustomer);
+          //               }}
+          //             />
+          //           </Grid>
+          //           <Grid item sm={12} md={6}>
+          //             <TextField
+          //               label="City"
+          //               fullWidth
+          //               value={
+          //                 selectedcustomer.address != undefined
+          //                   ? selectedcustomer.address.locality
+          //                   : ""
+          //               }
+          //               onChange={(e) => {
+          //                 selectedcustomer.address == undefined
+          //                   ? (selectedcustomer.address = {})
+          //                   : null;
+          //                 selectedcustomer.address.locality = e.target.value;
+          //                 updateCustomer(selectedcustomer);
+          //               }}
+          //             />
+          //           </Grid>
+          //           <Grid item sm={12} md={3}>
+          //             <TextField
+          //               label="State"
+          //               fullWidth
+          //               value={
+          //                 selectedcustomer.address != undefined
+          //                   ? selectedcustomer.address.administrative_district_level_1
+          //                   : ""
+          //               }
+          //               onChange={(e) => {
+          //                 selectedcustomer.address == undefined
+          //                   ? (selectedcustomer.address = {})
+          //                   : null;
+          //                 selectedcustomer.address.administrative_district_level_1 = e.target.value;
+          //                 updateCustomer(selectedcustomer);
+          //               }}
+          //             />
+          //           </Grid>
+          //           <Grid item sm={12} md={3}>
+          //             <TextField
+          //               label="Zip"
+          //               fullWidth
+          //               value={
+          //                 selectedcustomer.address != undefined
+          //                   ? selectedcustomer.address.postal_code
+          //                   : ""
+          //               }
+          //               onChange={(e) => {
+          //                 selectedcustomer.address == undefined
+          //                   ? (selectedcustomer.address = {})
+          //                   : null;
+          //                 selectedcustomer.address.postal_code = e.target.value;
+          //                 updateCustomer(selectedcustomer);
+          //               }}
+          //             />
+          //           </Grid>
+          //           <Grid item sm={12}>
+          //             <MDButton
+          //               fullWidth
+          //               variant="outlined"
+          //               color="primary"
+          //               onClick={() => nextRepairStep(2)}
+          //             >
+          //               Next
+          //             </MDButton>
+          //           </Grid>
+          //         </Grid>
+          //       </FormControl>
+          //     ) : null}
+          //   </MDTypography>
+          // </MDBox>
+          <Step1
+            nextRepairStep={nextRepairStep}
+            setSelectedCustomer={setSelectedCustomer}
+            selectedcustomer={selectedcustomer}
+            setLoggedIn={setLoggedIn}
+          ></Step1>
+        ) : repairStep == 2 ? (
+          <Step2
+            nextRepairStep={nextRepairStep}
+            setSelectedPEV={setSelectedPEV}
+            selectedPEV={selectedPEV}
+            setLoggedIn={setLoggedIn}
+          ></Step2>
         ) : (
+          // <MDBox sx={style}>
+          //   <MDTypography id="modal-modal-title" variant="h6" component="h2">
+          //     PEV details
+          //   </MDTypography>
+          //   <MDTypography id="modal-modal-description" sx={{ mt: 2 }}>
+          //     <FormControl fullWidth>
+          //       <Grid container spacing={1} marginTop={1}>
+          //         <Grid item sm={12}>
+          //           <TextField fullWidth label="PEV Make & Model" />
+          //         </Grid>
+          //         <Grid item sm={12}>
+          //           <TextField fullWidth label="Problem details" />
+          //         </Grid>
+          //       </Grid>
+          //     </FormControl>
+          //   </MDTypography>
+          // </MDBox>
           <MDBox></MDBox>
         )}
       </Modal>
     </DashboardLayout>
   );
-}
+};
 
 export default Repairs;

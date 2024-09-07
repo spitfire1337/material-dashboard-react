@@ -14,6 +14,7 @@ Coded by www.creative-tim.com
 */
 
 import { useState, useEffect } from "react";
+import vars from "../../config";
 
 // react-github-btn
 import GitHubButton from "react-github-btn";
@@ -33,7 +34,15 @@ import FacebookIcon from "@mui/icons-material/Facebook";
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 import MDButton from "components/MDButton";
-
+import {
+  Modal,
+  FormControl,
+  Select,
+  MenuItem,
+  InputLabel,
+  Autocomplete,
+  TextField,
+} from "@mui/material";
 // Custom styles for the Configurator
 import ConfiguratorRoot from "examples/Configurator/ConfiguratorRoot";
 
@@ -59,10 +68,40 @@ function Configurator() {
     darkMode,
   } = controller;
   const [disabled, setDisabled] = useState(false);
+  const [availablePrinters, setAvailablePrinters] = useState([]);
+  const [eightXelevenPrinter, seteightXelevenPrinter] = useState();
+  const [twoXonePrinter, settwoXonePrinter] = useState();
+
   const sidenavColors = ["primary", "dark", "info", "success", "warning", "error"];
 
   // Use the useEffect hook to change the button state for the sidenav type based on window size.
   useEffect(() => {
+    const fetchPrinters = async () => {
+      const response = await fetch(`${vars.serverUrl}/square/getPrinters`, {
+        credentials: "include",
+      });
+      const res = await response.json();
+      if (res.res === 200) {
+        let custList = [];
+        res.data.map((printer) => {
+          custList.push({
+            label: `${printer.name}`,
+            id: printer.name,
+          });
+        });
+        setAvailablePrinters(custList);
+      }
+
+      const myPrintersresponse = await fetch(`${vars.serverUrl}/square/getSetPrinters`, {
+        credentials: "include",
+      });
+      const printerres = await myPrintersresponse.json();
+      if (printerres.res === 200) {
+        seteightXelevenPrinter(printerres.data.eightxelev.printerName);
+        settwoXonePrinter(printerres.data.twoxone.printerName);
+      }
+    };
+    fetchPrinters();
     // A function that sets the disabled state of the buttons for the sidenav type.
     function handleDisabled() {
       return window.innerWidth > 1200 ? setDisabled(false) : setDisabled(true);
@@ -112,6 +151,13 @@ function Configurator() {
     },
   });
 
+  const getSelectedItem = () => {
+    const item = this.props.options.find((opt) => {
+      if (opt.value == this.props.selectedValue) return opt;
+    });
+    return item || {};
+  };
+
   // sidenav type active button styles
   const sidenavTypeActiveButtonStyles = ({
     functions: { pxToRem, linearGradient },
@@ -138,9 +184,9 @@ function Configurator() {
         px={3}
       >
         <MDBox>
-          <MDTypography variant="h5">Material UI Configurator</MDTypography>
+          <MDTypography variant="h5">CRM Settings</MDTypography>
           <MDTypography variant="body2" color="text">
-            See our dashboard options.
+            Adjust dashboard settings.
           </MDTypography>
         </MDBox>
 
@@ -163,10 +209,20 @@ function Configurator() {
 
       <MDBox pt={0.5} pb={3} px={3}>
         <MDBox>
-          <MDTypography variant="h6">Sidenav Colors</MDTypography>
+          <MDTypography variant="h6">Printers</MDTypography>
 
-          <MDBox mb={0.5}>
-            {sidenavColors.map((color) => (
+          <MDBox mb={2} mt={2}>
+            <Autocomplete
+              onChange={(event, newValue) => {
+                seteightXelevenPrinter(newValue);
+              }}
+              disablePortal
+              options={availablePrinters}
+              fullWidth
+              value={availablePrinters.find((v) => v.label === eightXelevenPrinter) || {}}
+              renderInput={(params) => <TextField {...params} label="8 x 11 Printer" />}
+            />
+            {/* {sidenavColors.map((color) => (
               <IconButton
                 key={color}
                 sx={({
@@ -204,11 +260,28 @@ function Configurator() {
                 })}
                 onClick={() => setSidenavColor(dispatch, color)}
               />
-            ))}
+            ))} */}
+          </MDBox>
+          <MDBox mb={2}>
+            <Autocomplete
+              onChange={(event, newValue) => {
+                settwoXonePrinter(newValue);
+              }}
+              disablePortal
+              options={availablePrinters}
+              value={availablePrinters.find((v) => v.label === twoXonePrinter) || {}}
+              fullWidth
+              renderInput={(params) => <TextField {...params} label="2.25 x 1.25 Printer" />}
+            />
+          </MDBox>
+          <MDBox mb={2}>
+            <MDButton fullWidth variant="outlined" color="primary">
+              Save
+            </MDButton>
           </MDBox>
         </MDBox>
 
-        <MDBox mt={3} lineHeight={1}>
+        {/* <MDBox mt={3} lineHeight={1}>
           <MDTypography variant="h6">Sidenav Type</MDTypography>
           <MDTypography variant="button" color="text">
             Choose between different sidenav types.
@@ -338,7 +411,7 @@ function Configurator() {
               &nbsp; Share
             </MDButton>
           </MDBox>
-        </MDBox>
+        </MDBox> */}
       </MDBox>
     </ConfiguratorRoot>
   );

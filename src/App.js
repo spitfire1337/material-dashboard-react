@@ -16,7 +16,7 @@ Coded by www.creative-tim.com
 import { useState, useEffect, useMemo } from "react";
 
 // Vars
-import vars from "./vars";
+import vars from "./config";
 // react-router components
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 
@@ -124,7 +124,7 @@ export default function App() {
   // Open sidenav when mouse enter on mini sidenav
   const checkLogin = async () => {
     if (!isLoggedin) {
-      const response = await fetch(`${vars.server}/auth/authCheck`, {
+      const response = await fetch(`${vars.serverUrl}/auth/authCheck`, {
         credentials: "include",
       });
       const res = await response.json();
@@ -140,7 +140,7 @@ export default function App() {
 
   const checkSquare = async () => {
     if (isLoggedin) {
-      const response = await fetch(`${vars.server}/square/checkconfig`, {
+      const response = await fetch(`${vars.serverUrl}/square/checkconfig`, {
         credentials: "include",
       });
       const res = await response.json();
@@ -157,7 +157,7 @@ export default function App() {
 
   const getInitData = async () => {
     if (isLoggedin) {
-      const response = await fetch(`${vars.server}/square/getSquare?action=getInitData`, {
+      const response = await fetch(`${vars.serverUrl}/square/getSquare?action=getInitData`, {
         credentials: "include",
       });
       const res = await response.json();
@@ -168,7 +168,7 @@ export default function App() {
         console.log(res);
       }
       if (location !== undefined) {
-        const response = await fetch(`${vars.server}/square/getSquare?action=getSales`, {
+        const response = await fetch(`${vars.serverUrl}/square/getSquare?action=getSales`, {
           credentials: "include",
         });
         const res = await response.json();
@@ -282,7 +282,7 @@ export default function App() {
                 color={sidenavColor}
                 brand={(transparentSidenav && !darkMode) || whiteSidenav ? brandDark : brandWhite}
                 brandName="Material Dashboard 2"
-                routes={routes}
+                routes={routes(setLoggedIn)}
                 onMouseEnter={handleOnMouseEnter}
                 onMouseLeave={handleOnMouseLeave}
               />
@@ -292,7 +292,7 @@ export default function App() {
           )}
           {layout === "vr" && <Configurator />}
           <Routes>
-            {getRoutes(routes)}
+            {getRoutes(routes(setLoggedIn))}
             <Route path="*" element={<Navigate to="/dashboard" />} />
           </Routes>
         </ThemeProvider>
@@ -306,7 +306,7 @@ export default function App() {
               color={sidenavColor}
               brand={(transparentSidenav && !darkMode) || whiteSidenav ? brandDark : brandWhite}
               brandName="Material Dashboard 2"
-              routes={routes}
+              routes={routes(setLoggedIn)}
               onMouseEnter={handleOnMouseEnter}
               onMouseLeave={handleOnMouseLeave}
             />
@@ -317,7 +317,7 @@ export default function App() {
         {layout === "vr" && <Configurator />}
         {/* {location == null && <LocationSelect locations={locations.locations} />} */}
         <Routes>
-          {getRoutes(routes)}
+          {getRoutes(routes(setLoggedIn))}
           <Route path="*" element={<Navigate to="/dashboard" />} />
         </Routes>
       </ThemeProvider>

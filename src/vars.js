@@ -1,5 +1,5 @@
 const vars = {
-  server: "http://localhost:3006",
+  server: "https://api.pevconnection.com",
 };
 
 export default vars;
