@@ -55,6 +55,7 @@ function Repairs() {
   const [newRepair, setNewRepair] = useState(false);
   const [showCustForm, setShowCustForm] = useState(false);
   const [customers, setCustomers] = useState([]);
+  const [customerID, setCustomerID] = useState(null);
   const [customersSelection, setCustomersSelection] = useState([]);
   const useForm = (initialValues) => {
     const [values, setValues] = useState(initialValues);
@@ -99,7 +100,8 @@ function Repairs() {
             credentials: "include",
           });
           const json = await response.json();
-          console.log(json);
+          console.log(json.data.customer);
+          setCustomerID(json.data.customer.id);
           setRepairStep(val);
           return null;
         } catch (e) {
@@ -107,6 +109,24 @@ function Repairs() {
         }
       } else {
         //Existing customer, let's update square of any changes
+        try {
+          const response = await fetch(`${vars.server}/square/updateCustomer`, {
+            method: "POST",
+            headers: {
+              Accept: "application/json",
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(selectedcustomer),
+            credentials: "include",
+          });
+          const json = await response.json();
+          console.log(json.data);
+          setCustomerID(json.data.customer.id);
+          setRepairStep(val);
+          return null;
+        } catch (e) {
+          console.error(e);
+        }
       }
     }
   };
