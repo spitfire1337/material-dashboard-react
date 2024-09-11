@@ -105,7 +105,8 @@ const Repairs = ({ setLoggedIn }) => {
             credentials: "include",
           });
           const json = await response.json();
-          console.log(json);
+          console.log(json.data.customer);
+          setCustomerID(json.data.customer.id);
           setRepairStep(val);
           return null;
         } catch (e) {
