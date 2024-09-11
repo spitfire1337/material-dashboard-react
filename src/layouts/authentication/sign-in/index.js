@@ -44,10 +44,6 @@ import BasicLayout from "layouts/authentication/components/BasicLayout";
 import bgImage from "assets/images/bg-sign-in-basic.jpeg";
 
 function Basic() {
-  const [rememberMe, setRememberMe] = useState(false);
-
-  const authServer = "http://localhost:3006";
-
   return (
     <BasicLayout image={bgImage}>
       <Card>
@@ -69,7 +65,7 @@ function Basic() {
         <MDBox pt={4} pb={3} px={3}>
           <MDBox component="form" role="form">
             <MDBox mt={4} mb={1}>
-              <MuiLink href={vars.serverUrl + "/auth/signin"}>
+              <MuiLink href={vars.serverUrl + "/auth/signin?redirect=" + vars.redirect}>
                 <MDButton variant="gradient" color="info" fullWidth>
                   <MicrosoftIcon /> Sign in with Microsoft
                 </MDButton>

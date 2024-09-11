@@ -15,7 +15,7 @@ import {
   Grid,
 } from "@mui/material";
 
-import vars from "../../../vars";
+import vars from "../../../config";
 const style = {
   position: "absolute",
   top: "50%",

@@ -25,6 +25,7 @@ import Switch from "@mui/material/Switch";
 import IconButton from "@mui/material/IconButton";
 import Link from "@mui/material/Link";
 import Icon from "@mui/material/Icon";
+import MDSnackbar from "components/MDSnackbar";
 
 // @mui icons
 import TwitterIcon from "@mui/icons-material/Twitter";
@@ -57,7 +58,8 @@ import {
   setDarkMode,
 } from "context";
 
-function Configurator() {
+// eslint-disable-next-line react/prop-types
+function Configurator({ setSuccessSB, setSuccessSBText, closeSuccessSB }) {
   const [controller, dispatch] = useMaterialUIController();
   const {
     openConfigurator,
@@ -77,7 +79,7 @@ function Configurator() {
   // Use the useEffect hook to change the button state for the sidenav type based on window size.
   useEffect(() => {
     const fetchPrinters = async () => {
-      const response = await fetch(`${vars.serverUrl}/square/getPrinters`, {
+      const response = await fetch(`${vars.serverUrl}/settings/getPrinters`, {
         credentials: "include",
       });
       const res = await response.json();
@@ -92,7 +94,7 @@ function Configurator() {
         setAvailablePrinters(custList);
       }
 
-      const myPrintersresponse = await fetch(`${vars.serverUrl}/square/getSetPrinters`, {
+      const myPrintersresponse = await fetch(`${vars.serverUrl}/settings/getSetPrinters`, {
         credentials: "include",
       });
       const printerres = await myPrintersresponse.json();
@@ -158,6 +160,24 @@ function Configurator() {
     return item || {};
   };
 
+  const savePrinters = async () => {
+    const response = await fetch(`${vars.serverUrl}/settings/SetPrinters`, {
+      method: "post",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ eight: eightXelevenPrinter, two: twoXonePrinter }),
+      credentials: "include",
+    });
+    const res = await response.json();
+    if (res.res == 200) {
+      setSuccessSBText("Printer config saved");
+      setSuccessSB(true);
+      return null;
+    }
+  };
+
   // sidenav type active button styles
   const sidenavTypeActiveButtonStyles = ({
     functions: { pxToRem, linearGradient },
@@ -214,7 +234,7 @@ function Configurator() {
           <MDBox mb={2} mt={2}>
             <Autocomplete
               onChange={(event, newValue) => {
-                seteightXelevenPrinter(newValue);
+                seteightXelevenPrinter(newValue.label);
               }}
               disablePortal
               options={availablePrinters}
@@ -265,7 +285,7 @@ function Configurator() {
           <MDBox mb={2}>
             <Autocomplete
               onChange={(event, newValue) => {
-                settwoXonePrinter(newValue);
+                settwoXonePrinter(newValue.label);
               }}
               disablePortal
               options={availablePrinters}
@@ -275,7 +295,14 @@ function Configurator() {
             />
           </MDBox>
           <MDBox mb={2}>
-            <MDButton fullWidth variant="outlined" color="primary">
+            <MDButton
+              fullWidth
+              variant="outlined"
+              color="primary"
+              onClick={() => {
+                savePrinters();
+              }}
+            >
               Save
             </MDButton>
           </MDBox>

@@ -59,6 +59,7 @@ import Cookies from "universal-cookie";
 import brandWhite from "assets/images/logo-ct.png";
 import brandDark from "assets/images/logo-ct-dark.png";
 import { MyLocation } from "@mui/icons-material";
+import MDSnackbar from "components/MDSnackbar";
 
 export function getCookie(name) {
   var dc = document.cookie;
@@ -104,6 +105,8 @@ export default function App() {
 
   const cookies = new Cookies(null, { path: "/" });
   // Cache for the rtl
+  const [successSB, setSuccessSB] = useState(false);
+  const [successSBText, setSuccessSBText] = useState("");
   useMemo(() => {
     const cacheRtl = createCache({
       key: "rtl",
@@ -112,7 +115,7 @@ export default function App() {
 
     setRtlCache(cacheRtl);
   }, []);
-
+  const closeSuccessSB = () => setSuccessSB(false);
   // Open sidenav when mouse enter on mini sidenav
   const handleOnMouseEnter = () => {
     if (miniSidenav && !onMouseEnter) {
@@ -125,6 +128,7 @@ export default function App() {
   const checkLogin = async () => {
     if (!isLoggedin) {
       const response = await fetch(`${vars.serverUrl}/auth/authCheck`, {
+        method: "GET",
         credentials: "include",
       });
       const res = await response.json();
@@ -137,6 +141,19 @@ export default function App() {
       }
     }
   };
+
+  const renderSuccessSB = (
+    <MDSnackbar
+      color="success"
+      icon="check"
+      title="Success"
+      content={successSBText}
+      open={successSB}
+      onClose={closeSuccessSB}
+      close={closeSuccessSB}
+      bgWhite
+    />
+  );
 
   const checkSquare = async () => {
     if (isLoggedin) {
@@ -158,7 +175,7 @@ export default function App() {
   const getInitData = async () => {
     if (isLoggedin) {
       const response = await fetch(`${vars.serverUrl}/square/getSquare?action=getInitData`, {
-        credentials: "include",
+        credentials: "same-origin",
       });
       const res = await response.json();
       if (res.res === 200) {
@@ -256,7 +273,11 @@ export default function App() {
   );
 
   if (loading) {
-    return null;
+    return (
+      <ThemeProvider theme={darkMode ? themeDarkRTL : themeRTL}>
+        <CssBaseline />
+      </ThemeProvider>
+    );
   } else if (!isLoggedin) {
     return (
       <ThemeProvider theme={darkMode ? themeDarkRTL : themeRTL}>
@@ -282,19 +303,24 @@ export default function App() {
                 color={sidenavColor}
                 brand={(transparentSidenav && !darkMode) || whiteSidenav ? brandDark : brandWhite}
                 brandName="Material Dashboard 2"
-                routes={routes(setLoggedIn)}
+                routes={routes(setLoggedIn, setSuccessSB, setSuccessSBText)}
                 onMouseEnter={handleOnMouseEnter}
                 onMouseLeave={handleOnMouseLeave}
               />
-              <Configurator />
+              <Configurator
+                setSuccessSB={setSuccessSB}
+                setSuccessSBText={setSuccessSBText}
+                closeSuccessSB={closeSuccessSB}
+              />
               {configsButton}
             </>
           )}
           {layout === "vr" && <Configurator />}
           <Routes>
-            {getRoutes(routes(setLoggedIn))}
+            {getRoutes(routes(setLoggedIn, setSuccessSB, setSuccessSBText))}
             <Route path="*" element={<Navigate to="/dashboard" />} />
           </Routes>
+          {renderSuccessSB}
         </ThemeProvider>
       </CacheProvider>
     ) : (
@@ -306,18 +332,29 @@ export default function App() {
               color={sidenavColor}
               brand={(transparentSidenav && !darkMode) || whiteSidenav ? brandDark : brandWhite}
               brandName="Material Dashboard 2"
-              routes={routes(setLoggedIn)}
+              routes={routes(setLoggedIn, setSuccessSB, setSuccessSBText)}
               onMouseEnter={handleOnMouseEnter}
               onMouseLeave={handleOnMouseLeave}
             />
-            <Configurator />
+            <Configurator
+              setSuccessSB={setSuccessSB}
+              setSuccessSBText={setSuccessSBText}
+              closeSuccessSB={closeSuccessSB}
+            />
+            {renderSuccessSB}
             {configsButton}
           </>
         )}
-        {layout === "vr" && <Configurator />}
+        {layout === "vr" && (
+          <Configurator
+            setSuccessSB={setSuccessSB}
+            setSuccessSBText={setSuccessSBText}
+            closeSuccessSB={closeSuccessSB}
+          />
+        )}
         {/* {location == null && <LocationSelect locations={locations.locations} />} */}
         <Routes>
-          {getRoutes(routes(setLoggedIn))}
+          {getRoutes(routes(setLoggedIn, setSuccessSB, setSuccessSBText))}
           <Route path="*" element={<Navigate to="/dashboard" />} />
         </Routes>
       </ThemeProvider>

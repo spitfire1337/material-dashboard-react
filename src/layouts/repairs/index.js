@@ -16,7 +16,7 @@ Coded by www.creative-tim.com
 import { useState, React } from "react";
 
 // Vars
-import vars from "../../vars";
+import vars from "../../config";
 
 // @mui material components
 import Grid from "@mui/material/Grid";

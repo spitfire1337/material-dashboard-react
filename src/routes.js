@@ -49,7 +49,7 @@ import SignUp from "layouts/authentication/sign-up";
 // @mui icons
 import Icon from "@mui/material/Icon";
 
-const routes = (setLoggedIn) => {
+const routes = (setLoggedIn, setSuccessSB) => {
   return [
     {
       type: "collapse",
@@ -57,7 +57,7 @@ const routes = (setLoggedIn) => {
       key: "dashboard",
       icon: <Icon fontSize="small">dashboard</Icon>,
       route: "/dashboard",
-      component: <Dashboard setLoggedIn={setLoggedIn} />,
+      component: <Dashboard setLoggedIn={setLoggedIn} setSuccessSB={setSuccessSB} />,
     },
     {
       type: "collapse",
@@ -66,8 +66,16 @@ const routes = (setLoggedIn) => {
       icon: <Icon fontSize="small">assignment</Icon>,
       route: "/repairs",
       component: <Repairs setLoggedIn={setLoggedIn} />,
-    } /*,
-  {
+    },
+    {
+      type: "collapse",
+      name: "Notifications",
+      key: "notifications",
+      icon: <Icon fontSize="small">notifications</Icon>,
+      route: "/notifications",
+      component: <Notifications />,
+    } /*
+      {
     type: "collapse",
     name: "Tables",
     key: "tables",
@@ -90,15 +98,7 @@ const routes = (setLoggedIn) => {
     icon: <Icon fontSize="small">format_textdirection_r_to_l</Icon>,
     route: "/rtl",
     component: <RTL />,
-  },
-  {
-    type: "collapse",
-    name: "Notifications",
-    key: "notifications",
-    icon: <Icon fontSize="small">notifications</Icon>,
-    route: "/notifications",
-    component: <Notifications />,
-  },
+  }
   {
     type: "collapse",
     name: "Profile",
@@ -123,6 +123,7 @@ const routes = (setLoggedIn) => {
     route: "/authentication/sign-up",
     component: <SignUp />,
   }*/,
+    ,
   ];
 };
 
