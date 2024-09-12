@@ -29,7 +29,7 @@ const style = {
   borderRadius: "25px",
 };
 
-const step1 = ({ nextRepairStep, setSelectedCustomer, selectedcustomer, setLoggedIn }) => {
+const step1 = ({ globalFunc, setSelectedCustomer, selectedcustomer, nextRepairStep }) => {
   const [customersSelection, setCustomersSelection] = useState([]);
   const [showCustForm, setShowCustForm] = useState(false);
   const [customers, setCustomers] = useState([]);
@@ -72,10 +72,14 @@ const step1 = ({ nextRepairStep, setSelectedCustomer, selectedcustomer, setLogge
           //setSelectedCustomer({});
           setShowCustForm(false);
         } else if (res.res === 401) {
-          setLoggedIn(false);
+          globalFunc.setLoggedIn(false);
+          globalFunc.setErrorSBText("Unauthorized, redirecting to login");
+          globalFunc.setErrorSB(true);
         }
       } else if (response.status == 401) {
-        setLoggedIn(false);
+        globalFunc.setLoggedIn(false);
+        globalFunc.setErrorSBText("Unauthorized, redirecting to login");
+        globalFunc.setErrorSB(true);
       }
       console.log(response);
     };

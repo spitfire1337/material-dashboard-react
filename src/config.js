@@ -1,11 +1,10 @@
-import { redirect } from "react-router-dom";
-
+let server, redirecturl;
 if (!process.env.NODE_ENV || process.env.NODE_ENV === "development") {
-  const server = "http://localhost:3006";
-  const redirect = "https://api.pevconnection.com";
+  server = "http://localhost:3006";
+  redirecturl = "http://localhost:3000";
 } else {
-  const server = "https://api.pevconnection.com";
-  const redirect = "http://localhost:3000";
+  server = "https://api.pevconnection.com";
+  redirecturl = "https://api.pevconnection.com";
 }
-let vars = { serverUrl: server, redirect: redirect };
+let vars = { serverUrl: server, redirect: redirecturl };
 export default vars;

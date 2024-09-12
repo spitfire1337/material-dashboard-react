@@ -107,6 +107,12 @@ export default function App() {
   // Cache for the rtl
   const [successSB, setSuccessSB] = useState(false);
   const [successSBText, setSuccessSBText] = useState("");
+  const [errorSB, setErrorSB] = useState(false);
+  const [errorSBText, setErrorSBText] = useState("");
+
+  const closeSuccessSB = () => setSuccessSB(false);
+  const closeErrorSB = () => setErrorSB(false);
+
   useMemo(() => {
     const cacheRtl = createCache({
       key: "rtl",
@@ -115,7 +121,6 @@ export default function App() {
 
     setRtlCache(cacheRtl);
   }, []);
-  const closeSuccessSB = () => setSuccessSB(false);
   // Open sidenav when mouse enter on mini sidenav
   const handleOnMouseEnter = () => {
     if (miniSidenav && !onMouseEnter) {
@@ -154,6 +159,27 @@ export default function App() {
       bgWhite
     />
   );
+
+  const renderErrorSB = (
+    <MDSnackbar
+      color="error"
+      icon="warning"
+      title="Error"
+      content={errorSBText}
+      open={errorSB}
+      onClose={closeErrorSB}
+      close={closeErrorSB}
+      bgWhite
+    />
+  );
+
+  let globalFunc = {
+    setLoggedIn: setLoggedIn,
+    setSuccessSB: setSuccessSB,
+    setSuccessSBText: setSuccessSBText,
+    setErrorSB: setErrorSB,
+    setErrorSBText: setErrorSBText,
+  };
 
   const checkSquare = async () => {
     if (isLoggedin) {
@@ -283,6 +309,8 @@ export default function App() {
       <ThemeProvider theme={darkMode ? themeDarkRTL : themeRTL}>
         <CssBaseline />
         <SignIn />
+        {renderSuccessSB}
+        {renderErrorSB}
       </ThemeProvider>
     );
   } else if (!isSquare) {
@@ -303,24 +331,26 @@ export default function App() {
                 color={sidenavColor}
                 brand={(transparentSidenav && !darkMode) || whiteSidenav ? brandDark : brandWhite}
                 brandName="Material Dashboard 2"
-                routes={routes(setLoggedIn, setSuccessSB, setSuccessSBText)}
+                routes={routes(globalFunc)}
                 onMouseEnter={handleOnMouseEnter}
                 onMouseLeave={handleOnMouseLeave}
               />
               <Configurator
-                setSuccessSB={setSuccessSB}
-                setSuccessSBText={setSuccessSBText}
-                closeSuccessSB={closeSuccessSB}
+                globalFunc={globalFunc}
+                // setSuccessSB={setSuccessSB}
+                // setSuccessSBText={setSuccessSBText}
+                // closeSuccessSB={closeSuccessSB}
               />
               {configsButton}
             </>
           )}
           {layout === "vr" && <Configurator />}
           <Routes>
-            {getRoutes(routes(setLoggedIn, setSuccessSB, setSuccessSBText))}
+            {getRoutes(routes(globalFunc))}
             <Route path="*" element={<Navigate to="/dashboard" />} />
           </Routes>
           {renderSuccessSB}
+          {renderErrorSB}
         </ThemeProvider>
       </CacheProvider>
     ) : (
@@ -332,29 +362,32 @@ export default function App() {
               color={sidenavColor}
               brand={(transparentSidenav && !darkMode) || whiteSidenav ? brandDark : brandWhite}
               brandName="Material Dashboard 2"
-              routes={routes(setLoggedIn, setSuccessSB, setSuccessSBText)}
+              routes={routes(globalFunc)}
               onMouseEnter={handleOnMouseEnter}
               onMouseLeave={handleOnMouseLeave}
             />
             <Configurator
-              setSuccessSB={setSuccessSB}
-              setSuccessSBText={setSuccessSBText}
-              closeSuccessSB={closeSuccessSB}
+              globalFunc={globalFunc}
+              // setSuccessSB={setSuccessSB}
+              // setSuccessSBText={setSuccessSBText}
+              // closeSuccessSB={closeSuccessSB}
             />
             {renderSuccessSB}
+            {renderErrorSB}
             {configsButton}
           </>
         )}
         {layout === "vr" && (
           <Configurator
-            setSuccessSB={setSuccessSB}
-            setSuccessSBText={setSuccessSBText}
-            closeSuccessSB={closeSuccessSB}
+            globalFunc={globalFunc}
+            // setSuccessSB={setSuccessSB}
+            // setSuccessSBText={setSuccessSBText}
+            // closeSuccessSB={closeSuccessSB}
           />
         )}
         {/* {location == null && <LocationSelect locations={locations.locations} />} */}
         <Routes>
-          {getRoutes(routes(setLoggedIn, setSuccessSB, setSuccessSBText))}
+          {getRoutes(routes(globalFunc))}
           <Route path="*" element={<Navigate to="/dashboard" />} />
         </Routes>
       </ThemeProvider>

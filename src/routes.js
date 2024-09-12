@@ -49,7 +49,7 @@ import SignUp from "layouts/authentication/sign-up";
 // @mui icons
 import Icon from "@mui/material/Icon";
 
-const routes = (setLoggedIn, setSuccessSB) => {
+const routes = (globalFunc) => {
   return [
     {
       type: "collapse",
@@ -57,7 +57,7 @@ const routes = (setLoggedIn, setSuccessSB) => {
       key: "dashboard",
       icon: <Icon fontSize="small">dashboard</Icon>,
       route: "/dashboard",
-      component: <Dashboard setLoggedIn={setLoggedIn} setSuccessSB={setSuccessSB} />,
+      component: <Dashboard globalFunc={globalFunc} />,
     },
     {
       type: "collapse",
@@ -65,7 +65,7 @@ const routes = (setLoggedIn, setSuccessSB) => {
       key: "repairs",
       icon: <Icon fontSize="small">assignment</Icon>,
       route: "/repairs",
-      component: <Repairs setLoggedIn={setLoggedIn} />,
+      component: <Repairs globalFunc={globalFunc} />,
     },
     {
       type: "collapse",

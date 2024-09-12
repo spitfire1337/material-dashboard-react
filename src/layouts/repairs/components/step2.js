@@ -13,6 +13,9 @@ import {
   TextField,
   Divider,
   Grid,
+  FormControlLabel,
+  FormGroup,
+  Checkbox,
 } from "@mui/material";
 
 import vars from "../../../config";
@@ -29,11 +32,15 @@ const style = {
   borderRadius: "25px",
 };
 
-const step1 = ({ nextRepairStep, setSelectedCustomer, selectedcustomer, setLoggedIn }) => {
+const step2 = ({ globalFunc, setRepairData, selectedPEV, nextRepairStep }) => {
   const [pevSelection, setPEVSelection] = useState([]);
+  const [allowContinue, setAllowContinue] = useState(false);
   const [pevBrand, setPEVBrand] = useState([]);
-  const [showCustForm, setShowCustForm] = useState(false);
-  const [customers, setCustomers] = useState([]);
+  const [showNewPev, setShowNewPev] = useState(false);
+  const [brandDisable, setBrandDisable] = useState(true);
+  const [newPev, setNewPev] = useState({ Brand: { name: "" }, Model: "" });
+  const [brands, setBrands] = useState([]);
+  const [models, setModels] = useState([]);
   const useForm = (initialValues) => {
     const [values, setValues] = useState(initialValues);
     return [
@@ -56,241 +63,431 @@ const step1 = ({ nextRepairStep, setSelectedCustomer, selectedcustomer, setLogge
       if (response.status == 200) {
         const res = await response.json();
         if (res.res === 200) {
-          const useableCustomers = res.data.filter((cust) => cust.email_address != undefined);
-          setCustomers(useableCustomers);
+          setModels(res.data);
+          function onlyUnique(value, index, array) {
+            return array.indexOf(value) === index;
+          }
+          // usage example:
+          //var unique = res.data.filter((v, i, a) => a.indexOf(v.Model) == i);
+          var unique = res.data.filter(
+            (item, idx) => res.data.findIndex((x) => x.Brand._id == item.Brand._id) == idx
+          );
+          let brands = [{ id: 0, label: "Other" }];
+          unique.map((brand) => {
+            brands.push({ id: brand.Brand._id, label: brand.Brand.name });
+          });
+          setBrands(brands);
           let custList = [{ label: "New PEV", id: 0 }];
-          useableCustomers.map((cust) => {
+          res.data.map((pev) => {
             custList.push({
-              label: `${cust.email_address} ${
-                cust.given_name != undefined && cust.family_name != undefined
-                  ? `| ${cust.given_name} ${cust.family_name}`
-                  : ""
-              }`,
-              id: cust.id,
+              label: `${pev.Brand.name} ${pev.Model}`,
+              id: pev._id,
             });
           });
           setPEVSelection(custList);
           //setSelectedCustomer({});
-          setShowCustForm(false);
+          //setShowCustForm(false);
         } else if (res.res === 401) {
-          setLoggedIn(false);
+          globalFunc.setLoggedIn(false);
         }
       } else if (response.status == 401) {
-        setLoggedIn(false);
+        globalFunc.setLoggedIn(false);
       }
-      console.log(response);
     };
     fetchData();
   }, []);
 
-  const chooseCustomer = (cust) => {
-    console.log(cust);
-    if (cust == null) {
-      setSelectedCustomer({});
-      setShowCustForm(false);
-    } else if (cust.id == 0) {
-      //NEW CUSTOMER
-      console.log("New customer");
-      setSelectedCustomer({});
-      setShowCustForm(true);
+  const choosePevBrand = (pev) => {
+    if (pev == null) {
+      setPEVBrand(0);
+      setAllowContinue(false);
+      setShowNewPev(false);
+    } else if (pev.id == 0) {
+      //NEW PEV
+      setPEVBrand(0);
+      setAllowContinue(false);
+      //setSelectedCustomer({});
+      setShowNewPev(true);
     } else {
-      let custData = customers.filter((mycust) => mycust.id == cust.id)[0];
-      setSelectedCustomer(custData);
-      console.log("Selected customer", custData);
-      setShowCustForm(true);
+      let pevData = pevSelection.filter((mypev) => mypev._id == pev.id)[0];
+      setPEVBrand(pev.id);
+      setAllowContinue(true);
+      //setShowCustForm(true);
     }
   };
 
-  const updateCustomer = (value) => {
-    setSelectedCustomer(value);
-    console.log("Updated customer:", selectedcustomer);
+  const newPevData = (value) => {
+    if (value.Brand._id == 0) {
+      setBrandDisable(false);
+    } else {
+      setBrandDisable(true);
+    }
+    if (value.Brand.name != "" && value.Model != "") {
+      setAllowContinue(true);
+    } else {
+      setAllowContinue(false);
+    }
+    setNewPev({ ...value });
+  };
+
+  const processPevData = async () => {
+    if (newPev.Brand._id == 0) {
+      //First we must create the new brand and return the ID
+      try {
+        const response = await fetch(`${vars.serverUrl}/square/createBrand`, {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ name: newPev.Brand.name }),
+          credentials: "include",
+        });
+        const json = await response.json();
+        if (json.res == 200) {
+          //We can now save PEV details with the new brand id
+          let newData = { ...newPev };
+          newData.Brand._id = json.data;
+          setNewPev(newData);
+          let newpevresp = await fetch(`${vars.serverUrl}/square/createPEV`, {
+            method: "POST",
+            headers: {
+              Accept: "application/json",
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(newData),
+            credentials: "include",
+          });
+          let pevjson = await newpevresp.json();
+          if (pevjson.res == 200) {
+            globalFunc.setSuccessSBText("New PEV Added to database");
+            globalFunc.setSuccessSB(true);
+            setRepairData({ pev: pevjson.data._id });
+            nextRepairStep(3);
+          } else {
+            globalFunc.setErrorSBText("An error occured while saving data, please try again");
+            globalFunc.setErrorSB(true);
+          }
+        } else {
+          globalFunc.setErrorSBText("An error occured while saving data, please try again");
+          globalFunc.setErrorSB(true);
+        }
+      } catch (e) {
+        console.error(e);
+        globalFunc.setErrorSBText("An error occured while saving data, please try again");
+        globalFunc.setErrorSB(true);
+      }
+    } else {
+      //
+      console.log(pevBrand);
+      setRepairData({ pev: pevBrand });
+      nextRepairStep(3);
+    }
   };
   return (
     <MDBox sx={style}>
       <MDTypography id="modal-modal-title" variant="h6" component="h2">
-        Customer details
+        PEV Details
       </MDTypography>
       <MDTypography id="modal-modal-description" sx={{ mt: 2 }}>
         <FormControl fullWidth>
           <Autocomplete
             onChange={(event, newValue) => {
-              setPEVBrand(newValue);
+              choosePevBrand(newValue);
             }}
             disablePortal
             options={pevSelection}
             fullWidth
-            renderInput={(params) => <TextField {...params} label="PEV Brand" />}
+            renderInput={(params) => <TextField {...params} label="Select" />}
           />
         </FormControl>
-        {showCustForm == true ? (
-          <FormControl fullWidth>
-            <Divider fullWidth></Divider>
-            <Grid container spacing={1} marginTop={1}>
-              <Grid item md={6} sm={12}>
-                <TextField
-                  label="First Name"
-                  fullWidth
-                  value={
-                    selectedcustomer.given_name != undefined ? selectedcustomer.given_name : ""
-                  }
-                  onChange={(e) => {
-                    selectedcustomer.given_name = e.target.value;
-                    updateCustomer(selectedcustomer);
-                  }}
-                />
-              </Grid>
-              <Grid item md={6} sm={12}>
-                <TextField
-                  label="Last Name"
-                  fullWidth
-                  value={
-                    selectedcustomer.family_name != undefined ? selectedcustomer.family_name : ""
-                  }
-                  onChange={(e) => {
-                    selectedcustomer.family_name = e.target.value;
-                    updateCustomer(selectedcustomer);
-                  }}
-                />
-              </Grid>
-              <Grid item sm={12}>
-                <TextField
-                  label="Email address"
-                  fullWidth
-                  value={
-                    selectedcustomer.email_address != undefined
-                      ? selectedcustomer.email_address
-                      : ""
-                  }
-                  onChange={(e) => {
-                    selectedcustomer.email_address = e.target.value;
-                    updateCustomer(selectedcustomer);
-                  }}
-                />
-              </Grid>
-              <Grid item sm={12}>
-                <TextField
-                  label="Phone number"
-                  fullWidth
-                  value={
-                    selectedcustomer.phone_number != undefined ? selectedcustomer.phone_number : ""
-                  }
-                  onChange={(e) => {
-                    selectedcustomer.phone_number = e.target.value;
-                    updateCustomer(selectedcustomer);
-                  }}
-                />
-              </Grid>
-              <Grid item sm={12}>
-                <TextField
-                  label="Address line 1"
-                  fullWidth
-                  value={
-                    selectedcustomer.address != undefined
-                      ? selectedcustomer.address.address_line_1
-                      : ""
-                  }
-                  onChange={(e) => {
-                    selectedcustomer.address == undefined ? (selectedcustomer.address = {}) : null;
-                    selectedcustomer.address.address_line_1 = e.target.value;
-                    updateCustomer(selectedcustomer);
-                  }}
-                />
-              </Grid>
-              <Grid item sm={12}>
-                <TextField
-                  label="Address line 2"
-                  fullWidth
-                  value={
-                    selectedcustomer.address != undefined &&
-                    selectedcustomer.address.address_line_2 != undefined
-                      ? selectedcustomer.address.address_line_2
-                      : ""
-                  }
-                  onChange={(e) => {
-                    selectedcustomer.address == undefined ? (selectedcustomer.address = {}) : null;
-                    selectedcustomer.address.address_line_2 = e.target.value;
-                    updateCustomer(selectedcustomer);
-                  }}
-                />
-              </Grid>
-              <Grid item sm={12}>
-                <TextField
-                  label="Address line 3"
-                  fullWidth
-                  value={
-                    selectedcustomer.address != undefined &&
-                    selectedcustomer.address.address_line_3 != undefined
-                      ? selectedcustomer.address.address_line_3
-                      : ""
-                  }
-                  onChange={(e) => {
-                    selectedcustomer.address == undefined ? (selectedcustomer.address = {}) : null;
-                    selectedcustomer.address.address_line_3 = e.target.value;
-                    updateCustomer(selectedcustomer);
-                  }}
-                />
-              </Grid>
-              <Grid item sm={12} md={6}>
-                <TextField
-                  label="City"
-                  fullWidth
-                  value={
-                    selectedcustomer.address != undefined ? selectedcustomer.address.locality : ""
-                  }
-                  onChange={(e) => {
-                    selectedcustomer.address == undefined ? (selectedcustomer.address = {}) : null;
-                    selectedcustomer.address.locality = e.target.value;
-                    updateCustomer(selectedcustomer);
-                  }}
-                />
-              </Grid>
-              <Grid item sm={12} md={3}>
-                <TextField
-                  label="State"
-                  fullWidth
-                  value={
-                    selectedcustomer.address != undefined
-                      ? selectedcustomer.address.administrative_district_level_1
-                      : ""
-                  }
-                  onChange={(e) => {
-                    selectedcustomer.address == undefined ? (selectedcustomer.address = {}) : null;
-                    selectedcustomer.address.administrative_district_level_1 = e.target.value;
-                    updateCustomer(selectedcustomer);
-                  }}
-                />
-              </Grid>
-              <Grid item sm={12} md={3}>
-                <TextField
-                  label="Zip"
-                  fullWidth
-                  value={
-                    selectedcustomer.address != undefined
-                      ? selectedcustomer.address.postal_code
-                      : ""
-                  }
-                  onChange={(e) => {
-                    selectedcustomer.address == undefined ? (selectedcustomer.address = {}) : null;
-                    selectedcustomer.address.postal_code = e.target.value;
-                    updateCustomer(selectedcustomer);
-                  }}
-                />
-              </Grid>
-              <Grid item sm={12}>
-                <MDButton
-                  fullWidth
-                  variant="outlined"
-                  color="primary"
-                  onClick={() => nextRepairStep(2, selectedcustomer)}
-                >
-                  Next
-                </MDButton>
-              </Grid>
+
+        <FormControl fullWidth>
+          <Divider fullWidth></Divider>
+          <Grid container spacing={1} marginTop={1}>
+            {showNewPev == true ? (
+              <>
+                <Grid item sm={12}>
+                  <MDTypography>Please provide as many fields as possible.</MDTypography>
+                </Grid>
+                <Grid item md={6} sm={12}>
+                  <Autocomplete
+                    onChange={(event, newValue) => {
+                      let newData = { ...newPev };
+                      newData.Brand == undefined ? (newPev.Brand = {}) : null;
+                      newData.Brand._id = newValue != null ? newValue.id : "";
+                      newData.Brand.name =
+                        newValue != null ? (newValue.id == 0 ? "" : newValue.label) : "";
+                      newValue != "" &&
+                      newValue != undefined &&
+                      newValue.id != undefined &&
+                      newValue != ""
+                        ? newPevData(newData)
+                        : null;
+                    }}
+                    disablePortal
+                    options={brands}
+                    fullWidth
+                    renderInput={(params) => <TextField {...params} label="Select brand" />}
+                  />
+                </Grid>
+                <Grid item md={6} sm={12}>
+                  <TextField
+                    label="Brand name"
+                    fullWidth
+                    disabled={brandDisable}
+                    value={newPev.Brand.name}
+                    onChange={(e) => {
+                      let newData = { ...newPev };
+                      newData.Brand.name = e.target.value;
+                      newPevData(newData);
+                    }}
+                  />
+                </Grid>
+                <Grid item md={6} sm={12}>
+                  <TextField
+                    label="Model Name"
+                    fullWidth
+                    value={newPev.Model}
+                    onChange={(e) => {
+                      let newData = { ...newPev };
+                      newData.Model = e.target.value;
+                      newPevData(newData);
+                    }}
+                  />
+                </Grid>
+                <Grid item md={6} sm={12}>
+                  <TextField
+                    label="Voltage"
+                    fullWidth
+                    value={newPev.Voltage != undefined ? newPev.Voltage : ""}
+                    type="number"
+                    variant="outlined"
+                    inputProps={{
+                      maxLength: 13,
+                      step: "1",
+                    }}
+                    onChange={(e) => {
+                      let newData = { ...newPev };
+                      newData.Voltage = e.target.value;
+                      newPevData(newData);
+                    }}
+                  />
+                </Grid>
+                <Grid item md={6} sm={12}>
+                  <TextField
+                    label="Motor Watts"
+                    fullWidth
+                    value={newPev.Motor != undefined ? newPev.Motor : ""}
+                    type="number"
+                    variant="outlined"
+                    onChange={(e) => {
+                      let newData = { ...newPev };
+                      newData.Motor = e.target.value;
+                      newPevData(newData);
+                    }}
+                  />
+                </Grid>
+                <Grid item md={6} sm={12}>
+                  <TextField
+                    label="Battery WH"
+                    fullWidth
+                    value={newPev.BatterySize != undefined ? newPev.BatterySize : ""}
+                    type="number"
+                    variant="outlined"
+                    onChange={(e) => {
+                      let newData = { ...newPev };
+                      newData.BatterySize = e.target.value;
+                      newPevData(newData);
+                    }}
+                  />
+                </Grid>
+                <Grid item md={6} sm={12}>
+                  <TextField
+                    label="Tire Size"
+                    fullWidth
+                    value={newPev.TireSize != undefined ? newPev.TireSize : ""}
+                    type="number"
+                    variant="outlined"
+                    onChange={(e) => {
+                      let newData = { ...newPev };
+                      newData.TireSize = e.target.value;
+                      newPevData(newData);
+                    }}
+                  />
+                </Grid>
+                <Grid item md={6} sm={12}>
+                  <TextField
+                    label="Weight"
+                    fullWidth
+                    value={newPev.Weight != undefined ? newPev.Weight : ""}
+                    type="number"
+                    variant="outlined"
+                    onChange={(e) => {
+                      let newData = { ...newPev };
+                      newData.Weight = e.target.value;
+                      newPevData(newData);
+                    }}
+                  />
+                </Grid>
+                <Grid item md={6} sm={12}>
+                  <TextField
+                    label="Top Speed"
+                    fullWidth
+                    value={newPev.TopSpeed != undefined ? newPev.TopSpeed : ""}
+                    type="number"
+                    variant="outlined"
+                    onChange={(e) => {
+                      let newData = { ...newPev };
+                      newData.TopSpeed = e.target.value;
+                      newPevData(newData);
+                    }}
+                  />
+                </Grid>
+                <Grid item md={6} sm={12}>
+                  <TextField
+                    label="Range"
+                    fullWidth
+                    value={newPev.Range != undefined ? newPev.Range : ""}
+                    type="number"
+                    variant="outlined"
+                    onChange={(e) => {
+                      let newData = { ...newPev };
+                      newData.Range = e.target.value;
+                      newPevData(newData);
+                    }}
+                  />
+                </Grid>
+                <Grid item md={6} sm={12}>
+                  <FormGroup>
+                    <FormControlLabel control={<Checkbox defaultChecked />} label="Suspension" />
+                  </FormGroup>
+                </Grid>
+                {/*<Grid item sm={12}>
+                  <TextField
+                    label="Address line 1"
+                    fullWidth
+                    value={
+                      selectedcustomer.address != undefined
+                        ? selectedcustomer.address.address_line_1
+                        : ""
+                    }
+                    onChange={(e) => {
+                      selectedcustomer.address == undefined
+                        ? (selectedcustomer.address = {})
+                        : null;
+                      selectedcustomer.address.address_line_1 = e.target.value;
+                      updateCustomer(selectedcustomer);
+                    }}
+                  />
+                </Grid>
+                <Grid item sm={12}>
+                  <TextField
+                    label="Address line 2"
+                    fullWidth
+                    value={
+                      selectedcustomer.address != undefined &&
+                      selectedcustomer.address.address_line_2 != undefined
+                        ? selectedcustomer.address.address_line_2
+                        : ""
+                    }
+                    onChange={(e) => {
+                      selectedcustomer.address == undefined
+                        ? (selectedcustomer.address = {})
+                        : null;
+                      selectedcustomer.address.address_line_2 = e.target.value;
+                      updateCustomer(selectedcustomer);
+                    }}
+                  />
+                </Grid>
+                <Grid item sm={12}>
+                  <TextField
+                    label="Address line 3"
+                    fullWidth
+                    value={
+                      selectedcustomer.address != undefined &&
+                      selectedcustomer.address.address_line_3 != undefined
+                        ? selectedcustomer.address.address_line_3
+                        : ""
+                    }
+                    onChange={(e) => {
+                      selectedcustomer.address == undefined
+                        ? (selectedcustomer.address = {})
+                        : null;
+                      selectedcustomer.address.address_line_3 = e.target.value;
+                      updateCustomer(selectedcustomer);
+                    }}
+                  />
+                </Grid>
+                <Grid item sm={12} md={6}>
+                  <TextField
+                    label="City"
+                    fullWidth
+                    value={
+                      selectedcustomer.address != undefined ? selectedcustomer.address.locality : ""
+                    }
+                    onChange={(e) => {
+                      selectedcustomer.address == undefined
+                        ? (selectedcustomer.address = {})
+                        : null;
+                      selectedcustomer.address.locality = e.target.value;
+                      updateCustomer(selectedcustomer);
+                    }}
+                  />
+                </Grid>
+                <Grid item sm={12} md={3}>
+                  <TextField
+                    label="State"
+                    fullWidth
+                    value={
+                      selectedcustomer.address != undefined
+                        ? selectedcustomer.address.administrative_district_level_1
+                        : ""
+                    }
+                    onChange={(e) => {
+                      selectedcustomer.address == undefined
+                        ? (selectedcustomer.address = {})
+                        : null;
+                      selectedcustomer.address.administrative_district_level_1 = e.target.value;
+                      updateCustomer(selectedcustomer);
+                    }}
+                  />
+                </Grid>
+                <Grid item sm={12} md={3}>
+                  <TextField
+                    label="Zip"
+                    fullWidth
+                    value={
+                      selectedcustomer.address != undefined
+                        ? selectedcustomer.address.postal_code
+                        : ""
+                    }
+                    onChange={(e) => {
+                      selectedcustomer.address == undefined
+                        ? (selectedcustomer.address = {})
+                        : null;
+                      selectedcustomer.address.postal_code = e.target.value;
+                      updateCustomer(selectedcustomer);
+                    }}
+                  />
+                </Grid> */}
+              </>
+            ) : null}
+            <Grid item sm={12}>
+              <MDButton
+                fullWidth
+                variant="outlined"
+                color="primary"
+                disabled={!allowContinue}
+                onClick={() => processPevData()}
+              >
+                Next
+              </MDButton>
             </Grid>
-          </FormControl>
-        ) : null}
+          </Grid>
+        </FormControl>
       </MDTypography>
     </MDBox>
   );
 };
-export default step1;
+export default step2;

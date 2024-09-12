@@ -59,7 +59,7 @@ import {
 } from "context";
 
 // eslint-disable-next-line react/prop-types
-function Configurator({ setSuccessSB, setSuccessSBText, closeSuccessSB }) {
+function Configurator({ globalFunc }) {
   const [controller, dispatch] = useMaterialUIController();
   const {
     openConfigurator,
@@ -172,9 +172,13 @@ function Configurator({ setSuccessSB, setSuccessSBText, closeSuccessSB }) {
     });
     const res = await response.json();
     if (res.res == 200) {
-      setSuccessSBText("Printer config saved");
-      setSuccessSB(true);
+      globalFunc.setSuccessSBText("Printer config saved");
+      globalFunc.setSuccessSB(true);
       return null;
+    } else if (res.res == 401) {
+      globalFunc.setLoggedIn(false);
+      globalFunc.setErrorSBText("Unauthorized, redirecting to login");
+      globalFunc.setErrorSB(true);
     }
   };
 
