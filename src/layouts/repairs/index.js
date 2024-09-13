@@ -13,7 +13,7 @@ Coded by www.creative-tim.com
 * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 */
 // React components
-import { useState, React } from "react";
+import { useState, React, useEffect } from "react";
 
 // Vars
 import vars from "../../config";
@@ -46,6 +46,7 @@ import DataTable from "examples/Tables/DataTable";
 
 import Step1 from "./components/step1";
 import Step2 from "./components/step2";
+import Step3 from "./components/step3";
 
 // Data
 import authorsTableData from "layouts/tables/data/authorsTableData";
@@ -57,11 +58,9 @@ const Repairs = ({ globalFunc }) => {
   const { columns, rows } = authorsTableData();
   const { columns: pColumns, rows: pRows } = projectsTableData();
   const [newRepair, setNewRepair] = useState(false);
-  const [showCustForm, setShowCustForm] = useState(false);
-  const [customers, setCustomers] = useState([]);
-  const [PEVS, setPEVS] = useState([]);
-  const [customersSelection, setCustomersSelection] = useState([]);
   const [repairData, setRepairData] = useState({});
+  const [repairID, setrepairID] = useState(null);
+
   const useForm = (initialValues) => {
     const [values, setValues] = useState(initialValues);
     return [
@@ -75,22 +74,15 @@ const Repairs = ({ globalFunc }) => {
     ];
   };
   const [selectedcustomer, setSelectedCustomer] = useForm({});
-  const [selectedPEV, setSelectedPEV] = useForm({});
   const [repairStep, setRepairStep] = useState(1);
-
-  const style = {
-    position: "absolute",
-    top: "50%",
-    left: "50%",
-    transform: "translate(-50%, -50%)",
-    width: 400,
-    bgcolor: "background.paper",
-    border: "2px solid #000",
-    boxShadow: 24,
-    p: 4,
-    borderRadius: "25px",
+  useEffect(() => {
+    console.log("Repair id received", repairID);
+  }, [repairID]);
+  const updateRepairData = (val) => {
+    console.log("Repair data to save", val);
+    setRepairData({ ...val });
+    console.log("Repair set data", repairData);
   };
-
   const nextRepairStep = async (val) => {
     if (val == 2) {
       if (selectedcustomer.id == undefined) {
@@ -106,9 +98,8 @@ const Repairs = ({ globalFunc }) => {
             credentials: "include",
           });
           const json = await response.json();
-          console.log(json.data.customer);
           //setCustomerID(json.data.customer.id);
-          setRepairData({ customer: json.data.customer.id });
+          setRepairData({ Customer: json.data._id });
           setRepairStep(val);
           return null;
         } catch (e) {
@@ -130,7 +121,7 @@ const Repairs = ({ globalFunc }) => {
           const json = await response.json();
           console.log(json);
           //setCustomerID(json.data.customer.id);
-          setRepairData({ customer: json.data.customer.id });
+          setRepairData({ Customer: json.data._id });
           setRepairStep(val);
           return null;
         } catch (e) {
@@ -142,7 +133,6 @@ const Repairs = ({ globalFunc }) => {
     if (val == 3) {
       //Show step 3
       setRepairStep(3);
-      //setRepairData({ pev: selectedPEV });
     }
     console.log("Repair data", repairData);
   };
@@ -150,24 +140,6 @@ const Repairs = ({ globalFunc }) => {
   const showNewRepair = async () => {
     setNewRepair(true);
     setRepairStep(0);
-  };
-
-  const chooseCustomer = (cust) => {
-    console.log(cust);
-    if (cust == null) {
-      setSelectedCustomer({});
-      setShowCustForm(false);
-    } else if (cust.id == 0) {
-      //NEW CUSTOMER
-      console.log("New customer");
-      setSelectedCustomer({});
-      setShowCustForm(true);
-    } else {
-      let custData = customers.filter((mycust) => mycust.id == cust.id)[0];
-      setSelectedCustomer(custData);
-      console.log("Selected customer", custData);
-      setShowCustForm(true);
-    }
   };
 
   const updateCustomer = (value) => {
@@ -269,12 +241,17 @@ const Repairs = ({ globalFunc }) => {
         ) : repairStep == 2 ? (
           <Step2
             nextRepairStep={nextRepairStep}
-            setRepairData={setRepairData}
-            selectedPEV={selectedPEV}
+            repairData={repairData}
+            updateRepairData={updateRepairData}
+            setrepairID={setrepairID}
             globalFunc={globalFunc}
           ></Step2>
         ) : (
-          <MDBox></MDBox>
+          <Step3
+            repairID={repairID}
+            globalFunc={globalFunc}
+            nextRepairStep={nextRepairStep}
+          ></Step3>
         )}
       </Modal>
     </DashboardLayout>

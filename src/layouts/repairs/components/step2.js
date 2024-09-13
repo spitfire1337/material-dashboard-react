@@ -16,6 +16,7 @@ import {
   FormControlLabel,
   FormGroup,
   Checkbox,
+  NativeSelect,
 } from "@mui/material";
 
 import vars from "../../../config";
@@ -24,7 +25,7 @@ const style = {
   top: "50%",
   left: "50%",
   transform: "translate(-50%, -50%)",
-  width: 400,
+  width: "60%",
   bgcolor: "background.paper",
   border: "2px solid #000",
   boxShadow: 24,
@@ -32,7 +33,7 @@ const style = {
   borderRadius: "25px",
 };
 
-const step2 = ({ globalFunc, setRepairData, selectedPEV, nextRepairStep }) => {
+const step2 = ({ globalFunc, repairData, updateRepairData, setrepairID, nextRepairStep }) => {
   const [pevSelection, setPEVSelection] = useState([]);
   const [allowContinue, setAllowContinue] = useState(false);
   const [pevBrand, setPEVBrand] = useState([]);
@@ -130,6 +131,34 @@ const step2 = ({ globalFunc, setRepairData, selectedPEV, nextRepairStep }) => {
     setNewPev({ ...value });
   };
 
+  const createRepair = async (pev) => {
+    try {
+      const response = await fetch(`${vars.serverUrl}/square/createRepair`, {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(pev),
+        credentials: "include",
+      });
+      const json = await response.json();
+      //setCustomerID(json.data.customer.id);
+      if (json.res == 200) {
+        setrepairID(json.data._id);
+        nextRepairStep(3);
+      } else {
+        globalFunc.setErrorSBText("Error occurred saving repair progress.");
+        globalFunc.setErrorSB(true);
+      }
+    } catch (e) {
+      console.error(e);
+      globalFunc.setErrorSBText("Error occurred saving repair progress.");
+      globalFunc.setErrorSB(true);
+      // TODO: Add error notification
+    }
+  };
+
   const processPevData = async () => {
     if (newPev.Brand._id == 0) {
       //First we must create the new brand and return the ID
@@ -162,8 +191,9 @@ const step2 = ({ globalFunc, setRepairData, selectedPEV, nextRepairStep }) => {
           if (pevjson.res == 200) {
             globalFunc.setSuccessSBText("New PEV Added to database");
             globalFunc.setSuccessSB(true);
-            setRepairData({ pev: pevjson.data._id });
-            nextRepairStep(3);
+            let newRepairData = { ...repairData };
+            newRepairData.Pev = pevjson.data._id;
+            createRepair(newRepairData);
           } else {
             globalFunc.setErrorSBText("An error occured while saving data, please try again");
             globalFunc.setErrorSB(true);
@@ -180,8 +210,10 @@ const step2 = ({ globalFunc, setRepairData, selectedPEV, nextRepairStep }) => {
     } else {
       //
       console.log(pevBrand);
-      setRepairData({ pev: pevBrand });
-      nextRepairStep(3);
+      let newRepairData = { ...repairData };
+      newRepairData.pev = pevBrand;
+      console.log(newRepairData);
+      createRepair(newRepairData);
     }
   };
   return (
@@ -243,6 +275,38 @@ const step2 = ({ globalFunc, setRepairData, selectedPEV, nextRepairStep }) => {
                       newPevData(newData);
                     }}
                   />
+                </Grid>
+                <Grid item md={6} sm={12}>
+                  <FormControl fullWidth size="small">
+                    <InputLabel variant="standard" htmlFor="uncontrolled-native">
+                      PEV Type
+                    </InputLabel>
+                    <NativeSelect
+                      value={newPev.PevType}
+                      label="PEV Type"
+                      onChange={(e) => {
+                        let newData = { ...newPev };
+                        newData.PevType = e.target.value;
+                        newPevData(newData);
+                      }}
+                    >
+                      {/* <Select
+                      value={newPev.PevType}
+                      label="PEV Type"
+                      onChange={(e) => {
+                        let newData = { ...newPev };
+                        newData.PevType = e.target.value;
+                        newPevData(newData);
+                      }}
+                    > */}
+                      <option value="EUC">EUC</option>
+                      <option value="Scooter">Scooter</option>
+                      <option value="OneWheel">OneWheel</option>
+                      <option value="Ebike">Ebike</option>
+                      <option value="Emoto">Emoto</option>
+                      <option value="Eskate">Eskate</option>
+                    </NativeSelect>
+                  </FormControl>
                 </Grid>
                 <Grid item md={6} sm={12}>
                   <TextField
@@ -360,7 +424,15 @@ const step2 = ({ globalFunc, setRepairData, selectedPEV, nextRepairStep }) => {
                 </Grid>
                 <Grid item md={6} sm={12}>
                   <FormGroup>
-                    <FormControlLabel control={<Checkbox defaultChecked />} label="Suspension" />
+                    <FormControlLabel
+                      control={<Checkbox />}
+                      label="Suspension"
+                      onChange={(e) => {
+                        let newData = { ...newPev };
+                        newData.Suspension = e.target.checked;
+                        newPevData(newData);
+                      }}
+                    />
                   </FormGroup>
                 </Grid>
                 {/*<Grid item sm={12}>
