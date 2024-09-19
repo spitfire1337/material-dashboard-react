@@ -20,18 +20,6 @@ import {
 } from "@mui/material";
 
 import vars from "../../../config";
-const style = {
-  position: "absolute",
-  top: "50%",
-  left: "50%",
-  transform: "translate(-50%, -50%)",
-  width: "60%",
-  bgcolor: "background.paper",
-  border: "2px solid #000",
-  boxShadow: 24,
-  p: 4,
-  borderRadius: "25px",
-};
 
 const step2 = ({ globalFunc, repairData, updateRepairData, setrepairID, nextRepairStep }) => {
   const [pevSelection, setPEVSelection] = useState([]);
@@ -217,7 +205,7 @@ const step2 = ({ globalFunc, repairData, updateRepairData, setrepairID, nextRepa
     }
   };
   return (
-    <MDBox sx={style}>
+    <>
       <MDTypography id="modal-modal-title" variant="h6" component="h2">
         PEV Details
       </MDTypography>
@@ -559,7 +547,7 @@ const step2 = ({ globalFunc, repairData, updateRepairData, setrepairID, nextRepa
           </Grid>
         </FormControl>
       </MDTypography>
-    </MDBox>
+    </>
   );
 };
 export default step2;

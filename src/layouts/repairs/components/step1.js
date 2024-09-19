@@ -21,7 +21,7 @@ const style = {
   top: "50%",
   left: "50%",
   transform: "translate(-50%, -50%)",
-  width: "60%",
+  width: "80%",
   bgcolor: "background.paper",
   border: "2px solid #000",
   boxShadow: 24,
@@ -109,7 +109,7 @@ const step1 = ({ globalFunc, setSelectedCustomer, selectedcustomer, nextRepairSt
     console.log("Updated customer:", selectedcustomer);
   };
   return (
-    <MDBox sx={style}>
+    <>
       <MDTypography id="modal-modal-title" variant="h6" component="h2">
         Customer details
       </MDTypography>
@@ -216,23 +216,6 @@ const step1 = ({ globalFunc, setSelectedCustomer, selectedcustomer, nextRepairSt
                   }}
                 />
               </Grid>
-              <Grid item sm={12}>
-                <TextField
-                  label="Address line 3"
-                  fullWidth
-                  value={
-                    selectedcustomer.address != undefined &&
-                    selectedcustomer.address.address_line_3 != undefined
-                      ? selectedcustomer.address.address_line_3
-                      : ""
-                  }
-                  onChange={(e) => {
-                    selectedcustomer.address == undefined ? (selectedcustomer.address = {}) : null;
-                    selectedcustomer.address.address_line_3 = e.target.value;
-                    updateCustomer(selectedcustomer);
-                  }}
-                />
-              </Grid>
               <Grid item sm={12} md={6}>
                 <TextField
                   label="City"
@@ -293,7 +276,7 @@ const step1 = ({ globalFunc, setSelectedCustomer, selectedcustomer, nextRepairSt
           </FormControl>
         ) : null}
       </MDTypography>
-    </MDBox>
+    </>
   );
 };
 export default step1;

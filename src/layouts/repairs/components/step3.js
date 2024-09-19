@@ -19,18 +19,6 @@ import {
 } from "@mui/material";
 
 import vars from "../../../config";
-const style = {
-  position: "absolute",
-  top: "50%",
-  left: "50%",
-  transform: "translate(-50%, -50%)",
-  width: "60%",
-  bgcolor: "background.paper",
-  border: "2px solid #000",
-  boxShadow: 24,
-  p: 4,
-  borderRadius: "25px",
-};
 
 const step3 = ({ globalFunc, repairID, nextRepairStep }) => {
   const [repairType, setRepairType] = useState([]);
@@ -82,7 +70,7 @@ const step3 = ({ globalFunc, repairID, nextRepairStep }) => {
   };
 
   return (
-    <MDBox sx={style}>
+    <>
       <MDTypography id="modal-modal-title" variant="h6" component="h2">
         Repair information
       </MDTypography>
@@ -208,7 +196,7 @@ const step3 = ({ globalFunc, repairID, nextRepairStep }) => {
           </Grid>
         </FormControl>
       </MDTypography>
-    </MDBox>
+    </>
   );
 };
 export default step3;

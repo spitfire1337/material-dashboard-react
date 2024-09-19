@@ -52,7 +52,18 @@ import Step3 from "./components/step3";
 import authorsTableData from "layouts/tables/data/authorsTableData";
 import projectsTableData from "layouts/tables/data/projectsTableData";
 import { Label } from "@mui/icons-material";
-
+const style = {
+  position: "absolute",
+  top: "50%",
+  left: "50%",
+  transform: "translate(-50%, -50%)",
+  width: "80%",
+  bgcolor: "background.paper",
+  border: "2px solid #000",
+  boxShadow: 24,
+  p: 4,
+  borderRadius: "25px",
+};
 // eslint-disable-next-line react/prop-types
 const Repairs = ({ globalFunc }) => {
   const { columns, rows } = authorsTableData();
@@ -99,6 +110,7 @@ const Repairs = ({ globalFunc }) => {
           });
           const json = await response.json();
           //setCustomerID(json.data.customer.id);
+          console.log(json);
           setRepairData({ Customer: json.data._id });
           setRepairStep(val);
           return null;
@@ -225,34 +237,47 @@ const Repairs = ({ globalFunc }) => {
       <Footer />
       <Modal
         open={newRepair}
-        onClose={() => {
-          setNewRepair(false);
-        }}
+        onClose={() => null}
+        // onClose={() => {
+        //   setNewRepair(false);
+        // }}
         aria-labelledby="modal-modal-title"
         aria-describedby="modal-modal-description"
       >
-        {repairStep == 0 ? (
-          <Step1
-            nextRepairStep={nextRepairStep}
-            setSelectedCustomer={setSelectedCustomer}
-            selectedcustomer={selectedcustomer}
-            globalFunc={globalFunc}
-          ></Step1>
-        ) : repairStep == 2 ? (
-          <Step2
-            nextRepairStep={nextRepairStep}
-            repairData={repairData}
-            updateRepairData={updateRepairData}
-            setrepairID={setrepairID}
-            globalFunc={globalFunc}
-          ></Step2>
-        ) : (
-          <Step3
-            repairID={repairID}
-            globalFunc={globalFunc}
-            nextRepairStep={nextRepairStep}
-          ></Step3>
-        )}
+        <MDBox sx={style}>
+          {repairStep == 0 ? (
+            <Step1
+              nextRepairStep={nextRepairStep}
+              setSelectedCustomer={setSelectedCustomer}
+              selectedcustomer={selectedcustomer}
+              globalFunc={globalFunc}
+            ></Step1>
+          ) : repairStep == 2 ? (
+            <Step2
+              nextRepairStep={nextRepairStep}
+              repairData={repairData}
+              updateRepairData={updateRepairData}
+              setrepairID={setrepairID}
+              globalFunc={globalFunc}
+            ></Step2>
+          ) : (
+            <Step3
+              repairID={repairID}
+              globalFunc={globalFunc}
+              nextRepairStep={nextRepairStep}
+            ></Step3>
+          )}
+          <MDButton
+            sx={{ marginTop: "2px" }}
+            fullWidth
+            color="secondary"
+            onClick={() => {
+              setNewRepair(false);
+            }}
+          >
+            Cancel
+          </MDButton>
+        </MDBox>
       </Modal>
     </DashboardLayout>
   );
