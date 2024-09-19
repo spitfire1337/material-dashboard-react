@@ -49,7 +49,7 @@ import Step2 from "./components/step2";
 import Step3 from "./components/step3";
 
 // Data
-import authorsTableData from "layouts/tables/data/authorsTableData";
+import authorsTableData from "layouts/tables/data/repairsDataTable";
 import projectsTableData from "layouts/tables/data/projectsTableData";
 import { Label } from "@mui/icons-material";
 const style = {
@@ -197,15 +197,15 @@ const Repairs = ({ globalFunc }) => {
               <MDBox pt={3}>
                 <DataTable
                   table={{ columns, rows }}
-                  isSorted={false}
+                  isSorted={true}
                   entriesPerPage={false}
-                  showTotalEntries={false}
+                  showTotalEntries={true}
                   noEndBorder
                 />
               </MDBox>
             </Card>
           </Grid>
-          <Grid item xs={12}>
+          {/* <Grid item xs={12}>
             <Card>
               <MDBox
                 mx={2}
@@ -231,7 +231,7 @@ const Repairs = ({ globalFunc }) => {
                 />
               </MDBox>
             </Card>
-          </Grid>
+          </Grid> */}
         </Grid>
       </MDBox>
       <Footer />
