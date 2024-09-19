@@ -66,7 +66,7 @@ const style = {
 };
 // eslint-disable-next-line react/prop-types
 const Repairs = ({ globalFunc }) => {
-  const { columns, rows } = authorsTableData();
+  const { columns, rows } = authorsTableData(globalFunc);
   const { columns: pColumns, rows: pRows } = projectsTableData();
   const [newRepair, setNewRepair] = useState(false);
   const [repairData, setRepairData] = useState({});

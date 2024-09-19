@@ -14,6 +14,8 @@ Coded by www.creative-tim.com
 
 * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 */
+import { useState, React, useEffect } from "react";
+import vars from "../../../config";
 
 // Material Dashboard 2 React components
 import MDBox from "components/MDBox";
@@ -26,7 +28,34 @@ import team2 from "assets/images/team-2.jpg";
 import team3 from "assets/images/team-3.jpg";
 import team4 from "assets/images/team-4.jpg";
 
-export default function data() {
+export default function data(globalFunc) {
+  console.log("Global:", globalFunc);
+  const [repairs, setRepairs] = useState();
+  useEffect(() => {
+    const fetchData = async (globalFunc) => {
+      const response = await fetch(`${vars.serverUrl}/square/getMyData?action=getRepairs`, {
+        credentials: "include",
+      });
+      if (response.status == 200) {
+        const res = await response.json();
+        console.log(res);
+
+        if (res.res === 200) {
+          setRepairs(res.data);
+        } else if (res.res === 401) {
+          globalFunc.setLoggedIn(false);
+          globalFunc.setErrorSBText("Unauthorized, redirecting to login");
+          globalFunc.setErrorSB(true);
+        }
+      } else if (response.status == 401) {
+        globalFunc.setLoggedIn(false);
+        globalFunc.setErrorSBText("Unauthorized, redirecting to login");
+        globalFunc.setErrorSB(true);
+      }
+    };
+    fetchData(globalFunc);
+  }, []);
+
   const Author = ({ image, name, email }) => (
     <MDBox display="flex" alignItems="center" lineHeight={1}>
       <MDAvatar src={image} name={name} size="sm" />
