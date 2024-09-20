@@ -28,7 +28,7 @@ import team2 from "assets/images/team-2.jpg";
 import team3 from "assets/images/team-3.jpg";
 import team4 from "assets/images/team-4.jpg";
 
-export default function data(globalFunc) {
+export default function data(globalFunc, contIntake) {
   console.log("Global:", globalFunc);
   const [repairs, setRepairs] = useState([]);
   useEffect(() => {
@@ -76,6 +76,25 @@ export default function data(globalFunc) {
     </MDBox>
   );
 
+  const Actions = ({ repairStatus, repair }) => {
+    if (repairStatus == 0) {
+      return (
+        <MDTypography
+          component="a"
+          href="#"
+          variant="caption"
+          color="text"
+          fontWeight="medium"
+          onClick={() => {
+            contIntake(repair);
+          }}
+        >
+          Continue intake
+        </MDTypography>
+      );
+    }
+  };
+
   const Status = ({ repairStatus }) => {
     if (repairStatus == 0) {
       return (
@@ -86,7 +105,7 @@ export default function data(globalFunc) {
               "& .MuiBadge-badge": {
                 color: "#000",
                 backgroundColor: "green",
-                background: "linear-gradient(195deg, #Ffff00, #dfdf11)",
+                background: "linear-gradient(195deg, #FFFF00, #989845)",
               },
             }}
             size="sm"
@@ -99,12 +118,138 @@ export default function data(globalFunc) {
       return (
         <MDBox ml={-1}>
           <MDBadge
-            badgeContent="Received"
+            badgeContent="Not started"
             sx={{
               "& .MuiBadge-badge": {
                 color: "#000",
                 backgroundColor: "green",
-                background: "linear-gradient(195deg, #ffa500, #e0910b)",
+                background: "linear-gradient(195deg, #ffae00, #B38D4C)",
+              },
+            }}
+            size="sm"
+            bg=""
+          />
+        </MDBox>
+      );
+    }
+    if (repairStatus == 2) {
+      return (
+        <MDBox ml={-1}>
+          <MDBadge
+            badgeContent="In Progress"
+            sx={{
+              "& .MuiBadge-badge": {
+                color: "#000",
+                backgroundColor: "green",
+                background: "linear-gradient(195deg, #00BEFF, #4C99B3)",
+              },
+            }}
+            size="sm"
+            bg=""
+          />
+        </MDBox>
+      );
+    }
+    if (repairStatus == 3) {
+      return (
+        <MDBox ml={-1}>
+          <MDBadge
+            badgeContent="Paused"
+            sx={{
+              "& .MuiBadge-badge": {
+                color: "#000",
+                backgroundColor: "green",
+                background: "linear-gradient(195deg, #3D8E8C, #00FFF9)",
+              },
+            }}
+            size="sm"
+            bg=""
+          />
+        </MDBox>
+      );
+    }
+    if (repairStatus == 4) {
+      return (
+        <MDBox ml={-1}>
+          <MDBadge
+            badgeContent="Repair Complete"
+            sx={{
+              "& .MuiBadge-badge": {
+                color: "#000",
+                backgroundColor: "green",
+                background: "linear-gradient(195deg, #3C9041, #00FF0F)",
+              },
+            }}
+            size="sm"
+            bg=""
+          />
+        </MDBox>
+      );
+    }
+    if (repairStatus == 5) {
+      return (
+        <MDBox ml={-1}>
+          <MDBadge
+            badgeContent="Invoice Created"
+            sx={{
+              "& .MuiBadge-badge": {
+                color: "#000",
+                backgroundColor: "green",
+                background: "linear-gradient(195deg, #8E833E, #FFDE03)",
+              },
+            }}
+            size="sm"
+            bg=""
+          />
+        </MDBox>
+      );
+    }
+    if (repairStatus == 6) {
+      return (
+        <MDBox ml={-1}>
+          <MDBadge
+            badgeContent="Complete"
+            sx={{
+              "& .MuiBadge-badge": {
+                color: "#000",
+                backgroundColor: "green",
+                background: "linear-gradient(195deg, #329858, #00FF60)",
+              },
+            }}
+            size="sm"
+            bg=""
+          />
+        </MDBox>
+      );
+    }
+    if (repairStatus == 998) {
+      return (
+        <MDBox ml={-1}>
+          <MDBadge
+            badgeContent="Cancelled"
+            sx={{
+              "& .MuiBadge-badge": {
+                color: "#fff",
+                backgroundColor: "green",
+                background: "linear-gradient(195deg, #984742, #FB0F00)",
+              },
+            }}
+            size="sm"
+            bg=""
+          />
+        </MDBox>
+      );
+    }
+    if (repairStatus == 999) {
+      return (
+        <MDBox ml={-1}>
+          <MDBadge
+            badgeContent="Unrepairable"
+            sx={{
+              "& .MuiBadge-badge": {
+                color: "#fff",
+                backgroundColor: "green",
+                background: "linear-gradient(195deg, #9E3755, #F70048)",
               },
             }}
             size="sm"
@@ -121,6 +266,7 @@ export default function data(globalFunc) {
       { Header: "pev", accessor: "pev", align: "left" },
       { Header: "status", accessor: "status", align: "center" },
       { Header: "received", accessor: "received", align: "center" },
+      { Header: "updated", accessor: "updated", align: "center" },
       { Header: "action", accessor: "action", align: "center" },
     ],
 
@@ -147,7 +293,7 @@ export default function data(globalFunc) {
                   {moment(repair.createdAt).format("MM/DD/yyyy hh:mm a")}
                 </MDTypography>
               ),
-              action: (
+              updated: (
                 <MDTypography
                   component="a"
                   href="#"
@@ -155,9 +301,10 @@ export default function data(globalFunc) {
                   color="text"
                   fontWeight="medium"
                 >
-                  Edit
+                  {moment(repair.updatedAt).format("MM/DD/yyyy hh:mm a")}
                 </MDTypography>
               ),
+              action: <Actions repairStatus={repair.status} repair={repair} />,
             };
           })
         : [],

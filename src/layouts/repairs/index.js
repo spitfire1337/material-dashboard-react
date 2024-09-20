@@ -66,7 +66,6 @@ const style = {
 };
 // eslint-disable-next-line react/prop-types
 const Repairs = ({ globalFunc }) => {
-  const { columns, rows } = authorsTableData(globalFunc);
   const { columns: pColumns, rows: pRows } = projectsTableData();
   const [newRepair, setNewRepair] = useState(false);
   const [repairData, setRepairData] = useState({});
@@ -153,6 +152,16 @@ const Repairs = ({ globalFunc }) => {
     setNewRepair(true);
     setRepairStep(0);
   };
+
+  const contIntake = (repair) => {
+    setrepairID(repair._id);
+    updateRepairData({ customer: repair.Customer._id, pev: repair.pev._id });
+    console.log("Repair data", repairData);
+    setNewRepair(true);
+    setRepairStep(3);
+  };
+
+  const { columns, rows } = authorsTableData(globalFunc, contIntake);
 
   const updateCustomer = (value) => {
     setSelectedCustomer(value);
