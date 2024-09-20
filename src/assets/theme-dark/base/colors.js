@@ -85,7 +85,10 @@ const colors = {
     main: "#344767",
     focus: "#2c3c58",
   },
-
+  yellow: {
+    main: "#Ffff00",
+    focus: "#00ff80",
+  },
   grey: {
     100: "#f8f9fa",
     200: "#f0f2f5",
@@ -132,6 +135,10 @@ const colors = {
     light: {
       main: "#EBEFF4",
       state: "#CED4DA",
+    },
+    yellow: {
+      main: "#Ffff00",
+      state: "#00ff80",
     },
 
     dark: {
@@ -232,7 +239,10 @@ const colors = {
       background: "#fcd3d0",
       text: "#f61200",
     },
-
+    created: {
+      main: "#Ffff00",
+      text: "#00ff80",
+    },
     light: {
       background: "#ffffff",
       text: "#c7d3de",

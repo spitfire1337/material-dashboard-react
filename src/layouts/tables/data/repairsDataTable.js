@@ -76,11 +76,44 @@ export default function data(globalFunc) {
     </MDBox>
   );
 
-  const Status = ({ status }) => (
-    <MDBox ml={-1}>
-      <MDBadge badgeContent="online" color="success" variant="gradient" size="sm" />
-    </MDBox>
-  );
+  const Status = ({ repairStatus }) => {
+    if (repairStatus == 0) {
+      return (
+        <MDBox ml={-1}>
+          <MDBadge
+            badgeContent="Created"
+            sx={{
+              "& .MuiBadge-badge": {
+                color: "#000",
+                backgroundColor: "green",
+                background: "linear-gradient(195deg, #Ffff00, #dfdf11)",
+              },
+            }}
+            size="sm"
+            bg=""
+          />
+        </MDBox>
+      );
+    }
+    if (repairStatus == 1) {
+      return (
+        <MDBox ml={-1}>
+          <MDBadge
+            badgeContent="Received"
+            sx={{
+              "& .MuiBadge-badge": {
+                color: "#000",
+                backgroundColor: "green",
+                background: "linear-gradient(195deg, #ffa500, #e0910b)",
+              },
+            }}
+            size="sm"
+            bg=""
+          />
+        </MDBox>
+      );
+    }
+  };
 
   return {
     columns: [
@@ -102,7 +135,7 @@ export default function data(globalFunc) {
                 />
               ),
               pev: <Pev title={repair.pev.Brand.name} description={repair.pev.Model} />,
-              status: <Status />,
+              status: <Status repairStatus={repair.status} />,
               received: (
                 <MDTypography
                   component="a"
