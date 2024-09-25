@@ -38,7 +38,7 @@ import Projects from "layouts/dashboard/components/Projects";
 import OrdersOverview from "layouts/dashboard/components/OrdersOverview";
 
 // eslint-disable-next-line react/prop-types
-function Dashboard({ setLoggedIn }) {
+function Dashboard({ globalFunc }) {
   const [mysales, setSales] = useState({ lastweek: 0, thisweek: 0 });
   const [salesChange, setSalesChange] = useState(0);
   const { sales, tasks } = reportsLineChartData;
@@ -65,7 +65,7 @@ function Dashboard({ setLoggedIn }) {
 
   return (
     <DashboardLayout>
-      <DashboardNavbar />
+      <DashboardNavbar globalFunc={globalFunc} />
       <MDBox py={3}>
         <Grid container spacing={3}>
           <Grid item xs={12} md={6} lg={3}>
@@ -79,7 +79,7 @@ function Dashboard({ setLoggedIn }) {
                   .toLocaleString(undefined, { minimumFractionDigits: 2 })}
                 percentage={{
                   color: salesChange > 0 ? "success" : "error",
-                  amount: `${salesChange > 0 ? "+" : "-"}${salesChange}%`,
+                  amount: `${salesChange > 0 ? "+" : ""}${salesChange}%`,
                   label: "than lask week",
                 }}
               />

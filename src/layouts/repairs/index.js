@@ -47,6 +47,7 @@ import DataTable from "examples/Tables/DataTable";
 import Step1 from "./components/step1";
 import Step2 from "./components/step2";
 import Step3 from "./components/step3";
+import Step4 from "./components/step4";
 
 // Data
 import authorsTableData from "layouts/tables/data/repairsDataTable";
@@ -83,7 +84,6 @@ const Repairs = ({ globalFunc }) => {
       },
     ];
   };
-  const [selectedcustomer, setSelectedCustomer] = useForm({});
   const [repairStep, setRepairStep] = useState(1);
   useEffect(() => {
     console.log("Repair id received", repairID);
@@ -92,65 +92,6 @@ const Repairs = ({ globalFunc }) => {
     console.log("Repair data to save", val);
     setRepairData({ ...val });
     console.log("Repair set data", repairData);
-  };
-  const nextRepairStep = async (val) => {
-    if (val == 2) {
-      if (selectedcustomer.id == undefined) {
-        //New Customer
-        try {
-          const response = await fetch(`${vars.serverUrl}/square/createCustomer`, {
-            method: "POST",
-            headers: {
-              Accept: "application/json",
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(selectedcustomer),
-            credentials: "include",
-          });
-          const json = await response.json();
-          //setCustomerID(json.data.customer.id);
-          console.log(json);
-          setRepairData({ Customer: json.data._id });
-          setRepairStep(val);
-          return null;
-        } catch (e) {
-          console.error(e);
-          // TODO: Add error notification
-        }
-      } else {
-        //Existing customer, let's update square of any changes
-        try {
-          const response = await fetch(`${vars.serverUrl}/square/updateCustomer`, {
-            method: "POST",
-            headers: {
-              Accept: "application/json",
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(selectedcustomer),
-            credentials: "include",
-          });
-          const json = await response.json();
-          console.log(json);
-          //setCustomerID(json.data.customer.id);
-          setRepairData({ Customer: json.data._id });
-          setRepairStep(val);
-          return null;
-        } catch (e) {
-          console.error(e);
-          // TODO: Add error notification
-        }
-      }
-    }
-    if (val == 3) {
-      //Show step 3
-      setRepairStep(3);
-    }
-    console.log("Repair data", repairData);
-  };
-
-  const showNewRepair = async () => {
-    setNewRepair(true);
-    setRepairStep(0);
   };
 
   const contIntake = (repair) => {
@@ -161,15 +102,37 @@ const Repairs = ({ globalFunc }) => {
     setRepairStep(3);
   };
 
-  const { columns, rows } = authorsTableData(globalFunc, contIntake);
+  const { columns, rows, reRender } = authorsTableData(globalFunc, contIntake);
 
-  const updateCustomer = (value) => {
-    setSelectedCustomer(value);
-    console.log("Updated customer:", selectedcustomer);
+  const nextRepairStep = async (val, customer = null) => {
+    if (val == 2) {
+      setRepairStep(2);
+      setRepairData({ Customer: customer });
+    }
+    if (val == 3) {
+      //Show step 3
+      setRepairStep(3);
+    }
+    if (val == 4) {
+      //Show step 3
+      setRepairStep(4);
+    }
+    if (val == 5) {
+      reRender();
+      setNewRepair(false);
+      setRepairStep(0);
+    }
+    //console.log("Repair data", repairData);
   };
+
+  const showNewRepair = async () => {
+    setNewRepair(true);
+    setRepairStep(0);
+  };
+
   return (
     <DashboardLayout>
-      <DashboardNavbar />
+      <DashboardNavbar globalFunc={globalFunc} />
       <MDBox pt={6} pb={3}>
         <Grid container spacing={6}>
           <Grid item xs={12}>
@@ -214,33 +177,6 @@ const Repairs = ({ globalFunc }) => {
               </MDBox>
             </Card>
           </Grid>
-          {/* <Grid item xs={12}>
-            <Card>
-              <MDBox
-                mx={2}
-                mt={-3}
-                py={3}
-                px={2}
-                variant="gradient"
-                bgColor="info"
-                borderRadius="lg"
-                coloredShadow="info"
-              >
-                <MDTypography variant="h6" color="white">
-                  Projects Table
-                </MDTypography>
-              </MDBox>
-              <MDBox pt={3}>
-                <DataTable
-                  table={{ columns: pColumns, rows: pRows }}
-                  isSorted={false}
-                  entriesPerPage={false}
-                  showTotalEntries={false}
-                  noEndBorder
-                />
-              </MDBox>
-            </Card>
-          </Grid> */}
         </Grid>
       </MDBox>
       <Footer />
@@ -255,12 +191,7 @@ const Repairs = ({ globalFunc }) => {
       >
         <MDBox sx={style}>
           {repairStep == 0 ? (
-            <Step1
-              nextRepairStep={nextRepairStep}
-              setSelectedCustomer={setSelectedCustomer}
-              selectedcustomer={selectedcustomer}
-              globalFunc={globalFunc}
-            ></Step1>
+            <Step1 nextRepairStep={nextRepairStep} globalFunc={globalFunc}></Step1>
           ) : repairStep == 2 ? (
             <Step2
               nextRepairStep={nextRepairStep}
@@ -269,12 +200,18 @@ const Repairs = ({ globalFunc }) => {
               setrepairID={setrepairID}
               globalFunc={globalFunc}
             ></Step2>
-          ) : (
+          ) : repairStep == 3 ? (
             <Step3
               repairID={repairID}
               globalFunc={globalFunc}
               nextRepairStep={nextRepairStep}
             ></Step3>
+          ) : (
+            <Step4
+              repairID={repairID}
+              globalFunc={globalFunc}
+              nextRepairStep={nextRepairStep}
+            ></Step4>
           )}
           <MDButton
             sx={{ marginTop: "2px" }}

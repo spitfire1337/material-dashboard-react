@@ -18,7 +18,7 @@ import { useState, useEffect, useMemo } from "react";
 // Vars
 import vars from "./config";
 // react-router components
-import { Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom";
 
 // @mui material components
 import { ThemeProvider } from "@mui/material/styles";
@@ -60,7 +60,23 @@ import brandWhite from "assets/images/logo-ct.png";
 import brandDark from "assets/images/logo-ct-dark.png";
 import { MyLocation } from "@mui/icons-material";
 import MDSnackbar from "components/MDSnackbar";
+import { BarcodeScanner } from "react-barcode-scanner";
+import { Modal } from "@mui/material";
+import "react-barcode-scanner/polyfill";
 
+const style = {
+  position: "absolute",
+  top: "50%",
+  left: "50%",
+  transform: "translate(-50%, -50%)",
+  width: "80%",
+  bgcolor: "background.paper",
+  border: "2px solid #000",
+  boxShadow: 24,
+  p: 4,
+  borderRadius: "25px",
+};
+//import { DEFAULT_CONSTRAINTS } from "react-zxing/lib/";
 export function getCookie(name) {
   var dc = document.cookie;
   var prefix = name + "=";
@@ -102,17 +118,19 @@ export default function App() {
   const [location, setLocation] = useState(null);
   const [loading, setLoading] = useState(true);
   const { pathname } = useLocation();
-
+  const [barcodeResult, setbarcodeResult] = useState("");
+  const [barcodeScanned, setbarcodeScanned] = useState(false);
+  const [showVideoFeed, setShowVideoFeed] = useState(false);
   const cookies = new Cookies(null, { path: "/" });
   // Cache for the rtl
   const [successSB, setSuccessSB] = useState(false);
   const [successSBText, setSuccessSBText] = useState("");
   const [errorSB, setErrorSB] = useState(false);
   const [errorSBText, setErrorSBText] = useState("");
-
+  const [user, setUser] = useState({});
   const closeSuccessSB = () => setSuccessSB(false);
   const closeErrorSB = () => setErrorSB(false);
-
+  let navigate = useNavigate();
   useMemo(() => {
     const cacheRtl = createCache({
       key: "rtl",
@@ -141,6 +159,7 @@ export default function App() {
         setLoading(false);
         setLoggedIn(false);
       } else {
+        setUser(res.user);
         setLoading(false);
         setLoggedIn(true);
       }
@@ -179,6 +198,8 @@ export default function App() {
     setSuccessSBText: setSuccessSBText,
     setErrorSB: setErrorSB,
     setErrorSBText: setErrorSBText,
+    user: user,
+    setShowVideoFeed: setShowVideoFeed,
   };
 
   const checkSquare = async () => {
@@ -274,6 +295,12 @@ export default function App() {
       return null;
     });
 
+  const barcodeCapture = (barcode) => {
+    setbarcodeResult(barcode);
+    return navigate("/repair/" & barcodeResult);
+
+    //null
+  };
   const configsButton = (
     <MDBox
       display="flex"
@@ -298,7 +325,29 @@ export default function App() {
     </MDBox>
   );
 
-  if (loading) {
+  if (showVideoFeed) {
+    return (
+      <ThemeProvider theme={darkMode ? themeDarkRTL : themeRTL}>
+        <Modal
+          open={showVideoFeed}
+          onClose={() => {
+            setShowVideoFeed(false);
+          }}
+          aria-labelledby="modal-modal-title"
+          aria-describedby="modal-modal-description"
+        >
+          <MDBox sx={style}>
+            <BarcodeScanner
+              options={{ formats: ["code_128"] }}
+              onCapture={(barcode) => {
+                barcodeCapture(barcode);
+              }}
+            />
+          </MDBox>
+        </Modal>
+      </ThemeProvider>
+    );
+  } else if (loading) {
     return (
       <ThemeProvider theme={darkMode ? themeDarkRTL : themeRTL}>
         <CssBaseline />

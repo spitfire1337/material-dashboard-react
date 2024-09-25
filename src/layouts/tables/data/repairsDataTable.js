@@ -31,30 +31,34 @@ import team4 from "assets/images/team-4.jpg";
 export default function data(globalFunc, contIntake) {
   console.log("Global:", globalFunc);
   const [repairs, setRepairs] = useState([]);
-  useEffect(() => {
-    const fetchData = async (globalFunc) => {
-      const response = await fetch(`${vars.serverUrl}/square/getMyData?action=getRepairs`, {
-        credentials: "include",
-      });
-      if (response.status == 200) {
-        const res = await response.json();
-        console.log(res);
+  const fetchData = async (globalFunc) => {
+    const response = await fetch(`${vars.serverUrl}/square/getMyData?action=getRepairs`, {
+      credentials: "include",
+    });
+    if (response.status == 200) {
+      const res = await response.json();
+      console.log(res);
 
-        if (res.res === 200) {
-          setRepairs(res.data);
-        } else if (res.res === 401) {
-          globalFunc.setLoggedIn(false);
-          globalFunc.setErrorSBText("Unauthorized, redirecting to login");
-          globalFunc.setErrorSB(true);
-        }
-      } else if (response.status == 401) {
+      if (res.res === 200) {
+        setRepairs(res.data);
+      } else if (res.res === 401) {
         globalFunc.setLoggedIn(false);
         globalFunc.setErrorSBText("Unauthorized, redirecting to login");
         globalFunc.setErrorSB(true);
       }
-    };
+    } else if (response.status == 401) {
+      globalFunc.setLoggedIn(false);
+      globalFunc.setErrorSBText("Unauthorized, redirecting to login");
+      globalFunc.setErrorSB(true);
+    }
+  };
+  useEffect(() => {
     fetchData(globalFunc);
   }, []);
+
+  const reRender = () => {
+    fetchData(globalFunc);
+  };
 
   const Customer = ({ image, name, email }) => (
     <MDBox display="flex" alignItems="center" lineHeight={1}>
@@ -261,6 +265,7 @@ export default function data(globalFunc, contIntake) {
   };
 
   return {
+    reRender: reRender,
     columns: [
       { Header: "customer", accessor: "customer", width: "25%", align: "left" },
       { Header: "pev", accessor: "pev", align: "left" },

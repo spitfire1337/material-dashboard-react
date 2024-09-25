@@ -29,7 +29,7 @@ const style = {
   borderRadius: "25px",
 };
 
-const step1 = ({ globalFunc, setSelectedCustomer, selectedcustomer, nextRepairStep }) => {
+const step1 = ({ globalFunc, nextRepairStep }) => {
   const [customersSelection, setCustomersSelection] = useState([]);
   const [showCustForm, setShowCustForm] = useState(false);
   const [customers, setCustomers] = useState([]);
@@ -43,9 +43,10 @@ const step1 = ({ globalFunc, setSelectedCustomer, selectedcustomer, nextRepairSt
           ...newValue,
         });
       },
+      () => setValues({}),
     ];
   };
-  //const [selectedcustomer, setSelectedCustomer] = useForm({});
+  let [selectedcustomer, setSelectedCustomer, emptyCustomer] = useForm({});
 
   useEffect(() => {
     const fetchData = async () => {
@@ -69,7 +70,7 @@ const step1 = ({ globalFunc, setSelectedCustomer, selectedcustomer, nextRepairSt
             });
           });
           setCustomersSelection(custList);
-          //setSelectedCustomer({});
+          emptyCustomer();
           setShowCustForm(false);
         } else if (res.res === 401) {
           globalFunc.setLoggedIn(false);
@@ -87,14 +88,17 @@ const step1 = ({ globalFunc, setSelectedCustomer, selectedcustomer, nextRepairSt
   }, []);
 
   const chooseCustomer = (cust) => {
-    console.log(cust);
+    console.log("Chosen cust:", cust);
+    selectedcustomer = {};
     if (cust == null) {
-      setSelectedCustomer({});
+      emptyCustomer();
+      console.log("New Cust data", selectedcustomer);
       setShowCustForm(false);
     } else if (cust.id == 0) {
       //NEW CUSTOMER
       console.log("New customer");
-      setSelectedCustomer({});
+      emptyCustomer();
+      console.log("New Cust data", selectedcustomer);
       setShowCustForm(true);
     } else {
       let custData = customers.filter((mycust) => mycust.id == cust.id)[0];
@@ -107,6 +111,59 @@ const step1 = ({ globalFunc, setSelectedCustomer, selectedcustomer, nextRepairSt
   const updateCustomer = (value) => {
     setSelectedCustomer(value);
     console.log("Updated customer:", selectedcustomer);
+  };
+
+  const submitCustomer = async (val) => {
+    if (selectedcustomer.id == undefined || selectedcustomer.id == 0) {
+      //New Customer
+      try {
+        console.log(selectedcustomer);
+        const response = await fetch(`${vars.serverUrl}/square/createCustomer`, {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(selectedcustomer),
+          credentials: "include",
+        });
+        const json = await response.json();
+        //setCustomerID(json.data.customer.id);
+        if (json.res == 200) {
+          console.log(json);
+          nextRepairStep(val, json.data._id);
+          return null;
+        } else if (json.res == 401) {
+          globalFunc.setLoggedIn(false);
+        }
+      } catch (e) {
+        globalFunc.setErrorSBText("Error creating customer.");
+        globalFunc.setErrorSB(true);
+        console.error(e);
+        // TODO: Add error notification
+      }
+    } else {
+      //Existing customer, let's update square of any changes
+      try {
+        const response = await fetch(`${vars.serverUrl}/square/updateCustomer`, {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(selectedcustomer),
+          credentials: "include",
+        });
+        const json = await response.json();
+        console.log(json);
+        //setCustomerID(json.data.customer.id);
+        nextRepairStep(val, json.data._id);
+        return null;
+      } catch (e) {
+        console.error(e);
+        // TODO: Add error notification
+      }
+    }
   };
   return (
     <>
@@ -267,7 +324,7 @@ const step1 = ({ globalFunc, setSelectedCustomer, selectedcustomer, nextRepairSt
                   fullWidth
                   variant="outlined"
                   color="primary"
-                  onClick={() => nextRepairStep(2, selectedcustomer)}
+                  onClick={() => submitCustomer(2)}
                 >
                   Next
                 </MDButton>
