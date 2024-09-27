@@ -16,6 +16,7 @@ Coded by www.creative-tim.com
 import { useState, React, useEffect } from "react";
 import { useParams } from "react-router-dom";
 
+import moment from "moment";
 // Vars
 import vars from "../../config";
 
@@ -105,30 +106,8 @@ const RepairDetails = ({ globalFunc }) => {
           <Grid item xs={12}>
             <MDBox pt={3}>
               <Grid container spacing={1}>
-                {/* Repair Actions */}
-                <Grid item xs={12}>
-                  <Card>
-                    <MDBox
-                      mx={1}
-                      mt={-3}
-                      py={1}
-                      px={1}
-                      variant="gradient"
-                      bgColor="info"
-                      borderRadius="lg"
-                      coloredShadow="info"
-                    >
-                      <MDTypography variant="h6" color="white">
-                        Actions
-                      </MDTypography>
-                    </MDBox>
-                    <MDBox mx={2} py={3} px={2}>
-                      <MDTypography variant="subtitle2"></MDTypography>
-                    </MDBox>
-                  </Card>
-                </Grid>
                 {/* Customer info */}
-                <Grid item xs={12} md={4}>
+                <Grid item xs={12} md={8}>
                   <Card>
                     <MDBox
                       mx={1}
@@ -173,6 +152,55 @@ const RepairDetails = ({ globalFunc }) => {
                       </MDTypography>
                     </MDBox>
                   </Card>
+                </Grid>
+                {/* Repair Actions & History */}
+                <Grid item xs={12} md={4}>
+                  {/* Repair Actions */}
+                  <Grid item xs={12}>
+                    <Card>
+                      <MDBox
+                        mx={1}
+                        mt={-3}
+                        py={2}
+                        px={1}
+                        variant="gradient"
+                        bgColor="info"
+                        borderRadius="lg"
+                        coloredShadow="info"
+                      >
+                        <MDTypography variant="h6" color="white">
+                          Actions
+                        </MDTypography>
+                      </MDBox>
+                      <MDBox mx={2} py={3} px={2}>
+                        <MDTypography variant="subtitle2"></MDTypography>
+                      </MDBox>
+                    </Card>
+                  </Grid>
+                  {/* Repair History */}
+                  <Grid item xs={12}>
+                    <Card>
+                      <MDBox
+                        mx={1}
+                        mt={-3}
+                        py={2}
+                        px={1}
+                        variant="gradient"
+                        bgColor="info"
+                        borderRadius="lg"
+                        coloredShadow="info"
+                      >
+                        <MDTypography variant="h6" color="white">
+                          History
+                        </MDTypography>
+                      </MDBox>
+                      <MDBox mx={2} py={3} px={2}>
+                        <MDTypography variant="subtitle2">
+                          Created at: {moment(repairDetails.createdAt).format("MM/DD/yyyy hh:mm a")}
+                        </MDTypography>
+                      </MDBox>
+                    </Card>
+                  </Grid>
                 </Grid>
                 {/* Repair Details */}
                 <Grid item xs={12} md={8}>
