@@ -14,7 +14,6 @@ Coded by www.creative-tim.com
 */
 
 import { useState, useEffect, useMemo } from "react";
-
 // Vars
 import vars from "./config";
 // react-router components
@@ -60,10 +59,12 @@ import brandWhite from "assets/images/logo-ct.png";
 import brandDark from "assets/images/logo-ct-dark.png";
 import { MyLocation } from "@mui/icons-material";
 import MDSnackbar from "components/MDSnackbar";
-import { BarcodeScanner } from "react-barcode-scanner";
+import { Scanner } from "@yudiel/react-qr-scanner";
 import { Modal } from "@mui/material";
 import "react-barcode-scanner/polyfill";
-
+import MDButton from "components/MDButton";
+import Loading from "components/loading";
+import "./scanner.css";
 const style = {
   position: "absolute",
   top: "50%",
@@ -73,6 +74,12 @@ const style = {
   bgcolor: "background.paper",
   border: "2px solid #000",
   boxShadow: 24,
+  p: 4,
+  borderRadius: "25px",
+  maxWidth: "75vh",
+};
+const style2 = {
+  height: "75vh",
   p: 4,
   borderRadius: "25px",
 };
@@ -130,7 +137,7 @@ export default function App() {
   const [user, setUser] = useState({});
   const closeSuccessSB = () => setSuccessSB(false);
   const closeErrorSB = () => setErrorSB(false);
-  let navigate = useNavigate();
+  let redirect = useNavigate();
   useMemo(() => {
     const cacheRtl = createCache({
       key: "rtl",
@@ -208,7 +215,6 @@ export default function App() {
         credentials: "include",
       });
       const res = await response.json();
-      console.log("Square res", res);
       if (res.res === 401) {
         setLoading(false);
         setSquare(false);
@@ -229,7 +235,6 @@ export default function App() {
         setCustomers(res.customers);
         setLocations(res.locations);
         setLoading(false);
-        console.log(res);
       }
       if (location !== undefined) {
         const response = await fetch(`${vars.serverUrl}/square/getSquare?action=getSales`, {
@@ -239,7 +244,6 @@ export default function App() {
         if (res.res === 200) {
           setSaless(res.sales);
           setLoading(false);
-          console.log(res);
         }
       }
     } else {
@@ -269,9 +273,7 @@ export default function App() {
     } else if (!isSquare) {
       checkSquare();
     } else {
-      console.log("Use effect getInitData");
       setLocation(cookies.get("mylocation"));
-      console.log(cookies.get("mylocation")); // Pacman
       getInitData();
     }
   }, [isLoggedin, isSquare, location]);
@@ -296,9 +298,17 @@ export default function App() {
     });
 
   const barcodeCapture = (barcode) => {
-    setbarcodeResult(barcode);
-    return navigate("/repair/" & barcodeResult);
-
+    //setbarcodeResult(barcode);
+    let barcodeType = barcode.split("-").length > 0 ? barcode.split("-")[0] : null;
+    let barcodeValue = barcode.split("-").length > 0 ? barcode.split("-")[1] : null;
+    if (barcodeType == "repair") {
+      setShowVideoFeed(false);
+      return redirect(`/repairs/${barcodeValue}`, { replace: true });
+    } else {
+      setErrorSBText("Invalid barcode, please try again");
+      setErrorSB(true);
+      return null;
+    }
     //null
   };
   const configsButton = (
@@ -325,32 +335,56 @@ export default function App() {
     </MDBox>
   );
 
-  if (showVideoFeed) {
+  const MyScanner = () => {
     return (
-      <ThemeProvider theme={darkMode ? themeDarkRTL : themeRTL}>
-        <Modal
-          open={showVideoFeed}
-          onClose={() => {
-            setShowVideoFeed(false);
-          }}
-          aria-labelledby="modal-modal-title"
-          aria-describedby="modal-modal-description"
-        >
-          <MDBox sx={style}>
-            <BarcodeScanner
-              options={{ formats: ["code_128"] }}
-              onCapture={(barcode) => {
-                barcodeCapture(barcode);
-              }}
-            />
-          </MDBox>
-        </Modal>
-      </ThemeProvider>
+      <Modal
+        open={showVideoFeed}
+        onClose={() => {
+          setShowVideoFeed(false);
+        }}
+        aria-labelledby="modal-modal-title"
+        aria-describedby="modal-modal-description"
+      >
+        <MDBox sx={style}>
+          <Scanner
+            classNames={{
+              container: "scanner",
+              video: "video",
+            }}
+            onScan={(result) => {
+              barcodeCapture(result[0].rawValue);
+            }}
+          />
+          {/* <BarcodeScanner
+            width="100%"
+            height="75%"
+            options={{ formats: ["code_128"] }}
+            onCapture={(barcode) => {
+              barcodeCapture(barcode);
+            }}
+          /> */}
+          <MDButton
+            sx={{ marginTop: "2px" }}
+            fullWidth
+            color="secondary"
+            onClick={() => {
+              setShowVideoFeed(false);
+            }}
+          >
+            Close
+          </MDButton>
+        </MDBox>
+      </Modal>
     );
-  } else if (loading) {
+  };
+
+  if (loading) {
     return (
       <ThemeProvider theme={darkMode ? themeDarkRTL : themeRTL}>
         <CssBaseline />
+        <Loading />
+        {renderSuccessSB}
+        {renderErrorSB}
       </ThemeProvider>
     );
   } else if (!isLoggedin) {
@@ -434,6 +468,7 @@ export default function App() {
             // closeSuccessSB={closeSuccessSB}
           />
         )}
+        {showVideoFeed && <MyScanner />}
         {/* {location == null && <LocationSelect locations={locations.locations} />} */}
         <Routes>
           {getRoutes(routes(globalFunc))}

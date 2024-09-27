@@ -1,0 +1,17 @@
+.scanner {
+    aspect-ratio: 1;
+}
+
+.scanner video {
+    object-fit: cover;
+}
+
+.scanner svg {
+    max-width: 100%;
+    max-height: 75vh;
+}
+
+.video {
+    max-width: 75vh;
+    max-height: 75vh;
+}
