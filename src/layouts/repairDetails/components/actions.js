@@ -181,7 +181,7 @@ function Actions({ status, getRepair, repairID, globalFunc, repairTime }) {
   const doCreateInvoice = async () => {
     let dueTaxes;
     if (Taxable) {
-      dueTaxes = { taxes: [{ appliedMoney: { amount: Math.round(Tax * 100) } }] };
+      dueTaxes = { taxes: [{ percentage: TaxRate.toString(), name: "FL Sales Tax" }] };
     }
     const response = await fetch(`${vars.serverUrl}/square/createInvoice`, {
       method: "POST",
