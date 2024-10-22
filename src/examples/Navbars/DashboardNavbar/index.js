@@ -138,11 +138,11 @@ function DashboardNavbar({ absolute, light, isMini, globalFunc }) {
               <MDInput label="Search here" />
             </MDBox>
             <MDBox color={light ? "white" : "inherit"}>
-              <Link to="/authentication/sign-in/basic">
+              {/* <Link to="/authentication/sign-in/basic">
                 <IconButton sx={navbarIconButton} size="small" disableRipple>
                   <Icon sx={iconsStyle}>account_circle</Icon>
                 </IconButton>
-              </Link>
+              </Link> */}
               <IconButton
                 size="small"
                 disableRipple
@@ -173,9 +173,9 @@ function DashboardNavbar({ absolute, light, isMini, globalFunc }) {
                   globalFunc.setShowVideoFeed(true);
                 }}
               >
-                <Icon sx={iconsStyle}>barcode_scanner</Icon>
+                <Icon sx={iconsStyle}>qr_code</Icon>
               </IconButton>
-              <IconButton
+              {/* <IconButton
                 size="small"
                 disableRipple
                 color="inherit"
@@ -187,7 +187,7 @@ function DashboardNavbar({ absolute, light, isMini, globalFunc }) {
               >
                 <Icon sx={iconsStyle}>notifications</Icon>
               </IconButton>
-              {renderMenu()}
+              {renderMenu()} */}
             </MDBox>
           </MDBox>
         )}

@@ -14,6 +14,7 @@ Coded by www.creative-tim.com
 */
 
 import { useState, useEffect, useMemo } from "react";
+import "material-icons/iconfont/material-icons.css";
 // Vars
 import vars from "./config";
 // react-router components
@@ -55,8 +56,8 @@ import SignIn from "layouts/authentication/sign-in";
 import Square from "layouts/authentication/square_setup";
 import Cookies from "universal-cookie";
 // Images
-import brandWhite from "assets/images/logo-ct.png";
-import brandDark from "assets/images/logo-ct-dark.png";
+import brandWhite from "assets/images/logos/Logo-Dark.png";
+import brandDark from "assets/images/logos/Logo-Light.png";
 import { MyLocation } from "@mui/icons-material";
 import MDSnackbar from "components/MDSnackbar";
 import { Scanner } from "@yudiel/react-qr-scanner";
@@ -413,7 +414,7 @@ export default function App() {
               <Sidenav
                 color={sidenavColor}
                 brand={(transparentSidenav && !darkMode) || whiteSidenav ? brandDark : brandWhite}
-                brandName="Material Dashboard 2"
+                brandName="PEV Connection, LLC"
                 routes={routes(globalFunc)}
                 onMouseEnter={handleOnMouseEnter}
                 onMouseLeave={handleOnMouseLeave}
@@ -444,7 +445,7 @@ export default function App() {
             <Sidenav
               color={sidenavColor}
               brand={(transparentSidenav && !darkMode) || whiteSidenav ? brandDark : brandWhite}
-              brandName="Material Dashboard 2"
+              brandName="PEV Connection, LLC"
               routes={routes(globalFunc)}
               onMouseEnter={handleOnMouseEnter}
               onMouseLeave={handleOnMouseLeave}

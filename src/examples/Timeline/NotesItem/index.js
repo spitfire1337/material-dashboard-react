@@ -18,7 +18,7 @@ import PropTypes from "prop-types";
 
 // @mui material components
 import Icon from "@mui/material/Icon";
-
+import moment from "moment";
 // Material Dashboard 2 React components
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
@@ -29,7 +29,7 @@ import { useTimeline } from "examples/Timeline/context";
 // Custom styles for the TimelineItem
 import timelineItem from "examples/Timeline/TimelineItem/styles";
 
-function TimelineItem({ color, icon, title, dateTime, description, lastItem, user }) {
+function NotesItem({ color, icon, notes, dateTime, description, lastItem, user }) {
   const isDark = useTimeline();
 
   return (
@@ -49,11 +49,11 @@ function TimelineItem({ color, icon, title, dateTime, description, lastItem, use
         zIndex={2}
         sx={{ fontSize: ({ typography: { size } }) => size.sm }}
       >
-        <Icon fontSize="inherit">{icon}</Icon>
+        <Icon fontSize="inherit">text_snippet</Icon>
       </MDBox>
       <MDBox ml={5.75} pt={description || user ? 0.7 : 0.5} lineHeight={0} maxWidth="30rem">
         <MDTypography variant="button" fontWeight="medium" color={isDark ? "white" : "dark"}>
-          {title}
+          {notes}
         </MDTypography>
         <MDBox mt={0} mb={0.5}>
           <MDTypography variant="caption" color={isDark ? "secondary" : "text"}>
@@ -62,15 +62,8 @@ function TimelineItem({ color, icon, title, dateTime, description, lastItem, use
         </MDBox>
         <MDBox mt={0}>
           <MDTypography variant="caption" color={isDark ? "secondary" : "text"}>
-            {dateTime}
+            {moment(dateTime).format("MM/DD/yyyy hh:mm a")}
           </MDTypography>
-        </MDBox>
-        <MDBox mt={2} mb={1.5}>
-          {description ? (
-            <MDTypography variant="button" color={isDark ? "white" : "dark"}>
-              {description}
-            </MDTypography>
-          ) : null}
         </MDBox>
       </MDBox>
     </MDBox>
@@ -78,14 +71,14 @@ function TimelineItem({ color, icon, title, dateTime, description, lastItem, use
 }
 
 // Setting default values for the props of TimelineItem
-TimelineItem.defaultProps = {
+NotesItem.defaultProps = {
   color: "info",
   lastItem: false,
   description: "",
 };
 
 // Typechecking props for the TimelineItem
-TimelineItem.propTypes = {
+NotesItem.propTypes = {
   color: PropTypes.oneOf([
     "primary",
     "secondary",
@@ -97,10 +90,10 @@ TimelineItem.propTypes = {
     "light",
   ]),
   icon: PropTypes.node.isRequired,
-  title: PropTypes.string.isRequired,
+  notes: PropTypes.string.isRequired,
   dateTime: PropTypes.string.isRequired,
   description: PropTypes.string,
   lastItem: PropTypes.bool,
 };
 
-export default TimelineItem;
+export default NotesItem;

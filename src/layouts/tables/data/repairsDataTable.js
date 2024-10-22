@@ -15,6 +15,8 @@ Coded by www.creative-tim.com
 * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 */
 import { useState, React, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+
 import vars from "../../../config";
 
 // Material Dashboard 2 React components
@@ -29,6 +31,7 @@ import team3 from "assets/images/team-3.jpg";
 import team4 from "assets/images/team-4.jpg";
 
 export default function data(globalFunc, contIntake) {
+  let redirect = useNavigate();
   console.log("Global:", globalFunc);
   const [repairs, setRepairs] = useState([]);
   const fetchData = async (globalFunc) => {
@@ -60,8 +63,14 @@ export default function data(globalFunc, contIntake) {
     fetchData(globalFunc);
   };
 
-  const Customer = ({ image, name, email }) => (
-    <MDBox display="flex" alignItems="center" lineHeight={1}>
+  const Customer = ({ image, name, email, id }) => (
+    <MDBox
+      display="flex"
+      alignItems="center"
+      lineHeight={1}
+      sx={{ cursor: "pointer" }}
+      onClick={() => redirect(`/repairs/${id}`, { replace: false })}
+    >
       <MDBox ml={2} lineHeight={1}>
         <MDTypography display="block" variant="button" fontWeight="medium">
           {name}
@@ -71,8 +80,13 @@ export default function data(globalFunc, contIntake) {
     </MDBox>
   );
 
-  const Pev = ({ title, description }) => (
-    <MDBox lineHeight={1} textAlign="left">
+  const Pev = ({ title, description, id }) => (
+    <MDBox
+      lineHeight={1}
+      textAlign="left"
+      sx={{ cursor: "pointer" }}
+      onClick={() => redirect(`/repairs/${id}`, { replace: false })}
+    >
       <MDTypography display="block" variant="caption" color="text" fontWeight="medium">
         {title}
       </MDTypography>
@@ -99,10 +113,14 @@ export default function data(globalFunc, contIntake) {
     }
   };
 
-  const Status = ({ repairStatus }) => {
+  const Status = ({ repairStatus, id }) => {
     if (repairStatus == 0) {
       return (
-        <MDBox ml={-1}>
+        <MDBox
+          ml={-1}
+          sx={{ cursor: "pointer" }}
+          onClick={() => redirect(`/repairs/${id}`, { replace: false })}
+        >
           <MDBadge
             badgeContent="Created"
             sx={{
@@ -120,7 +138,11 @@ export default function data(globalFunc, contIntake) {
     }
     if (repairStatus == 1) {
       return (
-        <MDBox ml={-1}>
+        <MDBox
+          ml={-1}
+          sx={{ cursor: "pointer" }}
+          onClick={() => redirect(`/repairs/${id}`, { replace: false })}
+        >
           <MDBadge
             badgeContent="Not started"
             sx={{
@@ -138,7 +160,11 @@ export default function data(globalFunc, contIntake) {
     }
     if (repairStatus == 2) {
       return (
-        <MDBox ml={-1}>
+        <MDBox
+          ml={-1}
+          sx={{ cursor: "pointer" }}
+          onClick={() => redirect(`/repairs/${id}`, { replace: false })}
+        >
           <MDBadge
             badgeContent="In Progress"
             sx={{
@@ -156,7 +182,11 @@ export default function data(globalFunc, contIntake) {
     }
     if (repairStatus == 3) {
       return (
-        <MDBox ml={-1}>
+        <MDBox
+          ml={-1}
+          sx={{ cursor: "pointer" }}
+          onClick={() => redirect(`/repairs/${id}`, { replace: false })}
+        >
           <MDBadge
             badgeContent="Paused"
             sx={{
@@ -174,7 +204,11 @@ export default function data(globalFunc, contIntake) {
     }
     if (repairStatus == 4) {
       return (
-        <MDBox ml={-1}>
+        <MDBox
+          ml={-1}
+          sx={{ cursor: "pointer" }}
+          onClick={() => redirect(`/repairs/${id}`, { replace: false })}
+        >
           <MDBadge
             badgeContent="Repair Complete"
             sx={{
@@ -192,7 +226,11 @@ export default function data(globalFunc, contIntake) {
     }
     if (repairStatus == 5) {
       return (
-        <MDBox ml={-1}>
+        <MDBox
+          ml={-1}
+          sx={{ cursor: "pointer" }}
+          onClick={() => redirect(`/repairs/${id}`, { replace: false })}
+        >
           <MDBadge
             badgeContent="Invoice Created"
             sx={{
@@ -210,7 +248,11 @@ export default function data(globalFunc, contIntake) {
     }
     if (repairStatus == 6) {
       return (
-        <MDBox ml={-1}>
+        <MDBox
+          ml={-1}
+          sx={{ cursor: "pointer" }}
+          onClick={() => redirect(`/repairs/${id}`, { replace: false })}
+        >
           <MDBadge
             badgeContent="Complete"
             sx={{
@@ -228,7 +270,11 @@ export default function data(globalFunc, contIntake) {
     }
     if (repairStatus == 998) {
       return (
-        <MDBox ml={-1}>
+        <MDBox
+          ml={-1}
+          sx={{ cursor: "pointer" }}
+          onClick={() => redirect(`/repairs/${id}`, { replace: false })}
+        >
           <MDBadge
             badgeContent="Cancelled"
             sx={{
@@ -246,7 +292,11 @@ export default function data(globalFunc, contIntake) {
     }
     if (repairStatus == 999) {
       return (
-        <MDBox ml={-1}>
+        <MDBox
+          ml={-1}
+          sx={{ cursor: "pointer" }}
+          onClick={() => redirect(`/repairs/${id}`, { replace: false })}
+        >
           <MDBadge
             badgeContent="Unrepairable"
             sx={{
@@ -270,9 +320,14 @@ export default function data(globalFunc, contIntake) {
       { Header: "customer", accessor: "customer", width: "25%", align: "left" },
       { Header: "pev", accessor: "pev", align: "left" },
       { Header: "status", accessor: "status", align: "center" },
-      { Header: "received", accessor: "received", align: "center" },
+      {
+        Header: "received",
+        accessor: "received",
+        align: "center",
+        isSorted: true,
+        isSortedDesc: false,
+      },
       { Header: "updated", accessor: "updated", align: "center" },
-      { Header: "action", accessor: "action", align: "center" },
     ],
 
     rows:
@@ -281,12 +336,15 @@ export default function data(globalFunc, contIntake) {
             return {
               customer: (
                 <Customer
+                  id={repair._id}
                   name={repair.Customer.given_name + " " + repair.Customer.family_name}
                   email={repair.Customer.phone_number || repair.Customer.email_address}
                 />
               ),
-              pev: <Pev title={repair.pev.Brand.name} description={repair.pev.Model} />,
-              status: <Status repairStatus={repair.status} />,
+              pev: (
+                <Pev id={repair._id} title={repair.pev.Brand.name} description={repair.pev.Model} />
+              ),
+              status: <Status repairStatus={repair.status} id={repair._id} />,
               received: (
                 <MDTypography
                   component="a"
@@ -294,6 +352,8 @@ export default function data(globalFunc, contIntake) {
                   variant="caption"
                   color="text"
                   fontWeight="medium"
+                  sx={{ cursor: "pointer" }}
+                  onClick={() => redirect(`/repairs/${repair._id}`, { replace: false })}
                 >
                   {moment(repair.createdAt).format("MM/DD/yyyy hh:mm a")}
                 </MDTypography>
@@ -301,7 +361,7 @@ export default function data(globalFunc, contIntake) {
               updated: (
                 <MDTypography
                   component="a"
-                  href="#"
+                  href={"/repairs/" + repair._id}
                   variant="caption"
                   color="text"
                   fontWeight="medium"
@@ -309,7 +369,6 @@ export default function data(globalFunc, contIntake) {
                   {moment(repair.updatedAt).format("MM/DD/yyyy hh:mm a")}
                 </MDTypography>
               ),
-              action: <Actions repairStatus={repair.status} repair={repair} />,
             };
           })
         : [],

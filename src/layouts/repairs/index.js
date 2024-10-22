@@ -148,11 +148,7 @@ const Repairs = ({ globalFunc }) => {
                 coloredShadow="info"
               >
                 <Grid container>
-                  <Grid item xs={6} alignItems="center">
-                    <MDTypography variant="h6" color="white">
-                      Test Table
-                    </MDTypography>
-                  </Grid>
+                  <Grid item xs={6} alignItems="center"></Grid>
                   <Grid item xs={6} alignItems="center" textAlign="right">
                     <MDButton
                       variant="contained"
