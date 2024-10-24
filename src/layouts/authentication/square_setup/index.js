@@ -38,6 +38,7 @@ import MDButton from "components/MDButton";
 
 // Authentication layout components
 import BasicLayout from "layouts/authentication/components/BasicLayout";
+import vars from "../../../config";
 
 // Images
 import bgImage from "assets/images/bg-sign-in-basic.jpeg";
@@ -45,7 +46,7 @@ import bgImage from "assets/images/bg-sign-in-basic.jpeg";
 function Basic() {
   const [rememberMe, setRememberMe] = useState(false);
 
-  const authServer = "http://localhost:3006";
+  const authServer = vars.serverUrl;
   return (
     <BasicLayout image={bgImage}>
       <Card>

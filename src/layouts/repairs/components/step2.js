@@ -180,7 +180,7 @@ const step2 = ({ globalFunc, repairData, updateRepairData, setrepairID, nextRepa
             globalFunc.setSuccessSBText("New PEV Added to database");
             globalFunc.setSuccessSB(true);
             let newRepairData = { ...repairData };
-            newRepairData.Pev = pevjson.data._id;
+            newRepairData.pev = pevjson.data._id;
             createRepair(newRepairData);
           } else {
             globalFunc.setErrorSBText("An error occured while saving data, please try again");
