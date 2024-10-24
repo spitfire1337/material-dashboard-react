@@ -74,7 +74,7 @@ const RepairDetails = ({ globalFunc }) => {
   const [allparts, setAllParts] = useState();
   console.log("Repair id received:", id);
   const getRepair = async () => {
-    const response = await fetch(`${vars.serverUrl}/square/repairdetails`, {
+    const response = await fetch(`${vars.serverUrl}/repairs/repairDetails`, {
       method: "POST",
       headers: {
         Accept: "application/json",
@@ -103,7 +103,7 @@ const RepairDetails = ({ globalFunc }) => {
   };
 
   const saveNotes = async () => {
-    const response = await fetch(`${vars.serverUrl}/square/repairNotes`, {
+    const response = await fetch(`${vars.serverUrl}/repairs/repairNotes`, {
       method: "POST",
       headers: {
         Accept: "application/json",

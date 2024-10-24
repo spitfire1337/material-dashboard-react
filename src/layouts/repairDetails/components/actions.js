@@ -31,6 +31,7 @@ const style = {
 };
 
 function Actions({ status, getRepair, repairID, globalFunc, repairTime }) {
+  console.log("Passed repair time", repairTime);
   const [Labor, setLabor] = useState(100);
   const [Tax, setTax] = useState(0);
   const [TaxRate, setTaxRate] = useState(7);
@@ -48,7 +49,7 @@ function Actions({ status, getRepair, repairID, globalFunc, repairTime }) {
   const [repairOrder, setRepairOrder] = useState();
   const [repairOrderReady, setRepairOrderReady] = useState(false);
   const [showInvoice, setShowInvoice] = useState(false);
-  const [LaborTime, setLaborTime] = useState((repairTime / 60).toFixed(2));
+  const [timeUsed, setLaborTime] = useState((repairTime / 60).toFixed(2));
   const choosePart = (value) => {
     if (value == 0) {
       //New item
@@ -83,7 +84,7 @@ function Actions({ status, getRepair, repairID, globalFunc, repairTime }) {
   };
 
   const getParts = async () => {
-    const response = await fetch(`${vars.serverUrl}/square/getparts`, {
+    const response = await fetch(`${vars.serverUrl}/repairs/getParts`, {
       method: "POST",
       headers: {
         Accept: "application/json",
@@ -115,7 +116,7 @@ function Actions({ status, getRepair, repairID, globalFunc, repairTime }) {
   };
 
   const repairAction = async (status, Event, icon, color, globalFunc) => {
-    const response = await fetch(`${vars.serverUrl}/square/updateRepairStatus`, {
+    const response = await fetch(`${vars.serverUrl}/repairs/updateRepairStatus`, {
       method: "POST",
       headers: {
         Accept: "application/json",
@@ -147,7 +148,7 @@ function Actions({ status, getRepair, repairID, globalFunc, repairTime }) {
   };
 
   const addParts = async () => {
-    const response = await fetch(`${vars.serverUrl}/square/addparts`, {
+    const response = await fetch(`${vars.serverUrl}/repairs/addParts`, {
       method: "POST",
       headers: {
         Accept: "application/json",
@@ -183,7 +184,7 @@ function Actions({ status, getRepair, repairID, globalFunc, repairTime }) {
     if (Taxable) {
       dueTaxes = { taxes: [{ percentage: TaxRate.toString(), name: "FL Sales Tax" }] };
     }
-    const response = await fetch(`${vars.serverUrl}/square/createInvoice`, {
+    const response = await fetch(`${vars.serverUrl}/repairs/createInvoice`, {
       method: "POST",
       headers: {
         Accept: "application/json",
@@ -195,9 +196,9 @@ function Actions({ status, getRepair, repairID, globalFunc, repairTime }) {
         parts: {
           quantity: 1,
           name: "Labor",
-          note: `${LaborTime} hours @ $${Labor}/hr`,
+          note: `${timeUsed} hours @ $${Labor}/hr`,
           basePriceMoney: {
-            amount: Math.round(Labor * LaborTime) * 100,
+            amount: Math.round(Labor * timeUsed) * 100,
           },
         },
         tax: dueTaxes,
@@ -207,7 +208,7 @@ function Actions({ status, getRepair, repairID, globalFunc, repairTime }) {
   };
 
   const createInvoice = async () => {
-    const response = await fetch(`${vars.serverUrl}/square/getRepairOrder`, {
+    const response = await fetch(`${vars.serverUrl}/repairs/getRepairOrder`, {
       method: "POST",
       headers: {
         Accept: "application/json",
@@ -228,17 +229,27 @@ function Actions({ status, getRepair, repairID, globalFunc, repairTime }) {
     }
   };
   useEffect(() => {
-    createInvoice();
+    if (status == 4) {
+      createInvoice();
+    }
   }, [status]);
 
   useEffect(() => {
+    if (status == 4) {
+      console.log("Updating repair time");
+      setLaborTime((repairTime / 60).toFixed(2));
+    }
+  }, [repairTime]);
+
+  useEffect(() => {
+    console.log("Labor time:", timeUsed);
     let mySubtotal = parseFloat(0);
     if (repairOrderReady) {
       repairOrder.lineItems.map((item) => {
         let cost = item.basePriceMoney.amount * item.quantity;
         mySubtotal = parseFloat(mySubtotal) + parseFloat(cost);
       });
-      mySubtotal = parseFloat(mySubtotal / 100) + parseFloat(LaborTime * Labor);
+      mySubtotal = parseFloat(mySubtotal / 100) + parseFloat(timeUsed * Labor);
       setSubtotal(mySubtotal);
       if (Taxable) {
         setTax(mySubtotal * (TaxRate / 100));
@@ -247,7 +258,7 @@ function Actions({ status, getRepair, repairID, globalFunc, repairTime }) {
         setTotal(mySubtotal);
       }
     }
-  }, [repairOrderReady, LaborTime, Labor]);
+  }, [repairOrderReady, timeUsed, Labor]);
   if (status == 1) {
     return (
       <MDBox pb={3}>
@@ -267,28 +278,26 @@ function Actions({ status, getRepair, repairID, globalFunc, repairTime }) {
     return (
       <>
         <Grid container spacing={1} mb={3}>
-          <Grid>
+          <Grid item xs={12} md={6}>
             <MDButton
               fullwidth
               color="info"
               variant="contained"
-              p={3}
               onClick={() => repairAction(3, "Repair paused", "pause", "info", globalFunc)}
             >
               Pause Repair
             </MDButton>
           </Grid>
-          <Grid>
-            <MDButton fullwidth color="dark" variant="contained" p={3} onClick={() => getParts()}>
+          <Grid item xs={12} md={6}>
+            <MDButton fullwidth color="dark" variant="contained" onClick={() => getParts()}>
               Add parts
             </MDButton>
           </Grid>
-          <Grid>
+          <Grid item xs={12} md={6}>
             <MDButton
               fullwidth
               color="success"
               variant="contained"
-              p={3}
               onClick={() =>
                 repairAction(4, "Repair completed", "build_circle", "success", globalFunc)
               }
@@ -296,12 +305,11 @@ function Actions({ status, getRepair, repairID, globalFunc, repairTime }) {
               Complete Repair
             </MDButton>
           </Grid>
-          <Grid>
+          <Grid item xs={12} md={6}>
             <MDButton
               fullwidth
               color="primary"
               variant="contained"
-              p={3}
               onClick={() =>
                 repairAction(998, "Repair cancelled", "event_busy", "primary", globalFunc)
               }
@@ -394,7 +402,7 @@ function Actions({ status, getRepair, repairID, globalFunc, repairTime }) {
     return (
       <>
         <Grid container spacing={1} mb={3}>
-          <Grid>
+          <Grid item xs={12} md={6}>
             <MDButton
               fullwidth
               color="success"
@@ -407,7 +415,7 @@ function Actions({ status, getRepair, repairID, globalFunc, repairTime }) {
               Resume Repair
             </MDButton>
           </Grid>
-          <Grid>
+          <Grid item xs={12} md={6}>
             <MDButton
               fullwidth
               color="primary"
@@ -428,7 +436,7 @@ function Actions({ status, getRepair, repairID, globalFunc, repairTime }) {
     return (
       <>
         <Grid container spacing={1} mb={3}>
-          <Grid>
+          <Grid item xs={12} md={6}>
             <MDButton
               fullwidth
               color="success"
@@ -438,6 +446,17 @@ function Actions({ status, getRepair, repairID, globalFunc, repairTime }) {
               onClick={() => setShowInvoice(true)}
             >
               Create Invoice
+            </MDButton>
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <MDButton
+              fullwidth
+              color="success"
+              variant="contained"
+              p={3}
+              onClick={() => repairAction(2, "Repair restarted", "info", "secondary", globalFunc)}
+            >
+              Restart Repair
             </MDButton>
           </Grid>
         </Grid>
@@ -511,8 +530,8 @@ function Actions({ status, getRepair, repairID, globalFunc, repairTime }) {
                   <TextField
                     fullWidth
                     label="Time (hours)"
-                    value={LaborTime}
-                    onChange={(e, val) => {
+                    value={timeUsed}
+                    onChange={(e) => {
                       console.log("New Time:", e);
                       setLaborTime(e.target.value);
                     }}
@@ -534,7 +553,7 @@ function Actions({ status, getRepair, repairID, globalFunc, repairTime }) {
                 </Grid>
                 <Grid item xs={3}>
                   <MDTypography variant="body2" sx={{ mt: 1 }}>
-                    ${(LaborTime * Labor).toFixed(2)}
+                    ${(timeUsed * Labor).toFixed(2)}
                   </MDTypography>
                 </Grid>
                 <Grid item xs={12}>

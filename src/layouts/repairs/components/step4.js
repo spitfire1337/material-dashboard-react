@@ -20,7 +20,7 @@ import {
 
 import vars from "../../../config";
 
-const step4 = ({ globalFunc, repairID, nextRepairStep }) => {
+const step4 = ({ globalFunc, repairID, nextRepairStep, reRender, setNewRepair }) => {
   const [repairType, setRepairType] = useState([]);
   const [repairDetails, setRepairDetails] = useState();
   const [warranty, setWarranty] = useState(false);
@@ -41,7 +41,7 @@ const step4 = ({ globalFunc, repairID, nextRepairStep }) => {
       let postData = {
         id: repairID,
       };
-      const response = await fetch(`${vars.serverUrl}/square/printDropOff`, {
+      const response = await fetch(`${vars.serverUrl}/repairs/printDropOff`, {
         method: "POST",
         headers: {
           Accept: "application/json",
@@ -53,6 +53,8 @@ const step4 = ({ globalFunc, repairID, nextRepairStep }) => {
       const json = await response.json();
       //setCustomerID(json.data.customer.id);
       if (json.res == 200) {
+        reRender();
+        setNewRepair(false);
         nextRepairStep(5);
         globalFunc.setSuccessSBText("Sent to printer");
         globalFunc.setSuccessSB(true);

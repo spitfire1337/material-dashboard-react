@@ -44,7 +44,7 @@ const step3 = ({ globalFunc, repairID, nextRepairStep }) => {
         RepairType: repairType,
         warranty: warranty,
       };
-      const response = await fetch(`${vars.serverUrl}/square/updateRepair`, {
+      const response = await fetch(`${vars.serverUrl}/repairs/updateRepair`, {
         method: "POST",
         headers: {
           Accept: "application/json",
