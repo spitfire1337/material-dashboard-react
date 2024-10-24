@@ -66,6 +66,7 @@ import "react-barcode-scanner/polyfill";
 import MDButton from "components/MDButton";
 import Loading from "components/loading";
 import "./scanner.css";
+import "./assets/style.css";
 const style = {
   position: "absolute",
   top: "50%",

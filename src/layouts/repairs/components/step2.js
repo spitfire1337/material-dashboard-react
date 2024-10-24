@@ -27,7 +27,7 @@ const step2 = ({ globalFunc, repairData, updateRepairData, setrepairID, nextRepa
   const [pevBrand, setPEVBrand] = useState([]);
   const [showNewPev, setShowNewPev] = useState(false);
   const [brandDisable, setBrandDisable] = useState(true);
-  const [newPev, setNewPev] = useState({ Brand: { name: "" }, Model: "" });
+  const [newPev, setNewPev] = useState({ Brand: { name: "" }, Model: "", PevType: "EUC" });
   const [brands, setBrands] = useState([]);
   const [models, setModels] = useState([]);
   const useForm = (initialValues) => {
@@ -87,6 +87,7 @@ const step2 = ({ globalFunc, repairData, updateRepairData, setrepairID, nextRepa
   }, []);
 
   const choosePevBrand = (pev) => {
+    console.log(pev);
     if (pev == null) {
       setPEVBrand(0);
       setAllowContinue(false);
@@ -99,6 +100,7 @@ const step2 = ({ globalFunc, repairData, updateRepairData, setrepairID, nextRepa
       setShowNewPev(true);
     } else {
       let pevData = pevSelection.filter((mypev) => mypev._id == pev.id)[0];
+      setShowNewPev(false);
       setPEVBrand(pev.id);
       setAllowContinue(true);
       //setShowCustForm(true);
@@ -121,7 +123,7 @@ const step2 = ({ globalFunc, repairData, updateRepairData, setrepairID, nextRepa
 
   const createRepair = async (pev) => {
     try {
-      const response = await fetch(`${vars.serverUrl}/square/createRepair`, {
+      const response = await fetch(`${vars.serverUrl}/repairs/createRepair`, {
         method: "POST",
         headers: {
           Accept: "application/json",
@@ -151,7 +153,7 @@ const step2 = ({ globalFunc, repairData, updateRepairData, setrepairID, nextRepa
     if (newPev.Brand._id == 0) {
       //First we must create the new brand and return the ID
       try {
-        const response = await fetch(`${vars.serverUrl}/square/createBrand`, {
+        const response = await fetch(`${vars.serverUrl}/repairs/createBrand`, {
           method: "POST",
           headers: {
             Accept: "application/json",
@@ -166,7 +168,7 @@ const step2 = ({ globalFunc, repairData, updateRepairData, setrepairID, nextRepa
           let newData = { ...newPev };
           newData.Brand._id = json.data;
           setNewPev(newData);
-          let newpevresp = await fetch(`${vars.serverUrl}/square/createPEV`, {
+          let newpevresp = await fetch(`${vars.serverUrl}/repairs/createPEV`, {
             method: "POST",
             headers: {
               Accept: "application/json",

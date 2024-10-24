@@ -59,6 +59,9 @@ const style = {
   left: "50%",
   transform: "translate(-50%, -50%)",
   width: "80%",
+  minHeight: "50vh",
+  maxHeight: "80vh",
+  overflowY: "scroll",
   bgcolor: "background.paper",
   border: "2px solid #000",
   boxShadow: 24,
@@ -207,6 +210,8 @@ const Repairs = ({ globalFunc }) => {
               repairID={repairID}
               globalFunc={globalFunc}
               nextRepairStep={nextRepairStep}
+              reRender={reRender}
+              setNewRepair={setNewRepair}
             ></Step4>
           )}
           <MDButton
@@ -215,6 +220,8 @@ const Repairs = ({ globalFunc }) => {
             color="secondary"
             onClick={() => {
               setNewRepair(false);
+              reRender();
+              setRepairStep(0);
             }}
           >
             Cancel
