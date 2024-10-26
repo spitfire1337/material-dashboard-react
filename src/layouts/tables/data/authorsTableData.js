@@ -29,7 +29,6 @@ import team3 from "assets/images/team-3.jpg";
 import team4 from "assets/images/team-4.jpg";
 
 export default function data(globalFunc) {
-  console.log("Global:", globalFunc);
   const [repairs, setRepairs] = useState();
   useEffect(() => {
     const fetchData = async (globalFunc) => {
@@ -38,7 +37,6 @@ export default function data(globalFunc) {
       });
       if (response.status == 200) {
         const res = await response.json();
-        console.log(res);
 
         if (res.res === 200) {
           setRepairs(res.data);

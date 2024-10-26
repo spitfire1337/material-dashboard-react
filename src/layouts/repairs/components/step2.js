@@ -87,14 +87,13 @@ const step2 = ({ globalFunc, repairData, updateRepairData, setrepairID, nextRepa
   }, []);
 
   const choosePevBrand = (pev) => {
-    console.log(pev);
     if (pev == null) {
       setPEVBrand(0);
       setAllowContinue(false);
       setShowNewPev(false);
     } else if (pev.id == 0) {
       //NEW PEV
-      setPEVBrand(0);
+      setPEVBrand(1);
       setAllowContinue(false);
       //setSelectedCustomer({});
       setShowNewPev(true);
@@ -197,9 +196,32 @@ const step2 = ({ globalFunc, repairData, updateRepairData, setrepairID, nextRepa
         globalFunc.setErrorSBText("An error occured while saving data, please try again");
         globalFunc.setErrorSB(true);
       }
-    } else {
+    } else if (pevBrand == 1) {
       //
-      console.log(pevBrand);
+      let newRepairData = { ...repairData };
+      let newData = { ...newPev };
+      newData.Brand._id = newPev.Brand._id;
+      let newpevresp = await fetch(`${vars.serverUrl}/repairs/createPEV`, {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(newData),
+        credentials: "include",
+      });
+      let pevjson = await newpevresp.json();
+      if (pevjson.res == 200) {
+        globalFunc.setSuccessSBText("New PEV Added to database");
+        globalFunc.setSuccessSB(true);
+        let newRepairData = { ...repairData };
+        newRepairData.pev = pevjson.data._id;
+        createRepair(newRepairData);
+      } else {
+        globalFunc.setErrorSBText("An error occured while saving data, please try again");
+        globalFunc.setErrorSB(true);
+      }
+    } else {
       let newRepairData = { ...repairData };
       newRepairData.pev = pevBrand;
       console.log(newRepairData);

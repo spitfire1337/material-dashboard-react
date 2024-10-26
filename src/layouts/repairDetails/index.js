@@ -72,7 +72,6 @@ const RepairDetails = ({ globalFunc }) => {
   const [RepairNotes, setRepairNotes] = useState();
   const [AllRepairNotes, setAllRepairNotes] = useState();
   const [allparts, setAllParts] = useState();
-  console.log("Repair id received:", id);
   const getRepair = async () => {
     const response = await fetch(`${vars.serverUrl}/repairs/repairDetails`, {
       method: "POST",
@@ -91,14 +90,12 @@ const RepairDetails = ({ globalFunc }) => {
     } else if (res.res === 500) {
       globalFunc.setErrorSBText("Server error occured");
       globalFunc.setErrorSB(true);
-      console.log(res);
     } else {
       setLoading(false);
       setrepairDetails(res.data);
       setrepairHistory(res.history);
       setAllRepairNotes(res.notes);
       setAllParts(res.parts);
-      console.log("Repair details: ", res.data);
     }
   };
 
@@ -120,13 +117,11 @@ const RepairDetails = ({ globalFunc }) => {
     } else if (res.res === 500) {
       globalFunc.setErrorSBText("Server error occured");
       globalFunc.setErrorSB(true);
-      console.log(res);
     } else {
       setnewRepairNotes(false);
       getRepair();
       globalFunc.setSuccessSBText("Notes saved");
       globalFunc.setSuccessSB(true);
-      console.log("Repair details: ", res.data);
     }
   };
 

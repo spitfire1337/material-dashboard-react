@@ -88,19 +88,14 @@ const Repairs = ({ globalFunc }) => {
     ];
   };
   const [repairStep, setRepairStep] = useState(1);
-  useEffect(() => {
-    console.log("Repair id received", repairID);
-  }, [repairID]);
+
   const updateRepairData = (val) => {
-    console.log("Repair data to save", val);
     setRepairData({ ...val });
-    console.log("Repair set data", repairData);
   };
 
   const contIntake = (repair) => {
     setrepairID(repair._id);
     updateRepairData({ customer: repair.Customer._id, pev: repair.pev._id });
-    console.log("Repair data", repairData);
     setNewRepair(true);
     setRepairStep(3);
   };
@@ -125,7 +120,6 @@ const Repairs = ({ globalFunc }) => {
       setNewRepair(false);
       setRepairStep(0);
     }
-    //console.log("Repair data", repairData);
   };
 
   const showNewRepair = async () => {

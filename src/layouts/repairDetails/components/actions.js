@@ -12,11 +12,10 @@ import {
   FormControlLabel,
   FormGroup,
   Checkbox,
-  Autocomplete,
   TextField,
   Divider,
 } from "@mui/material";
-
+import Autocomplete, { createFilterOptions } from "@mui/material/Autocomplete";
 const style = {
   position: "absolute",
   top: "50%",
@@ -29,9 +28,8 @@ const style = {
   p: 4,
   borderRadius: "25px",
 };
-
+const filter = createFilterOptions();
 function Actions({ status, getRepair, repairID, globalFunc, repairTime }) {
-  console.log("Passed repair time", repairTime);
   const [Labor, setLabor] = useState(100);
   const [Tax, setTax] = useState(0);
   const [TaxRate, setTaxRate] = useState(7);
@@ -43,16 +41,24 @@ function Actions({ status, getRepair, repairID, globalFunc, repairTime }) {
   const [allparts, setAllParts] = useState();
   const [part, setPart] = useState();
   const [partQuantity, setPartQuantity] = useState(1);
-  const [partCost, setPartCost] = useState();
+  const [partCost, setPartCost] = useState((0).toFixed(2));
   const [partName, setPartName] = useState();
   const [PartDetail, setPartDetail] = useState();
   const [repairOrder, setRepairOrder] = useState();
   const [repairOrderReady, setRepairOrderReady] = useState(false);
   const [showInvoice, setShowInvoice] = useState(false);
-  const [timeUsed, setLaborTime] = useState((repairTime / 60).toFixed(2));
+  const [timeUsed, setLaborTime] = useState(repairTime.toFixed(2));
+  const updateCost = (cost) => {
+    console.log("Received Cost:", cost);
+    setPartCost(cost);
+    console.log("Update part cost", partCost);
+  };
   const choosePart = (value) => {
-    if (value == 0) {
+    if (value.id == 0) {
       //New item
+      setPartName(value.inputValue);
+      setPartCost((0).toFixed(2));
+      setPartDetail(true);
     } else {
       let selectedpart = allparts.filter((x) =>
         x.item_data.variations.filter((y) => y.id == value.id)
@@ -64,19 +70,15 @@ function Actions({ status, getRepair, repairID, globalFunc, repairTime }) {
         });
       })[0];
       let variant = filteredArray.item_data.variations.filter((x) => x.id == value.id);
-      console.log("Variants:", filteredArray.item_data.variations);
-      console.log("Selected value:", value.id);
-      console.log("Selected part:", variant);
       let cost =
         variant[0].item_variation_data.price_money != undefined
           ? variant[0].item_variation_data.price_money
           : 0;
-      console.log("Cost:", cost);
       setPartName(filteredArray.item_data.name + " - " + variant[0].item_variation_data.name);
       setPartCost(
         variant[0].item_variation_data.price_money != undefined
           ? (variant[0].item_variation_data.price_money.amount / 100).toFixed(2)
-          : 0
+          : (0).toFixed(2)
       );
       setPart(value.id);
       setPartDetail(true);
@@ -94,8 +96,7 @@ function Actions({ status, getRepair, repairID, globalFunc, repairTime }) {
     });
     const json = await response.json();
     if (json.res == 200) {
-      let itemList = [{ label: "New item", id: 0 }];
-      console.log(json.data);
+      let itemList = [];
       setAllParts(json.data);
       json.data.map((item) => {
         item.item_data.variations.map((variant) => {
@@ -172,6 +173,9 @@ function Actions({ status, getRepair, repairID, globalFunc, repairTime }) {
       globalFunc.setSuccessSBText("Part added to repair");
       globalFunc.setSuccessSB(true);
       getRepair();
+      if (status == 4) {
+        createInvoice();
+      }
       setnewRepairPart(false);
     } else {
       globalFunc.setErrorSBText("Server error occured");
@@ -205,6 +209,15 @@ function Actions({ status, getRepair, repairID, globalFunc, repairTime }) {
       }),
     });
     const json = await response.json();
+    if (json.res == 200) {
+      globalFunc.setSuccessSBText("Invoice created");
+      globalFunc.setSuccessSB(true);
+      setShowInvoice(false);
+      getRepair();
+    } else {
+      globalFunc.setErrorSBText("Server error occured");
+      globalFunc.setErrorSB(true);
+    }
   };
 
   const createInvoice = async () => {
@@ -219,15 +232,44 @@ function Actions({ status, getRepair, repairID, globalFunc, repairTime }) {
     });
     const json = await response.json();
     if (json.res == 200) {
-      console.log("Repair Order", json.data);
       setRepairOrder(json.data[0]);
       setRepairOrderReady(true);
     } else {
-      console.log("Order data:", json);
       globalFunc.setErrorSBText("Server error occured");
       globalFunc.setErrorSB(true);
     }
   };
+
+  const reprintPaperwork = async () => {
+    try {
+      let postData = {
+        id: repairID,
+      };
+      const response = await fetch(`${vars.serverUrl}/repairs/printDropOff`, {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(postData),
+        credentials: "include",
+      });
+      const json = await response.json();
+      if (json.res == 200) {
+        globalFunc.setSuccessSBText("Sent to printer");
+        globalFunc.setSuccessSB(true);
+      } else {
+        globalFunc.setErrorSBText("Error occurred saving repair progress.");
+        globalFunc.setErrorSB(true);
+      }
+    } catch (e) {
+      console.error(e);
+      globalFunc.setErrorSBText("Error occurred saving repair progress.");
+      globalFunc.setErrorSB(true);
+      // TODO: Add error notification
+    }
+  };
+
   useEffect(() => {
     if (status == 4) {
       createInvoice();
@@ -236,13 +278,11 @@ function Actions({ status, getRepair, repairID, globalFunc, repairTime }) {
 
   useEffect(() => {
     if (status == 4) {
-      console.log("Updating repair time");
-      setLaborTime((repairTime / 60).toFixed(2));
+      setLaborTime(repairTime.toFixed(2));
     }
   }, [repairTime]);
 
   useEffect(() => {
-    console.log("Labor time:", timeUsed);
     let mySubtotal = parseFloat(0);
     if (repairOrderReady) {
       repairOrder.lineItems.map((item) => {
@@ -259,19 +299,124 @@ function Actions({ status, getRepair, repairID, globalFunc, repairTime }) {
       }
     }
   }, [repairOrderReady, timeUsed, Labor]);
+
+  const PartsModal = () => {
+    return (
+      <Modal
+        open={newRepairPart}
+        onClose={() => null}
+        aria-labelledby="modal-modal-title"
+        aria-describedby="modal-modal-description"
+      >
+        <MDBox sx={style}>
+          <MDTypography id="modal-modal-title" variant="h6" component="h2">
+            Add Parts
+          </MDTypography>
+          <MDTypography id="modal-modal-description" sx={{ mt: 2 }}>
+            <FormControl fullWidth>
+              <Autocomplete
+                pb={1}
+                onChange={(event, newValue) => {
+                  choosePart(newValue);
+                }}
+                filterOptions={(options, params) => {
+                  const filtered = filter(options, params);
+                  if (params.inputValue !== "") {
+                    filtered.unshift({
+                      inputValue: params.inputValue,
+                      label: `Add "${params.inputValue}"`,
+                      id: 0,
+                    });
+                  }
+                  return filtered;
+                }}
+                disablePortal
+                options={parts}
+                fullWidth
+                renderInput={(params) => <TextField {...params} label="Part" />}
+              />
+              {PartDetail ? (
+                <Grid container spacing={1} pt={1} pb={1}>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      label="Quantity"
+                      value={partQuantity}
+                      onChange={(e, val) => {
+                        setPartQuantity(parseFloat(e.target.value));
+                      }}
+                      type="number"
+                    ></TextField>
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      label="Cost"
+                      value={partCost}
+                      onChange={(e, val) => {
+                        console.log(e);
+                        updateCost(e.target.value);
+                      }}
+                      type="number"
+                    ></TextField>
+                  </Grid>
+                </Grid>
+              ) : (
+                ""
+              )}
+            </FormControl>
+          </MDTypography>
+          <MDButton
+            sx={{ marginTop: "2px" }}
+            fullWidth
+            color="success"
+            onClick={() => {
+              addParts();
+            }}
+          >
+            Save
+          </MDButton>
+          <MDButton
+            sx={{ marginTop: "2px" }}
+            fullWidth
+            color="secondary"
+            onClick={() => {
+              setnewRepairPart(false);
+            }}
+          >
+            Cancel
+          </MDButton>
+        </MDBox>
+      </Modal>
+    );
+  };
+
+  const ReprintButton = () => {
+    return (
+      <Grid item xs={12} md={6}>
+        <MDButton fullwidth color="dark" variant="contained" onClick={() => reprintPaperwork()}>
+          Reprint paperwork
+        </MDButton>
+      </Grid>
+    );
+  };
+
   if (status == 1) {
     return (
-      <MDBox pb={3}>
-        <MDButton
-          fullwidth
-          color="success"
-          variant="contained"
-          pb={3}
-          onClick={() => repairAction(2, "Repair started", "construction", "success", globalFunc)}
-        >
-          Start Repair
-        </MDButton>
-      </MDBox>
+      <Grid container spacing={1} mb={3}>
+        <Grid item xs={12} md={6}>
+          <MDButton
+            fullwidth
+            color="success"
+            variant="contained"
+            pb={3}
+            onClick={() => repairAction(2, "Repair started", "construction", "success", globalFunc)}
+          >
+            Start Repair
+          </MDButton>
+        </Grid>
+        <ReprintButton />
+      </Grid>
     );
   }
   if (status == 2) {
@@ -317,84 +462,9 @@ function Actions({ status, getRepair, repairID, globalFunc, repairTime }) {
               Cancel Repair
             </MDButton>
           </Grid>
+          <ReprintButton />
         </Grid>
-        <Modal
-          open={newRepairPart}
-          onClose={() => null}
-          // onClose={() => {
-          //   setNewRepair(false);
-          // }}
-          aria-labelledby="modal-modal-title"
-          aria-describedby="modal-modal-description"
-        >
-          <MDBox sx={style}>
-            <MDTypography id="modal-modal-title" variant="h6" component="h2">
-              Add Parts
-            </MDTypography>
-            <MDTypography id="modal-modal-description" sx={{ mt: 2 }}>
-              <FormControl fullWidth>
-                <Autocomplete
-                  pb={1}
-                  onChange={(event, newValue) => {
-                    choosePart(newValue);
-                  }}
-                  disablePortal
-                  options={parts}
-                  fullWidth
-                  renderInput={(params) => <TextField {...params} label="Part" />}
-                />
-                {PartDetail ? (
-                  <Grid container spacing={1} pt={1} pb={1}>
-                    <Grid item xs={12} md={6}>
-                      <TextField
-                        fullWidth
-                        label="Quantity"
-                        value={partQuantity}
-                        onChange={(e, val) => {
-                          setPartQuantity(val);
-                        }}
-                        type="number"
-                      ></TextField>
-                    </Grid>
-                    <Grid item xs={12} md={6}>
-                      <TextField
-                        fullWidth
-                        label="Cost"
-                        value={partCost}
-                        onChange={(e, val) => {
-                          setPartCost(val);
-                        }}
-                        type="number"
-                      ></TextField>
-                    </Grid>
-                  </Grid>
-                ) : (
-                  ""
-                )}
-              </FormControl>
-            </MDTypography>
-            <MDButton
-              sx={{ marginTop: "2px" }}
-              fullWidth
-              color="success"
-              onClick={() => {
-                addParts();
-              }}
-            >
-              Save
-            </MDButton>
-            <MDButton
-              sx={{ marginTop: "2px" }}
-              fullWidth
-              color="secondary"
-              onClick={() => {
-                setnewRepairPart(false);
-              }}
-            >
-              Cancel
-            </MDButton>
-          </MDBox>
-        </Modal>
+        <PartsModal />
       </>
     );
   }
@@ -428,6 +498,7 @@ function Actions({ status, getRepair, repairID, globalFunc, repairTime }) {
               Cancel Repair
             </MDButton>
           </Grid>
+          <ReprintButton />
         </Grid>
       </>
     );
@@ -436,6 +507,11 @@ function Actions({ status, getRepair, repairID, globalFunc, repairTime }) {
     return (
       <>
         <Grid container spacing={1} mb={3}>
+          <Grid item xs={12} md={6}>
+            <MDButton fullwidth color="dark" variant="contained" onClick={() => getParts()}>
+              Add parts
+            </MDButton>
+          </Grid>
           <Grid item xs={12} md={6}>
             <MDButton
               fullwidth
@@ -459,6 +535,7 @@ function Actions({ status, getRepair, repairID, globalFunc, repairTime }) {
               Restart Repair
             </MDButton>
           </Grid>
+          <ReprintButton />
         </Grid>
         {repairOrderReady ? (
           <Modal
@@ -532,7 +609,6 @@ function Actions({ status, getRepair, repairID, globalFunc, repairTime }) {
                     label="Time (hours)"
                     value={timeUsed}
                     onChange={(e) => {
-                      console.log("New Time:", e);
                       setLaborTime(e.target.value);
                     }}
                     type="number"
@@ -544,8 +620,6 @@ function Actions({ status, getRepair, repairID, globalFunc, repairTime }) {
                     label="Labor Rate"
                     value={Labor}
                     onChange={(e, val) => {
-                      console.log("New Labor:", e);
-                      console.log("New Labor:", e.target.value);
                       setLabor(e.target.value);
                     }}
                     type="number"
@@ -638,6 +712,7 @@ function Actions({ status, getRepair, repairID, globalFunc, repairTime }) {
             </MDBox>
           </Modal>
         ) : null}
+        <PartsModal />
       </>
     );
   }

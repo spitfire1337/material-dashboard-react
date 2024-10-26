@@ -32,7 +32,6 @@ import team4 from "assets/images/team-4.jpg";
 
 export default function data(globalFunc, contIntake) {
   let redirect = useNavigate();
-  console.log("Global:", globalFunc);
   const [repairs, setRepairs] = useState([]);
   const fetchData = async (globalFunc) => {
     const response = await fetch(`${vars.serverUrl}/square/getMyData?action=getRepairs`, {
@@ -40,7 +39,6 @@ export default function data(globalFunc, contIntake) {
     });
     if (response.status == 200) {
       const res = await response.json();
-      console.log(res);
 
       if (res.res === 200) {
         setRepairs(res.data);

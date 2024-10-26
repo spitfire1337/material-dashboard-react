@@ -50,16 +50,13 @@ function Dashboard({ globalFunc }) {
     const res = await response.json();
     if (res.res === 200) {
       setSales(res.sales);
-      console.log(res.sales.thisweek);
       setSalesChange(
         Math.round(((res.sales.thisweek - res.sales.lastweek) / res.sales.lastweek) * 100)
       );
-      console.log(res.data);
     }
   };
 
   useEffect(() => {
-    console.log("Use effect customers");
     getSales();
   }, []);
 

@@ -9,11 +9,11 @@ import {
   Select,
   MenuItem,
   InputLabel,
-  Autocomplete,
   TextField,
   Divider,
   Grid,
 } from "@mui/material";
+import Autocomplete, { createFilterOptions } from "@mui/material/Autocomplete";
 
 import vars from "../../../config";
 const style = {
@@ -28,6 +28,7 @@ const style = {
   p: 4,
   borderRadius: "25px",
 };
+const filter = createFilterOptions();
 
 const step1 = ({ globalFunc, nextRepairStep }) => {
   const [customersSelection, setCustomersSelection] = useState([]);
@@ -56,17 +57,19 @@ const step1 = ({ globalFunc, nextRepairStep }) => {
       if (response.status == 200) {
         const res = await response.json();
         if (res.res === 200) {
-          const useableCustomers = res.data.filter((cust) => cust.email_address != undefined);
+          const useableCustomers = res.data.filter(
+            (cust) => cust.email_address != undefined || cust.phone_number != undefined
+          );
           setCustomers(useableCustomers);
-          let custList = [{ label: "New Customer", id: 0 }];
+          let custList = [];
           useableCustomers.map((cust) => {
             custList.push({
               label: `${
                 cust.given_name != undefined && cust.family_name != undefined
-                  ? `${cust.given_name} ${cust.family_name} |`
+                  ? `${cust.given_name} ${cust.family_name}`
                   : ""
-              } ${cust.email_address} ${
-                cust.phone_number != undefined ? `| ${cust.phone_number}` : ""
+              } ${cust.email_address != undefined ? ` | ${cust.email_address}` : ""} ${
+                cust.phone_number != undefined ? ` | ${cust.phone_number}` : ""
               }`,
               id: cust.id,
             });
@@ -84,42 +87,58 @@ const step1 = ({ globalFunc, nextRepairStep }) => {
         globalFunc.setErrorSBText("Unauthorized, redirecting to login");
         globalFunc.setErrorSB(true);
       }
-      console.log(response);
     };
     fetchData();
   }, []);
 
+  const validateEmail = (email) => {
+    return email.match(
+      /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+    );
+  };
+
   const chooseCustomer = (cust) => {
-    console.log("Chosen cust:", cust);
     selectedcustomer = {};
     if (cust == null) {
       emptyCustomer();
-      console.log("New Cust data", selectedcustomer);
       setShowCustForm(false);
     } else if (cust.id == 0) {
       //NEW CUSTOMER
-      console.log("New customer");
-      emptyCustomer();
-      console.log("New Cust data", selectedcustomer);
+      selectedcustomer.phone_number = "";
+      selectedcustomer.email_address = "";
+      selectedcustomer.given_name = "";
+      selectedcustomer.family_name = "";
+      if (Number.isNaN(parseInt(cust.inputValue))) {
+        if (validateEmail(cust.inputValue)) {
+          emptyCustomer();
+          selectedcustomer.email_address = cust.inputValue;
+        } else {
+          emptyCustomer();
+          let name = cust.inputValue.split(" ");
+          selectedcustomer.given_name = name[0];
+          if (name.length > 1) selectedcustomer.family_name = name[1];
+        }
+      } else {
+        emptyCustomer();
+        selectedcustomer.phone_number = cust.inputValue;
+      }
+      setSelectedCustomer(selectedcustomer);
       setShowCustForm(true);
     } else {
       let custData = customers.filter((mycust) => mycust.id == cust.id)[0];
       setSelectedCustomer(custData);
-      console.log("Selected customer", custData);
       setShowCustForm(true);
     }
   };
 
   const updateCustomer = (value) => {
     setSelectedCustomer(value);
-    console.log("Updated customer:", selectedcustomer);
   };
 
   const submitCustomer = async (val) => {
     if (selectedcustomer.id == undefined || selectedcustomer.id == 0) {
       //New Customer
       try {
-        console.log(selectedcustomer);
         const response = await fetch(`${vars.serverUrl}/square/createCustomer`, {
           method: "POST",
           headers: {
@@ -132,7 +151,6 @@ const step1 = ({ globalFunc, nextRepairStep }) => {
         const json = await response.json();
         //setCustomerID(json.data.customer.id);
         if (json.res == 200) {
-          console.log(json);
           nextRepairStep(val, json.data._id);
           return null;
         } else if (json.res == 401) {
@@ -157,7 +175,6 @@ const step1 = ({ globalFunc, nextRepairStep }) => {
           credentials: "include",
         });
         const json = await response.json();
-        console.log(json);
         //setCustomerID(json.data.customer.id);
         nextRepairStep(val, json.data._id);
         return null;
@@ -180,6 +197,17 @@ const step1 = ({ globalFunc, nextRepairStep }) => {
             }}
             disablePortal
             options={customersSelection}
+            filterOptions={(options, params) => {
+              const filtered = filter(options, params);
+              if (params.inputValue !== "") {
+                filtered.unshift({
+                  inputValue: params.inputValue,
+                  label: `Add "${params.inputValue}"`,
+                  id: 0,
+                });
+              }
+              return filtered;
+            }}
             fullWidth
             renderInput={(params) => <TextField {...params} label="Customer" />}
           />

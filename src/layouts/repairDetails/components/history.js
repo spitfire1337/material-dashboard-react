@@ -26,7 +26,6 @@ import moment from "moment";
 import TimelineItem from "examples/Timeline/TimelineItem";
 
 function RepairHistory({ data, repairTime }) {
-  console.log("History", data);
   return (
     <>
       <MDBox p={2}>

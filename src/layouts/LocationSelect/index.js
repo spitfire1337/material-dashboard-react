@@ -14,7 +14,6 @@ import Box from "@mui/material/Box";
 import Cookies from "universal-cookie";
 
 export default function FormDialog(locations) {
-  console.log(locations.locations);
   const [open, setOpen] = React.useState(true);
 
   const handleClickOpen = () => {
@@ -42,10 +41,8 @@ export default function FormDialog(locations) {
           const formData = new FormData(event.currentTarget);
           const formJson = Object.fromEntries(formData.entries());
           const mylocation = formJson.mylocation;
-          console.log(formJson);
           const cookies = new Cookies(null, { path: "/" });
           cookies.set("mylocation", mylocation);
-          console.log(cookies.get("mylocation")); // Pacman
           if (mylocation !== "") {
             handleClose();
           }
@@ -67,7 +64,6 @@ export default function FormDialog(locations) {
               name="mylocation"
             >
               {locations.locations.map((location) => {
-                console.log(location);
                 return (
                   <MenuItem value={location.id} key={location.id}>
                     {location.name}
