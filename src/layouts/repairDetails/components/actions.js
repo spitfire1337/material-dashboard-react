@@ -2,7 +2,7 @@ import MDButton from "components/MDButton";
 import MDBox from "components/MDBox";
 import { Grid } from "@mui/material";
 import vars from "../../../config";
-import { useState, React, useEffect } from "react";
+import { useState, React, useEffect, useMemo } from "react";
 import MDTypography from "components/MDTypography";
 import {
   Modal,
@@ -16,6 +16,14 @@ import {
   Divider,
 } from "@mui/material";
 import Autocomplete, { createFilterOptions } from "@mui/material/Autocomplete";
+import Dialog from "@mui/material/Dialog";
+import DialogTitle from "@mui/material/DialogTitle";
+import DialogContent from "@mui/material/DialogContent";
+import DialogContentText from "@mui/material/DialogContentText";
+import DialogActions from "@mui/material/DialogActions";
+import CircularProgress from "@mui/material/CircularProgress";
+
+import PartsAdd from "../components/addParts";
 const style = {
   position: "absolute",
   top: "50%",
@@ -29,29 +37,50 @@ const style = {
   borderRadius: "25px",
 };
 const filter = createFilterOptions();
-function Actions({ status, getRepair, repairID, globalFunc, repairTime }) {
+function Actions({
+  status,
+  getRepair,
+  repairID,
+  globalFunc,
+  repairTime,
+  repairOrder,
+  setRepairOrder,
+  repairOrderReady,
+  setRepairOrderReady,
+  createInvoice,
+}) {
   const [Labor, setLabor] = useState(100);
   const [Tax, setTax] = useState(0);
   const [TaxRate, setTaxRate] = useState(7);
   const [Taxable, setTaxable] = useState(false);
   const [subTotal, setSubtotal] = useState(0);
   const [Total, setTotal] = useState(0);
-  const [newRepairPart, setnewRepairPart] = useState(false);
-  const [parts, setParts] = useState();
+  const [parts, setParts] = useState([]);
   const [allparts, setAllParts] = useState();
+  const [partDetails, setPartDetails] = useState({ cost: 0, name: "", qty: 0 });
   const [part, setPart] = useState();
-  const [partQuantity, setPartQuantity] = useState(1);
+  const [searchedpart, setSearchedpart] = useState();
   const [partCost, setPartCost] = useState((0).toFixed(2));
   const [partName, setPartName] = useState();
   const [PartDetail, setPartDetail] = useState();
-  const [repairOrder, setRepairOrder] = useState();
-  const [repairOrderReady, setRepairOrderReady] = useState(false);
+  // const [repairOrder, setRepairOrder] = useState();
+  // const [repairOrderReady, setRepairOrderReady] = useState(false);
   const [showInvoice, setShowInvoice] = useState(false);
   const [timeUsed, setLaborTime] = useState(repairTime.toFixed(2));
-  const updateCost = (cost) => {
-    console.log("Received Cost:", cost);
-    setPartCost(cost);
-    console.log("Update part cost", partCost);
+
+  const [newRepairPart, setnewRepairPart] = useState(false);
+  const [loadingOpen, toggleloadingOpen] = useState(false);
+  const [dialogOpen, toggleDialogOpen] = useState(false);
+
+  const dialogHandleClose = () => {
+    // setPartCost(0);
+    // setPartQuantity(1);
+    setPartDetails({
+      qty: 1,
+      cost: 0,
+      name: "",
+    });
+    toggleDialogOpen(false);
   };
   const choosePart = (value) => {
     if (value.id == 0) {
@@ -74,18 +103,28 @@ function Actions({ status, getRepair, repairID, globalFunc, repairTime }) {
         variant[0].item_variation_data.price_money != undefined
           ? variant[0].item_variation_data.price_money
           : 0;
-      setPartName(filteredArray.item_data.name + " - " + variant[0].item_variation_data.name);
-      setPartCost(
-        variant[0].item_variation_data.price_money != undefined
-          ? (variant[0].item_variation_data.price_money.amount / 100).toFixed(2)
-          : (0).toFixed(2)
-      );
+      setPartDetails({
+        ...partDetails,
+        qty: 1,
+        cost:
+          variant[0].item_variation_data.price_money != undefined
+            ? (variant[0].item_variation_data.price_money.amount / 100).toFixed(2)
+            : (0).toFixed(2),
+        name: filteredArray.item_data.name + " - " + variant[0].item_variation_data.name,
+      });
+      // setPartName(filteredArray.item_data.name + " - " + variant[0].item_variation_data.name);
+      // setPartCost(
+      //   variant[0].item_variation_data.price_money != undefined
+      //     ? (variant[0].item_variation_data.price_money.amount / 100).toFixed(2)
+      //     : (0).toFixed(2)
+      // );
       setPart(value.id);
       setPartDetail(true);
     }
   };
 
   const getParts = async () => {
+    toggleloadingOpen(true);
     const response = await fetch(`${vars.serverUrl}/repairs/getParts`, {
       method: "POST",
       headers: {
@@ -112,11 +151,19 @@ function Actions({ status, getRepair, repairID, globalFunc, repairTime }) {
         });
       });
       setParts(itemList);
+      setPartDetails({
+        qty: 1,
+        cost: 0,
+        name: "",
+      });
+      setPartDetail(false);
       setnewRepairPart(true);
+      toggleloadingOpen(false);
     }
   };
 
   const repairAction = async (status, Event, icon, color, globalFunc) => {
+    toggleloadingOpen(true);
     const response = await fetch(`${vars.serverUrl}/repairs/updateRepairStatus`, {
       method: "POST",
       headers: {
@@ -145,10 +192,12 @@ function Actions({ status, getRepair, repairID, globalFunc, repairTime }) {
       globalFunc.setErrorSBText("Server error occured");
       globalFunc.setErrorSB(true);
     }
+    toggleloadingOpen(false);
     return null;
   };
 
   const addParts = async () => {
+    toggleloadingOpen(true);
     const response = await fetch(`${vars.serverUrl}/repairs/addParts`, {
       method: "POST",
       headers: {
@@ -159,16 +208,17 @@ function Actions({ status, getRepair, repairID, globalFunc, repairTime }) {
       body: JSON.stringify({
         id: repairID,
         parts: {
-          quantity: partQuantity,
-          name: partName,
+          quantity: partDetails.qty,
+          name: partDetails.name,
           basePriceMoney: {
-            amount: Math.round(partCost * 100),
+            amount: Math.round(partDetails.cost * 100),
           },
           catalogObjectId: part,
         },
       }),
     });
     const json = await response.json();
+    toggleloadingOpen(false);
     if (json.res == 200) {
       globalFunc.setSuccessSBText("Part added to repair");
       globalFunc.setSuccessSB(true);
@@ -183,7 +233,10 @@ function Actions({ status, getRepair, repairID, globalFunc, repairTime }) {
     }
   };
 
+  //const selectedValues = useMemo(() => parts.filter((v) => v.selected), [parts]);
+
   const doCreateInvoice = async () => {
+    toggleloadingOpen(true);
     let dueTaxes;
     if (Taxable) {
       dueTaxes = { taxes: [{ percentage: TaxRate.toString(), name: "FL Sales Tax" }] };
@@ -218,29 +271,33 @@ function Actions({ status, getRepair, repairID, globalFunc, repairTime }) {
       globalFunc.setErrorSBText("Server error occured");
       globalFunc.setErrorSB(true);
     }
+    toggleloadingOpen(false);
   };
 
-  const createInvoice = async () => {
-    const response = await fetch(`${vars.serverUrl}/repairs/getRepairOrder`, {
-      method: "POST",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-      body: JSON.stringify({ id: repairID }),
-    });
-    const json = await response.json();
-    if (json.res == 200) {
-      setRepairOrder(json.data[0]);
-      setRepairOrderReady(true);
-    } else {
-      globalFunc.setErrorSBText("Server error occured");
-      globalFunc.setErrorSB(true);
-    }
-  };
+  // const createInvoice = async () => {
+  //   toggleloadingOpen(true);
+  //   const response = await fetch(`${vars.serverUrl}/repairs/getRepairOrder`, {
+  //     method: "POST",
+  //     headers: {
+  //       Accept: "application/json",
+  //       "Content-Type": "application/json",
+  //     },
+  //     credentials: "include",
+  //     body: JSON.stringify({ id: repairID }),
+  //   });
+  //   const json = await response.json();
+  //   if (json.res == 200) {
+  //     setRepairOrder(json.data[0]);
+  //     setRepairOrderReady(true);
+  //   } else {
+  //     globalFunc.setErrorSBText("Server error occured");
+  //     globalFunc.setErrorSB(true);
+  //   }
+  //   toggleloadingOpen(false);
+  // };
 
   const reprintPaperwork = async () => {
+    toggleloadingOpen(true);
     try {
       let postData = {
         id: repairID,
@@ -268,6 +325,7 @@ function Actions({ status, getRepair, repairID, globalFunc, repairTime }) {
       globalFunc.setErrorSB(true);
       // TODO: Add error notification
     }
+    toggleloadingOpen(false);
   };
 
   useEffect(() => {
@@ -276,15 +334,15 @@ function Actions({ status, getRepair, repairID, globalFunc, repairTime }) {
     }
   }, [status]);
 
-  useEffect(() => {
-    if (status == 4) {
-      setLaborTime(repairTime.toFixed(2));
-    }
-  }, [repairTime]);
+  // useEffect(() => {
+  //   if (status == 4) {
+  //     setLaborTime(repairTime.toFixed(2));
+  //   }
+  // }, [repairTime]);
 
   useEffect(() => {
     let mySubtotal = parseFloat(0);
-    if (repairOrderReady) {
+    if (repairOrderReady && status == 4) {
       repairOrder.lineItems.map((item) => {
         let cost = item.basePriceMoney.amount * item.quantity;
         mySubtotal = parseFloat(mySubtotal) + parseFloat(cost);
@@ -300,94 +358,188 @@ function Actions({ status, getRepair, repairID, globalFunc, repairTime }) {
     }
   }, [repairOrderReady, timeUsed, Labor]);
 
+  const LoadDialog = () => {
+    return (
+      <Dialog open={loadingOpen}>
+        <DialogTitle>Loading</DialogTitle>
+        <DialogContent>
+          <CircularProgress />
+        </DialogContent>
+      </Dialog>
+    );
+  };
+
   const PartsModal = () => {
     return (
-      <Modal
-        open={newRepairPart}
-        onClose={() => null}
-        aria-labelledby="modal-modal-title"
-        aria-describedby="modal-modal-description"
-      >
-        <MDBox sx={style}>
-          <MDTypography id="modal-modal-title" variant="h6" component="h2">
-            Add Parts
-          </MDTypography>
-          <MDTypography id="modal-modal-description" sx={{ mt: 2 }}>
-            <FormControl fullWidth>
-              <Autocomplete
-                pb={1}
-                onChange={(event, newValue) => {
-                  choosePart(newValue);
+      <>
+        <Modal
+          open={newRepairPart}
+          onClose={() => null}
+          aria-labelledby="modal-modal-title"
+          aria-describedby="modal-modal-description"
+        >
+          <MDBox sx={style}>
+            <MDTypography id="modal-modal-title" variant="h6" component="h2">
+              Add Parts
+            </MDTypography>
+            <MDTypography id="modal-modal-description" sx={{ mt: 2 }}>
+              <FormControl fullWidth>
+                <Autocomplete
+                  pb={1}
+                  value={searchedpart}
+                  onChange={(event, newValue) => {
+                    setSearchedpart(newValue);
+                    if (newValue && newValue.inputValue) {
+                      toggleDialogOpen(true);
+                      // setPartCost(0);
+                      // setPartQuantity(1);
+                      // setPartName(newValue.inputValue);
+                      setPartDetails({
+                        qty: 1,
+                        cost: 0,
+                        name: newValue.inputValue,
+                      });
+                    } else {
+                      choosePart(newValue);
+                    }
+                  }}
+                  filterOptions={(options, params) => {
+                    const filtered = filter(options, params);
+                    if (params.inputValue !== "") {
+                      filtered.unshift({
+                        inputValue: params.inputValue,
+                        label: `Add "${params.inputValue}"`,
+                        id: 0,
+                      });
+                    }
+                    return filtered;
+                  }}
+                  disablePortal
+                  options={parts}
+                  fullWidth
+                  renderInput={(params) => <TextField {...params} label="Part" />}
+                />
+                {PartDetail ? (
+                  <Grid container spacing={1} pt={1} pb={1}>
+                    <Grid item xs={12} md={6}>
+                      <TextField
+                        fullWidth
+                        label="Quantity"
+                        value={partDetails.qty}
+                        onChange={(e, val) => {
+                          setPartDetails({
+                            ...partDetails,
+                            qty: event.target.value,
+                          });
+                        }}
+                        type="number"
+                      ></TextField>
+                    </Grid>
+                    <Grid item xs={12} md={6}>
+                      <TextField
+                        fullWidth
+                        label="Cost"
+                        value={partDetails.cost}
+                        onChange={(e, val) => {
+                          console.log(e);
+                          setPartDetails({
+                            ...partDetails,
+                            cost: event.target.value,
+                          });
+                        }}
+                        type="number"
+                      ></TextField>
+                    </Grid>
+                  </Grid>
+                ) : (
+                  ""
+                )}
+              </FormControl>
+            </MDTypography>
+            <MDButton
+              sx={{ marginTop: "2px" }}
+              fullWidth
+              color="success"
+              onClick={() => {
+                addParts();
+              }}
+            >
+              Save
+            </MDButton>
+            <MDButton
+              sx={{ marginTop: "2px" }}
+              fullWidth
+              color="secondary"
+              onClick={() => {
+                setnewRepairPart(false);
+              }}
+            >
+              Cancel
+            </MDButton>
+          </MDBox>
+        </Modal>
+        <Dialog open={dialogOpen} onClose={dialogHandleClose}>
+          <form onSubmit={addParts}>
+            <DialogTitle>Add a new item</DialogTitle>
+            <DialogContent>
+              <DialogContentText>
+                Item not listed? Add it here for single use. To store item in inventory, add item
+                through square.
+              </DialogContentText>
+              <TextField
+                autoFocus
+                margin="dense"
+                id="name"
+                value={partDetails.name}
+                onChange={(event) => {
+                  //setPartName(event.target.value)
+                  setPartDetails({
+                    ...partDetails,
+                    name: event.target.value,
+                  });
                 }}
-                filterOptions={(options, params) => {
-                  const filtered = filter(options, params);
-                  if (params.inputValue !== "") {
-                    filtered.unshift({
-                      inputValue: params.inputValue,
-                      label: `Add "${params.inputValue}"`,
-                      id: 0,
-                    });
-                  }
-                  return filtered;
-                }}
-                disablePortal
-                options={parts}
-                fullWidth
-                renderInput={(params) => <TextField {...params} label="Part" />}
+                label="Name"
+                type="text"
+                variant="standard"
               />
-              {PartDetail ? (
-                <Grid container spacing={1} pt={1} pb={1}>
-                  <Grid item xs={12} md={6}>
-                    <TextField
-                      fullWidth
-                      label="Quantity"
-                      value={partQuantity}
-                      onChange={(e, val) => {
-                        setPartQuantity(parseFloat(e.target.value));
-                      }}
-                      type="number"
-                    ></TextField>
-                  </Grid>
-                  <Grid item xs={12} md={6}>
-                    <TextField
-                      fullWidth
-                      label="Cost"
-                      value={partCost}
-                      onChange={(e, val) => {
-                        console.log(e);
-                        updateCost(e.target.value);
-                      }}
-                      type="number"
-                    ></TextField>
-                  </Grid>
-                </Grid>
-              ) : (
-                ""
-              )}
-            </FormControl>
-          </MDTypography>
-          <MDButton
-            sx={{ marginTop: "2px" }}
-            fullWidth
-            color="success"
-            onClick={() => {
-              addParts();
-            }}
-          >
-            Save
-          </MDButton>
-          <MDButton
-            sx={{ marginTop: "2px" }}
-            fullWidth
-            color="secondary"
-            onClick={() => {
-              setnewRepairPart(false);
-            }}
-          >
-            Cancel
-          </MDButton>
-        </MDBox>
-      </Modal>
+              <TextField
+                margin="dense"
+                id="name"
+                value={partDetails.qty}
+                onChange={(event) => {
+                  setPartDetails({
+                    ...partDetails,
+                    qty: event.target.value,
+                  });
+                  //setPartQuantity(event.target.value)
+                }}
+                label="Qty"
+                type="number"
+                variant="standard"
+              />
+              <TextField
+                margin="dense"
+                id="name"
+                value={partDetails.cost}
+                onChange={(event) => {
+                  //setPartCost(event.target.value)
+                  setPartDetails({
+                    ...partDetails,
+                    cost: event.target.value,
+                  });
+                }}
+                label="Cost"
+                type="number"
+                variant="standard"
+              />
+            </DialogContent>
+            <DialogActions>
+              <MDButton onClick={dialogHandleClose}>Cancel</MDButton>
+              <MDButton type="submit">Add</MDButton>
+            </DialogActions>
+          </form>
+        </Dialog>
+      </>
     );
   };
 
@@ -403,20 +555,25 @@ function Actions({ status, getRepair, repairID, globalFunc, repairTime }) {
 
   if (status == 1) {
     return (
-      <Grid container spacing={1} mb={3}>
-        <Grid item xs={12} md={6}>
-          <MDButton
-            fullwidth
-            color="success"
-            variant="contained"
-            pb={3}
-            onClick={() => repairAction(2, "Repair started", "construction", "success", globalFunc)}
-          >
-            Start Repair
-          </MDButton>
+      <>
+        <Grid container spacing={1} mb={3}>
+          <Grid item xs={12} md={6}>
+            <MDButton
+              fullwidth
+              color="success"
+              variant="contained"
+              pb={3}
+              onClick={() =>
+                repairAction(2, "Repair started", "construction", "success", globalFunc)
+              }
+            >
+              Start Repair
+            </MDButton>
+          </Grid>
+          <ReprintButton />
         </Grid>
-        <ReprintButton />
-      </Grid>
+        <LoadDialog />
+      </>
     );
   }
   if (status == 2) {
@@ -464,7 +621,18 @@ function Actions({ status, getRepair, repairID, globalFunc, repairTime }) {
           </Grid>
           <ReprintButton />
         </Grid>
-        <PartsModal />
+        <PartsAdd
+          globalFunc={globalFunc}
+          showPartsModal={newRepairPart}
+          setshowPartsModal={setnewRepairPart}
+          toggleloadingOpen={toggleloadingOpen}
+          createInvoice={createInvoice}
+          dialogOpen={dialogOpen}
+          toggleDialogOpen={toggleDialogOpen}
+          repairID={repairID}
+          getRepair={getRepair}
+        />
+        <LoadDialog />
       </>
     );
   }
@@ -498,8 +666,21 @@ function Actions({ status, getRepair, repairID, globalFunc, repairTime }) {
               Cancel Repair
             </MDButton>
           </Grid>
+          <Grid item xs={12} md={6}>
+            <MDButton
+              fullwidth
+              color="success"
+              variant="contained"
+              onClick={() =>
+                repairAction(4, "Repair completed", "build_circle", "success", globalFunc)
+              }
+            >
+              Complete Repair
+            </MDButton>
+          </Grid>
           <ReprintButton />
         </Grid>
+        <toggleloadingOpen />
       </>
     );
   }
@@ -537,6 +718,7 @@ function Actions({ status, getRepair, repairID, globalFunc, repairTime }) {
           </Grid>
           <ReprintButton />
         </Grid>
+        <LoadDialog />
         {repairOrderReady ? (
           <Modal
             open={showInvoice}
@@ -712,7 +894,17 @@ function Actions({ status, getRepair, repairID, globalFunc, repairTime }) {
             </MDBox>
           </Modal>
         ) : null}
-        <PartsModal />
+        <PartsAdd
+          globalFunc={globalFunc}
+          showPartsModal={newRepairPart}
+          setshowPartsModal={setnewRepairPart}
+          toggleloadingOpen={toggleloadingOpen}
+          createInvoice={createInvoice}
+          dialogOpen={dialogOpen}
+          toggleDialogOpen={toggleDialogOpen}
+          repairID={repairID}
+          getRepair={getRepair}
+        />
       </>
     );
   }

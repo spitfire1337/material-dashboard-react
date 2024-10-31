@@ -156,6 +156,11 @@ export default function App() {
     }
   };
 
+  const doSearch = (e, val) => {
+    e.preventDefault();
+    console.log("Search val", e);
+  };
+
   // Open sidenav when mouse enter on mini sidenav
   const checkLogin = async () => {
     if (!isLoggedin) {
@@ -419,6 +424,7 @@ export default function App() {
                 routes={routes(globalFunc)}
                 onMouseEnter={handleOnMouseEnter}
                 onMouseLeave={handleOnMouseLeave}
+                doSearch={doSearch}
               />
               <Configurator
                 globalFunc={globalFunc}
@@ -450,6 +456,7 @@ export default function App() {
               routes={routes(globalFunc)}
               onMouseEnter={handleOnMouseEnter}
               onMouseLeave={handleOnMouseLeave}
+              doSearch={doSearch}
             />
             <Configurator
               globalFunc={globalFunc}

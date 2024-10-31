@@ -31,6 +31,8 @@ import Icon from "@mui/material/Icon";
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 import MDButton from "components/MDButton";
+import IconButton from "@mui/material/IconButton";
+import Menu from "@mui/material/Menu";
 
 // Material Dashboard 2 React example components
 import SidenavCollapse from "examples/Sidenav/SidenavCollapse";
@@ -38,6 +40,7 @@ import SidenavCollapse from "examples/Sidenav/SidenavCollapse";
 // Custom styles for the Sidenav
 import SidenavRoot from "examples/Sidenav/SidenavRoot";
 import sidenavLogoLabel from "examples/Sidenav/styles/sidenav";
+import MDInput from "components/MDInput";
 
 // Material Dashboard 2 React context
 import {
@@ -46,8 +49,9 @@ import {
   setTransparentSidenav,
   setWhiteSidenav,
 } from "context";
+import { FormControl } from "@mui/material";
 
-function Sidenav({ color, brand, brandName, routes, ...rest }) {
+function Sidenav({ color, brand, brandName, routes, doSearch, ...rest }) {
   const [controller, dispatch] = useMaterialUIController();
   const { miniSidenav, transparentSidenav, whiteSidenav, darkMode, sidenavColor } = controller;
   const location = useLocation();
@@ -83,6 +87,17 @@ function Sidenav({ color, brand, brandName, routes, ...rest }) {
     return () => window.removeEventListener("resize", handleMiniSidenav);
   }, [dispatch, location]);
 
+  const iconsStyle = ({ palette: { dark, white, text }, functions: { rgba } }) => ({
+    color: () => {
+      let colorValue = !darkMode ? white.main : dark.main;
+
+      // if (transparentNavbar) {
+      //   colorValue = darkMode ? rgba(text.main, 0.6) : text.main;
+      // }
+
+      return colorValue;
+    },
+  });
   // Render all the routes from the routes.js (All the visible items on the Sidenav)
   const renderRoutes = routes.map(({ type, name, icon, title, noCollapse, key, href, route }) => {
     let returnValue;
@@ -171,6 +186,29 @@ function Sidenav({ color, brand, brandName, routes, ...rest }) {
             </MDTypography>
           </MDBox>
         </MDBox>
+      </MDBox>
+      <Divider
+        light={
+          (!darkMode && !whiteSidenav && !transparentSidenav) ||
+          (darkMode && !transparentSidenav && whiteSidenav)
+        }
+      />
+      <MDBox pl={1}>
+        <form onSubmit={doSearch}>
+          <MDInput
+            fullwidth
+            label="Search here"
+            color="primary"
+            autoComplete="off"
+            sx={(theme) => ({
+              input: { color: theme.palette.light.main },
+            })}
+            backgroundColor="#ffffff"
+          />
+          <IconButton size="small" disableRipple color="white" type="submit">
+            <Icon sx={iconsStyle}>search</Icon>
+          </IconButton>
+        </form>
       </MDBox>
       <Divider
         light={

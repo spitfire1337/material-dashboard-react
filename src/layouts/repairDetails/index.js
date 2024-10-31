@@ -48,7 +48,27 @@ import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import Footer from "examples/Footer";
 import Loading from "components/loading";
+import Dialog from "@mui/material/Dialog";
+import DialogTitle from "@mui/material/DialogTitle";
+import DialogContent from "@mui/material/DialogContent";
+import DialogContentText from "@mui/material/DialogContentText";
+import DialogActions from "@mui/material/DialogActions";
+import CircularProgress from "@mui/material/CircularProgress";
+import IconButton from "@mui/material/IconButton";
+import Icon from "@mui/material/Icon";
+import PartsAdd from "./components/addParts";
 
+const iconsStyle = ({ palette: { dark, white, text }, functions: { rgba } }) => ({
+  color: () => {
+    let colorValue = dark.main;
+
+    // if (transparentNavbar) {
+    //   colorValue = darkMode ? rgba(text.main, 0.6) : text.main;
+    // }
+
+    return colorValue;
+  },
+});
 const style = {
   position: "absolute",
   top: "50%",
@@ -72,7 +92,14 @@ const RepairDetails = ({ globalFunc }) => {
   const [RepairNotes, setRepairNotes] = useState();
   const [AllRepairNotes, setAllRepairNotes] = useState();
   const [allparts, setAllParts] = useState();
+  const [loadingOpen, setloadingOpen] = useState(false);
+  const [newRepairPart, setnewRepairPart] = useState(false);
+  const [dialogOpen, toggleDialogOpen] = useState(false);
+  const [repairOrder, setRepairOrder] = useState();
+  const [repairOrderReady, setRepairOrderReady] = useState(false);
+
   const getRepair = async () => {
+    setloadingOpen(true);
     const response = await fetch(`${vars.serverUrl}/repairs/repairDetails`, {
       method: "POST",
       headers: {
@@ -97,9 +124,43 @@ const RepairDetails = ({ globalFunc }) => {
       setAllRepairNotes(res.notes);
       setAllParts(res.parts);
     }
+    setloadingOpen(false);
   };
 
+  const createInvoice = async () => {
+    setloadingOpen(true);
+    const response = await fetch(`${vars.serverUrl}/repairs/getRepairOrder`, {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify({ id: repairID }),
+    });
+    const json = await response.json();
+    if (json.res == 200) {
+      setRepairOrder(json.data[0]);
+      setRepairOrderReady(true);
+    } else {
+      globalFunc.setErrorSBText("Server error occured");
+      globalFunc.setErrorSB(true);
+    }
+    setloadingOpen(false);
+  };
+
+  const LoadDialog = () => {
+    return (
+      <Dialog open={loadingOpen || loading}>
+        <DialogTitle>Loading</DialogTitle>
+        <DialogContent>
+          <CircularProgress />
+        </DialogContent>
+      </Dialog>
+    );
+  };
   const saveNotes = async () => {
+    setloadingOpen(true);
     const response = await fetch(`${vars.serverUrl}/repairs/repairNotes`, {
       method: "POST",
       headers: {
@@ -123,14 +184,88 @@ const RepairDetails = ({ globalFunc }) => {
       globalFunc.setSuccessSBText("Notes saved");
       globalFunc.setSuccessSB(true);
     }
+    setloadingOpen(false);
   };
 
+  const PartsItem = ({ part, status }) => {
+    return (
+      <>
+        <Grid item xs={6}>
+          <MDTypography variant="body2" mb={-2}>
+            {part.name}
+          </MDTypography>
+          <MDTypography variant="caption" mt={-2}>
+            {part.note || ""}
+          </MDTypography>
+        </Grid>
+        <Grid item xs={2}>
+          <MDTypography variant="body2">{part.quantity}</MDTypography>
+        </Grid>
+        <Grid item xs={2}>
+          <MDTypography variant="body2">
+            ${(part.basePriceMoney.amount / 100).toFixed(2)}
+          </MDTypography>
+        </Grid>
+        <Grid item xs={2}>
+          {status == 5 || status == 6 ? (
+            ""
+          ) : (
+            <IconButton
+              size="small"
+              disableRipple
+              color="red"
+              onClick={() => removeParts(part._id)}
+            >
+              <Icon sx={iconsStyle}>clear</Icon>
+            </IconButton>
+          )}
+        </Grid>
+        <Grid item xs={12} mb={-2} mt={-2}>
+          <Divider fullWidth></Divider>
+        </Grid>
+      </>
+    );
+  };
+
+  const removeParts = async (id) => {
+    setloadingOpen(true);
+    const response = await fetch(`${vars.serverUrl}/repairs/removeParts`, {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify({
+        id: repairID,
+        partId: id,
+      }),
+    });
+    const json = await response.json();
+    setloadingOpen(false);
+    if (json.res == 200) {
+      globalFunc.setSuccessSBText("Part removed from repair");
+      globalFunc.setSuccessSB(true);
+      getRepair();
+      if (status == 4) {
+        createInvoice();
+      }
+    } else {
+      globalFunc.setErrorSBText("Server error occured");
+      globalFunc.setErrorSB(true);
+    }
+  };
   useEffect(() => {
     getRepair();
   }, [repairID]);
 
   if (loading) {
-    return <Loading />;
+    return (
+      <DashboardLayout>
+        <DashboardNavbar globalFunc={globalFunc} />
+        <LoadDialog />
+      </DashboardLayout>
+    );
   }
 
   const Status = ({ repairStatus }) => {
@@ -436,6 +571,69 @@ const RepairDetails = ({ globalFunc }) => {
                   </MDBox>
                 </Card>
               </Grid>
+              {/* Repair parts */}
+              <Grid item xs={12}>
+                <Card>
+                  <MDBox
+                    mx={1}
+                    mt={-3}
+                    py={2}
+                    px={1}
+                    variant="gradient"
+                    bgColor="info"
+                    borderRadius="lg"
+                    coloredShadow="info"
+                  >
+                    <Grid container>
+                      <Grid item xs={6} alignItems="center">
+                        <MDTypography variant="h6" color="white">
+                          Invoice summary
+                        </MDTypography>
+                      </Grid>
+                      <Grid item xs={6} alignItems="center" textAlign="right">
+                        {repairDetails.status == 2 ||
+                        repairDetails.status == 3 ||
+                        repairDetails.status == 4 ? (
+                          <MDButton
+                            color="success"
+                            size="small"
+                            onClick={() => setnewRepairPart(true)}
+                          >
+                            Add parts
+                          </MDButton>
+                        ) : (
+                          ""
+                        )}
+                      </Grid>
+                    </Grid>
+                  </MDBox>
+                  <MDBox mx={2} py={3} px={2}>
+                    <Grid container spacing={1}>
+                      <Grid item xs={6}>
+                        <MDTypography variant="h6">Item:</MDTypography>
+                      </Grid>
+                      <Grid item xs={2}>
+                        <MDTypography variant="h6">Qty:</MDTypography>
+                      </Grid>
+                      <Grid item xs={2}>
+                        <MDTypography variant="h6">Cost (each):</MDTypography>
+                      </Grid>
+                      <Grid item xs={2}>
+                        <MDTypography variant="h6">Remove:</MDTypography>
+                      </Grid>
+                      <Grid item xs={12} mb={-2} mt={-2}>
+                        <Divider fullWidth></Divider>
+                      </Grid>
+                      {allparts.lineItems.map((part) => {
+                        console.log("Part: ", part);
+                        return (
+                          <PartsItem part={part} key={part.name} status={repairDetails.status} />
+                        );
+                      })}
+                    </Grid>
+                  </MDBox>
+                </Card>
+              </Grid>
             </Grid>
           </Grid>
           {/* Repair Actions & History */}
@@ -465,6 +663,11 @@ const RepairDetails = ({ globalFunc }) => {
                       globalFunc={globalFunc}
                       getRepair={getRepair}
                       repairID={repairDetails._id}
+                      repairOrder={repairOrder}
+                      repairOrderReady={repairOrderReady}
+                      setRepairOrder={setRepairOrder}
+                      setRepairOrderReady={setRepairOrderReady}
+                      createInvoice={createInvoice}
                     />
                   </MDBox>
                 </Card>
@@ -550,6 +753,18 @@ const RepairDetails = ({ globalFunc }) => {
           </MDButton>
         </MDBox>
       </Modal>
+      <PartsAdd
+        globalFunc={globalFunc}
+        showPartsModal={newRepairPart}
+        setshowPartsModal={setnewRepairPart}
+        toggleloadingOpen={setloadingOpen}
+        createInvoice={createInvoice}
+        dialogOpen={dialogOpen}
+        toggleDialogOpen={toggleDialogOpen}
+        repairID={repairID}
+        getRepair={getRepair}
+      />
+      <LoadDialog />
       <Footer />
     </DashboardLayout>
   );
