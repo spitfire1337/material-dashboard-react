@@ -97,6 +97,9 @@ const RepairDetails = ({ globalFunc }) => {
   const [dialogOpen, toggleDialogOpen] = useState(false);
   const [repairOrder, setRepairOrder] = useState();
   const [repairOrderReady, setRepairOrderReady] = useState(false);
+  const [confirmOpen, toggleconfirmOpen] = useState({ removePart: false, editTime: false });
+  const [partId, setPartid] = useState();
+  const [newMinutes, setnewMinutes] = useState();
 
   const getRepair = async () => {
     setloadingOpen(true);
@@ -186,11 +189,25 @@ const RepairDetails = ({ globalFunc }) => {
     }
     setloadingOpen(false);
   };
+  const ConfirmActionDialog = ({ title, content, action, openState, closeState }) => {
+    return (
+      <Dialog open={openState}>
+        <DialogTitle>{title}</DialogTitle>
+        <DialogContent>{content}</DialogContent>
+        <DialogActions>
+          <MDButton onClick={closeState}>No</MDButton>
+          <MDButton onClick={action} autoFocus>
+            Yes
+          </MDButton>
+        </DialogActions>
+      </Dialog>
+    );
+  };
 
   const PartsItem = ({ part, status }) => {
     return (
       <>
-        <Grid item xs={6}>
+        <Grid item xs={status == 6 || status == 5 ? 8 : 6}>
           <MDTypography variant="body2" mb={-2}>
             {part.name}
           </MDTypography>
@@ -207,14 +224,16 @@ const RepairDetails = ({ globalFunc }) => {
           </MDTypography>
         </Grid>
         <Grid item xs={2}>
-          {status == 5 || status == 6 ? (
+          {status == 6 || status == 5 ? (
             ""
           ) : (
             <IconButton
               size="small"
               disableRipple
               color="red"
-              onClick={() => removeParts(part._id)}
+              onClick={() => {
+                setPartid(part._id), toggleconfirmOpen({ removePart: true });
+              }}
             >
               <Icon sx={iconsStyle}>clear</Icon>
             </IconButton>
@@ -227,7 +246,8 @@ const RepairDetails = ({ globalFunc }) => {
     );
   };
 
-  const removeParts = async (id) => {
+  const removeParts = async (id, status) => {
+    toggleconfirmOpen({ removePart: false });
     setloadingOpen(true);
     const response = await fetch(`${vars.serverUrl}/repairs/removeParts`, {
       method: "POST",
@@ -239,6 +259,7 @@ const RepairDetails = ({ globalFunc }) => {
       body: JSON.stringify({
         id: repairID,
         partId: id,
+        status: status,
       }),
     });
     const json = await response.json();
@@ -254,6 +275,29 @@ const RepairDetails = ({ globalFunc }) => {
       globalFunc.setErrorSBText("Server error occured");
       globalFunc.setErrorSB(true);
     }
+  };
+
+  const editTime = () => {
+    return (
+      <Dialog open={confirmOpen.editTime}>
+        <DialogTitle>Enter adjusted hours</DialogTitle>
+        <DialogContent>
+          <TextField
+            value={Math.round(60 * repairTime)}
+            label="Minutes"
+            onChange={(e) => {
+              setnewMinutes(e.target.value);
+            }}
+          />
+        </DialogContent>
+        <DialogActions>
+          <MDButton onClick={closeState}>No</MDButton>
+          <MDButton onClick={action} autoFocus>
+            Yes
+          </MDButton>
+        </DialogActions>
+      </Dialog>
+    );
   };
   useEffect(() => {
     getRepair();
@@ -609,7 +653,10 @@ const RepairDetails = ({ globalFunc }) => {
                   </MDBox>
                   <MDBox mx={2} py={3} px={2}>
                     <Grid container spacing={1}>
-                      <Grid item xs={6}>
+                      <Grid
+                        item
+                        xs={repairDetails.status == 6 || repairDetails.status == 5 ? 8 : 6}
+                      >
                         <MDTypography variant="h6">Item:</MDTypography>
                       </Grid>
                       <Grid item xs={2}>
@@ -618,9 +665,13 @@ const RepairDetails = ({ globalFunc }) => {
                       <Grid item xs={2}>
                         <MDTypography variant="h6">Cost (each):</MDTypography>
                       </Grid>
-                      <Grid item xs={2}>
-                        <MDTypography variant="h6">Remove:</MDTypography>
-                      </Grid>
+                      {repairDetails.status == 6 || repairDetails.status == 5 ? (
+                        ""
+                      ) : (
+                        <Grid item xs={2}>
+                          <MDTypography variant="h6">Remove:</MDTypography>
+                        </Grid>
+                      )}
                       <Grid item xs={12} mb={-2} mt={-2}>
                         <Divider fullWidth></Divider>
                       </Grid>
@@ -639,7 +690,9 @@ const RepairDetails = ({ globalFunc }) => {
           {/* Repair Actions & History */}
           <Grid item xs={12} md={4}>
             {/* Repair Actions */}
-            {repairDetails.status !== 998 || repairDetails !== 999 ? (
+            {repairDetails.status !== 6 ||
+            repairDetails.status !== 998 ||
+            repairDetails.status !== 999 ? (
               <Grid item xs={12}>
                 <Card>
                   <MDBox
@@ -754,6 +807,7 @@ const RepairDetails = ({ globalFunc }) => {
         </MDBox>
       </Modal>
       <PartsAdd
+        status={repairDetails.status}
         globalFunc={globalFunc}
         showPartsModal={newRepairPart}
         setshowPartsModal={setnewRepairPart}
@@ -765,6 +819,13 @@ const RepairDetails = ({ globalFunc }) => {
         getRepair={getRepair}
       />
       <LoadDialog />
+      <ConfirmActionDialog
+        title="Are you sure?"
+        content="Do you wish to remove this item?"
+        action={() => removeParts(partId, repairDetails.status)}
+        openState={confirmOpen.removePart}
+        closeState={() => toggleconfirmOpen({ removePart: false })}
+      />
       <Footer />
     </DashboardLayout>
   );

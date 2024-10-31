@@ -65,7 +65,7 @@ function Basic() {
         <MDBox pt={4} pb={3} px={3}>
           <MDBox component="form" role="form">
             <MDBox mt={4} mb={1}>
-              <MuiLink href={vars.serverUrl + "/auth/signin?redirect=" + vars.redirect}>
+              <MuiLink href={vars.serverUrl + "/auth/signin?redirect=" + window.location.href}>
                 <MDButton variant="gradient" color="info" fullWidth>
                   <MicrosoftIcon /> Sign in with Microsoft
                 </MDButton>

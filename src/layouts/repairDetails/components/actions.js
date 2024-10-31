@@ -71,6 +71,7 @@ function Actions({
   const [newRepairPart, setnewRepairPart] = useState(false);
   const [loadingOpen, toggleloadingOpen] = useState(false);
   const [dialogOpen, toggleDialogOpen] = useState(false);
+  const [confirmOpen, toggleconfirmOpen] = useState({ cancelInvoice: false });
 
   const dialogHandleClose = () => {
     // setPartCost(0);
@@ -274,27 +275,31 @@ function Actions({
     toggleloadingOpen(false);
   };
 
-  // const createInvoice = async () => {
-  //   toggleloadingOpen(true);
-  //   const response = await fetch(`${vars.serverUrl}/repairs/getRepairOrder`, {
-  //     method: "POST",
-  //     headers: {
-  //       Accept: "application/json",
-  //       "Content-Type": "application/json",
-  //     },
-  //     credentials: "include",
-  //     body: JSON.stringify({ id: repairID }),
-  //   });
-  //   const json = await response.json();
-  //   if (json.res == 200) {
-  //     setRepairOrder(json.data[0]);
-  //     setRepairOrderReady(true);
-  //   } else {
-  //     globalFunc.setErrorSBText("Server error occured");
-  //     globalFunc.setErrorSB(true);
-  //   }
-  //   toggleloadingOpen(false);
-  // };
+  const doCancelInvoice = async () => {
+    toggleconfirmOpen({ cancelInvoice: false });
+    toggleloadingOpen(true);
+    const response = await fetch(`${vars.serverUrl}/repairs/cancelInvoice`, {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify({
+        id: repairID,
+      }),
+    });
+    const json = await response.json();
+    if (json.res == 200) {
+      globalFunc.setSuccessSBText("Invoice canceled");
+      globalFunc.setSuccessSB(true);
+    } else {
+      globalFunc.setErrorSBText("Server error occured");
+      globalFunc.setErrorSB(true);
+    }
+    getRepair();
+    toggleloadingOpen(false);
+  };
 
   const reprintPaperwork = async () => {
     toggleloadingOpen(true);
@@ -334,12 +339,6 @@ function Actions({
     }
   }, [status]);
 
-  // useEffect(() => {
-  //   if (status == 4) {
-  //     setLaborTime(repairTime.toFixed(2));
-  //   }
-  // }, [repairTime]);
-
   useEffect(() => {
     let mySubtotal = parseFloat(0);
     if (repairOrderReady && status == 4) {
@@ -365,6 +364,21 @@ function Actions({
         <DialogContent>
           <CircularProgress />
         </DialogContent>
+      </Dialog>
+    );
+  };
+
+  const ConfirmActionDialog = ({ title, content, action, openState, closeState }) => {
+    return (
+      <Dialog open={openState}>
+        <DialogTitle>{title}</DialogTitle>
+        <DialogContent>{content}</DialogContent>
+        <DialogActions>
+          <MDButton onClick={closeState}>No</MDButton>
+          <MDButton onClick={action} autoFocus>
+            Yes
+          </MDButton>
+        </DialogActions>
       </Dialog>
     );
   };
@@ -631,6 +645,7 @@ function Actions({
           toggleDialogOpen={toggleDialogOpen}
           repairID={repairID}
           getRepair={getRepair}
+          status={status}
         />
         <LoadDialog />
       </>
@@ -904,6 +919,35 @@ function Actions({
           toggleDialogOpen={toggleDialogOpen}
           repairID={repairID}
           getRepair={getRepair}
+          status={status}
+        />
+      </>
+    );
+  }
+  if (status == 5) {
+    return (
+      <>
+        <Grid container spacing={1} mb={3}>
+          <Grid item xs={12} md={6}>
+            <MDButton
+              fullwidth
+              color="success"
+              variant="contained"
+              p={3}
+              onClick={() => toggleconfirmOpen({ cancelInvoice: true })}
+            >
+              Cancel Invoice
+            </MDButton>
+          </Grid>
+          <ReprintButton />
+        </Grid>
+        <LoadDialog />
+        <ConfirmActionDialog
+          title="Are you sure?"
+          content="Do you wish to cancel this invoice?"
+          action={() => doCancelInvoice()}
+          openState={confirmOpen.cancelInvoice}
+          closeState={() => toggleconfirmOpen({ cancelInvoice: false })}
         />
       </>
     );

@@ -335,7 +335,11 @@ export default function data(globalFunc, contIntake) {
               customer: (
                 <Customer
                   id={repair._id}
-                  name={repair.Customer.given_name + " " + repair.Customer.family_name}
+                  name={
+                    repair.Customer.given_name + " " + repair.Customer.family_name != undefined
+                      ? repair.Customer.family_name
+                      : ""
+                  }
                   email={repair.Customer.phone_number || repair.Customer.email_address}
                 />
               ),

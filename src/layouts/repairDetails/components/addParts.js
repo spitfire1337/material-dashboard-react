@@ -45,6 +45,7 @@ const PartsAdd = ({
   toggleDialogOpen,
   repairID,
   getRepair,
+  status,
 }) => {
   const [newRepairPart, setnewRepairPart] = useState(false);
   const [parts, setParts] = useState([]);
@@ -161,6 +162,7 @@ const PartsAdd = ({
       credentials: "include",
       body: JSON.stringify({
         id: repairID,
+        status: status,
         parts: {
           quantity: partDetails.qty,
           name: partDetails.name,
