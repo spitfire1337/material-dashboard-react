@@ -21,18 +21,17 @@ import vars from "../../config";
 // @mui material components
 import Grid from "@mui/material/Grid";
 import Card from "@mui/material/Card";
-import Button from "@mui/material/Button";
 import {
-  Modal,
   FormControl,
-  Select,
-  MenuItem,
   InputLabel,
-  Autocomplete,
-  TextField,
-  Divider,
+  MenuItem,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from "@mui/material";
 
+import { Modal, Select, IconButton, Icon } from "@mui/material";
 // Material Dashboard 2 React components
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
@@ -52,7 +51,8 @@ import Step4 from "./components/step4";
 // Data
 import authorsTableData from "layouts/tables/data/repairsDataTable";
 import projectsTableData from "layouts/tables/data/projectsTableData";
-import { Label } from "@mui/icons-material";
+import FilterDialog from "./components/filter";
+
 const style = {
   position: "absolute",
   top: "50%",
@@ -68,12 +68,26 @@ const style = {
   p: 4,
   borderRadius: "25px",
 };
+const iconsStyle = ({ palette: { dark, white, text }, functions: { rgba } }) => ({
+  color: () => {
+    let colorValue = dark.main;
+
+    // if (transparentNavbar) {
+    //   colorValue = darkMode ? rgba(text.main, 0.6) : text.main;
+    // }
+
+    return colorValue;
+  },
+});
 // eslint-disable-next-line react/prop-types
 const Repairs = ({ globalFunc }) => {
   const { columns: pColumns, rows: pRows } = projectsTableData();
   const [newRepair, setNewRepair] = useState(false);
   const [repairData, setRepairData] = useState({});
   const [repairID, setrepairID] = useState(null);
+  const [showFilter, setShowFiler] = useState(false);
+  const [filterVal, setfilterVal] = useState();
+  const [filteKey, setfilterKey] = useState();
 
   const useForm = (initialValues) => {
     const [values, setValues] = useState(initialValues);
@@ -100,7 +114,10 @@ const Repairs = ({ globalFunc }) => {
     setRepairStep(3);
   };
 
-  const { columns, rows, reRender } = authorsTableData(globalFunc, contIntake);
+  const { columns, rows, reRender, filter, resetFilter, repairs } = authorsTableData(
+    globalFunc,
+    contIntake
+  );
 
   const nextRepairStep = async (val, customer = null) => {
     if (val == 2) {
@@ -127,6 +144,41 @@ const Repairs = ({ globalFunc }) => {
     setRepairStep(0);
   };
 
+  // const FilterDialog = () => {
+  //   return (
+  //     <Dialog open={showFilter}>
+  //       <DialogTitle>Filter Repairs</DialogTitle>
+  //       <DialogContent>
+  //         <FormControl fullWidth>
+  //           <InputLabel id="demo-simple-select-label">Status</InputLabel>
+  //           <Select
+  //             labelId="demo-simple-select-label"
+  //             id="demo-simple-select"
+  //             value={filterVal}
+  //             label="Status"
+  //             onChange={(e) => {
+  //               setfilterVal(e.target.value);
+  //               setfilterKey("status");
+  //             }}
+  //           >
+  //             <MenuItem value={0}>Created</MenuItem>
+  //             <MenuItem value={1}>Not started</MenuItem>
+  //             <MenuItem value={2}>In Progress</MenuItem>
+  //             <MenuItem value={3}>Paused</MenuItem>
+  //             <MenuItem value={4}>Repair Complete</MenuItem>
+  //             <MenuItem value={5}>Invoice Created</MenuItem>
+  //             <MenuItem value={6}>Complete</MenuItem>
+  //           </Select>
+  //         </FormControl>
+  //       </DialogContent>
+  //       <DialogActions>
+  //         <MDButton onClick={() => setShowFiler(false)}>Cancel</MDButton>
+  //         <MDButton onClick={() => filter(filteKey, filterVal)}>Filter</MDButton>
+  //       </DialogActions>
+  //     </Dialog>
+  //   );
+  // };
+
   return (
     <DashboardLayout>
       <DashboardNavbar globalFunc={globalFunc} />
@@ -145,8 +197,7 @@ const Repairs = ({ globalFunc }) => {
                 coloredShadow="info"
               >
                 <Grid container>
-                  <Grid item xs={6} alignItems="center"></Grid>
-                  <Grid item xs={6} alignItems="center" textAlign="right">
+                  <Grid item xs={6} alignItems="center">
                     <MDButton
                       variant="contained"
                       color="success"
@@ -156,6 +207,18 @@ const Repairs = ({ globalFunc }) => {
                     >
                       New Repair
                     </MDButton>
+                  </Grid>
+                  <Grid item xs={6} alignItems="center" textAlign="right">
+                    <IconButton
+                      size="large"
+                      disableRipple
+                      color="red"
+                      onClick={() => {
+                        setShowFiler(true);
+                      }}
+                    >
+                      <Icon sx={iconsStyle}>filter_list</Icon>
+                    </IconButton>
                   </Grid>
                 </Grid>
               </MDBox>
@@ -222,6 +285,13 @@ const Repairs = ({ globalFunc }) => {
           </MDButton>
         </MDBox>
       </Modal>
+      <FilterDialog
+        filter={filter}
+        showFilter={showFilter}
+        resetFilter={resetFilter}
+        setShowFiler={setShowFiler}
+        repairs={repairs}
+      />
     </DashboardLayout>
   );
 };

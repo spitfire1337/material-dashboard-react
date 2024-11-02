@@ -23,6 +23,7 @@ import DialogContentText from "@mui/material/DialogContentText";
 import DialogActions from "@mui/material/DialogActions";
 import CircularProgress from "@mui/material/CircularProgress";
 
+import AddPhoto from "./addPhoto";
 import PartsAdd from "../components/addParts";
 const style = {
   position: "absolute",
@@ -72,6 +73,7 @@ function Actions({
   const [loadingOpen, toggleloadingOpen] = useState(false);
   const [dialogOpen, toggleDialogOpen] = useState(false);
   const [confirmOpen, toggleconfirmOpen] = useState({ cancelInvoice: false });
+  const [addPhotoDialog, toggleaddPhotoDialog] = useState(false);
 
   const dialogHandleClose = () => {
     // setPartCost(0);
@@ -333,6 +335,29 @@ function Actions({
     toggleloadingOpen(false);
   };
 
+  const PhotoButton = () => {
+    return (
+      <Grid item xs={12} md={6}>
+        <MDButton
+          fullwidth
+          color="warning"
+          variant="contained"
+          onClick={() => toggleaddPhotoDialog(true)}
+        >
+          Add Photo
+        </MDButton>
+        <AddPhoto
+          setloadingOpen={toggleloadingOpen}
+          getRepair={getRepair}
+          repairID={repairID}
+          globalFunc={globalFunc}
+          hide={toggleaddPhotoDialog}
+          openVar={addPhotoDialog}
+        />
+      </Grid>
+    );
+  };
+
   useEffect(() => {
     if (status == 4) {
       createInvoice();
@@ -585,6 +610,7 @@ function Actions({
             </MDButton>
           </Grid>
           <ReprintButton />
+          <PhotoButton />
         </Grid>
         <LoadDialog />
       </>
@@ -634,6 +660,7 @@ function Actions({
             </MDButton>
           </Grid>
           <ReprintButton />
+          <PhotoButton />
         </Grid>
         <PartsAdd
           globalFunc={globalFunc}
@@ -694,6 +721,7 @@ function Actions({
             </MDButton>
           </Grid>
           <ReprintButton />
+          <PhotoButton />
         </Grid>
         <toggleloadingOpen />
       </>
@@ -732,6 +760,7 @@ function Actions({
             </MDButton>
           </Grid>
           <ReprintButton />
+          <PhotoButton />
         </Grid>
         <LoadDialog />
         {repairOrderReady ? (

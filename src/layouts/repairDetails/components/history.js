@@ -14,25 +14,58 @@ Coded by www.creative-tim.com
 */
 
 // @mui material components
-import Card from "@mui/material/Card";
-import Icon from "@mui/material/Icon";
+import vars from "../../../config";
 
 // Material Dashboard 2 React components
 import MDBox from "components/MDBox";
+import MDButton from "components/MDButton";
 import MDTypography from "components/MDTypography";
 import moment from "moment";
+import EditTime from "./editTime";
 
 // Material Dashboard 2 React example components
 import TimelineItem from "examples/Timeline/TimelineItem";
+import { Grid } from "@mui/material";
+import { useState } from "react";
+function RepairHistory({ data, repairTime, setloadingOpen, getRepair, repairID, globalFunc }) {
+  const [showDialog, setShowDialog] = useState(false);
 
-function RepairHistory({ data, repairTime }) {
+  //   return (
+  //     <Dialog open={showDialog}>
+  //       <DialogTitle>Enter adjusted hours</DialogTitle>
+  //       <DialogContent>
+  //         <TextField
+  //           value={newMinutes}
+  //           label="Minutes"
+  //           type="number"
+  //           onChange={(e) => {
+  //             updateTime(e.target.value);
+  //           }}
+  //         />
+  //       </DialogContent>
+  //       <DialogActions>
+  //         <MDButton onClick={() => setShowDialog(false)}>No</MDButton>
+  //         <MDButton onClick={() => saveTime()} autoFocus>
+  //           Yes
+  //         </MDButton>
+  //       </DialogActions>
+  //     </Dialog>
+  //   );
+  // };
   return (
     <>
       <MDBox p={2}>
-        <MDTypography variant="h6">
-          Current repair time: <br />
-          {Math.round(60 * repairTime)} minutes
-        </MDTypography>
+        <Grid container>
+          <Grid item>
+            <MDTypography variant="h6">
+              Current repair time: <br />
+              {Math.round(60 * repairTime)} minutes
+            </MDTypography>
+          </Grid>
+          <Grid item>
+            <MDButton onClick={() => setShowDialog(true)}>Edit</MDButton>
+          </Grid>
+        </Grid>
         {data.map((item) => {
           return (
             <TimelineItem
@@ -46,45 +79,17 @@ function RepairHistory({ data, repairTime }) {
           );
         })}
       </MDBox>
+      <EditTime
+        openVar={showDialog}
+        hide={setShowDialog}
+        repairTime={repairTime}
+        getRepair={getRepair}
+        repairID={repairID}
+        globalFunc={globalFunc}
+        setloadingOpen={setloadingOpen}
+      />
     </>
   );
-  // return (
-  //   <>
-  //     <MDBox p={2}>
-  //       <TimelineItem
-  //         color="success"
-  //         icon="notifications"
-  //         title="$2400, Design changes"
-  //         dateTime="22 DEC 7:20 PM"
-  //       />
-  //       <TimelineItem
-  //         color="error"
-  //         icon="inventory_2"
-  //         title="New order #1832412"
-  //         dateTime="21 DEC 11 PM"
-  //       />
-  //       <TimelineItem
-  //         color="info"
-  //         icon="shopping_cart"
-  //         title="Server payments for April"
-  //         dateTime="21 DEC 9:34 PM"
-  //       />
-  //       <TimelineItem
-  //         color="warning"
-  //         icon="payment"
-  //         title="New card added for order #4395133"
-  //         dateTime="20 DEC 2:20 AM"
-  //       />
-  //       <TimelineItem
-  //         color="primary"
-  //         icon="calendar_month"
-  //         title="New card added for order #4395133"
-  //         dateTime="18 DEC 4:54 AM"
-  //         lastItem
-  //       />
-  //     </MDBox>
-  //   </>
-  // );
 }
 
 export default RepairHistory;

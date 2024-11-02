@@ -99,6 +99,7 @@ const RepairDetails = ({ globalFunc }) => {
   const [repairOrderReady, setRepairOrderReady] = useState(false);
   const [confirmOpen, toggleconfirmOpen] = useState({ removePart: false, editTime: false });
   const [partId, setPartid] = useState();
+  const [partName, setPartName] = useState();
   const [newMinutes, setnewMinutes] = useState();
 
   const getRepair = async () => {
@@ -122,6 +123,7 @@ const RepairDetails = ({ globalFunc }) => {
       globalFunc.setErrorSB(true);
     } else {
       setLoading(false);
+      setnewMinutes(Math.round(res.data.repairTime * 60));
       setrepairDetails(res.data);
       setrepairHistory(res.history);
       setAllRepairNotes(res.notes);
@@ -232,7 +234,9 @@ const RepairDetails = ({ globalFunc }) => {
               disableRipple
               color="red"
               onClick={() => {
-                setPartid(part._id), toggleconfirmOpen({ removePart: true });
+                setPartid(part._id);
+                toggleconfirmOpen({ removePart: true });
+                setPartName(part.name);
               }}
             >
               <Icon sx={iconsStyle}>clear</Icon>
@@ -259,6 +263,7 @@ const RepairDetails = ({ globalFunc }) => {
       body: JSON.stringify({
         id: repairID,
         partId: id,
+        name: partName,
         status: status,
       }),
     });
@@ -271,6 +276,33 @@ const RepairDetails = ({ globalFunc }) => {
       if (status == 4) {
         createInvoice();
       }
+    } else {
+      globalFunc.setErrorSBText("Server error occured");
+      globalFunc.setErrorSB(true);
+    }
+  };
+
+  const saveTime = async (id, status) => {
+    toggleconfirmOpen({ editTime: false });
+    setloadingOpen(true);
+    const response = await fetch(`${vars.serverUrl}/repairs/removeParts`, {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify({
+        id: repairID,
+        time: (newMinutes / 60).toFixed(2),
+      }),
+    });
+    const json = await response.json();
+    setloadingOpen(false);
+    if (json.res == 200) {
+      globalFunc.setSuccessSBText("Repair time adjusted");
+      globalFunc.setSuccessSB(true);
+      getRepair();
     } else {
       globalFunc.setErrorSBText("Server error occured");
       globalFunc.setErrorSB(true);
@@ -292,7 +324,7 @@ const RepairDetails = ({ globalFunc }) => {
         </DialogContent>
         <DialogActions>
           <MDButton onClick={closeState}>No</MDButton>
-          <MDButton onClick={action} autoFocus>
+          <MDButton onClick={() => saveTime()} autoFocus>
             Yes
           </MDButton>
         </DialogActions>
@@ -750,6 +782,7 @@ const RepairDetails = ({ globalFunc }) => {
                     getRepair={getRepair}
                     repairID={repairDetails._id}
                     globalFunc={globalFunc}
+                    setloadingOpen={setloadingOpen}
                   />
                 </MDBox>
               </Card>

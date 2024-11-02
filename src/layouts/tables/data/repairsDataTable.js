@@ -22,17 +22,20 @@ import vars from "../../../config";
 // Material Dashboard 2 React components
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
-import MDAvatar from "components/MDAvatar";
 import MDBadge from "components/MDBadge";
 import moment from "moment";
-// Images
-import team2 from "assets/images/team-2.jpg";
-import team3 from "assets/images/team-3.jpg";
-import team4 from "assets/images/team-4.jpg";
 
-export default function data(globalFunc, contIntake) {
+export default function data(globalFunc, contIntake, filters) {
   let redirect = useNavigate();
+  const [repairsOrig, setrepairsOrig] = useState([]);
   const [repairs, setRepairs] = useState([]);
+  const [myFilters, setmyFilters] = useState({
+    status: [0, 1, 2, 3, 4, 5],
+    RepairType: ["Tire Change", "Tube Change", "Power issue", "Mechanical Repair", "Other"],
+  });
+  const defaultFilter = {
+    status: [0, 1, 2, 3, 4, 5],
+  };
   const fetchData = async (globalFunc) => {
     const response = await fetch(`${vars.serverUrl}/square/getMyData?action=getRepairs`, {
       credentials: "include",
@@ -41,7 +44,9 @@ export default function data(globalFunc, contIntake) {
       const res = await response.json();
 
       if (res.res === 200) {
+        setrepairsOrig(res.data);
         setRepairs(res.data);
+        doFilter();
       } else if (res.res === 401) {
         globalFunc.setLoggedIn(false);
         globalFunc.setErrorSBText("Unauthorized, redirecting to login");
@@ -61,6 +66,35 @@ export default function data(globalFunc, contIntake) {
     fetchData(globalFunc);
   };
 
+  const doFilter = () => {
+    console.log("Requested filter: ", filter);
+    let filterData = [...repairsOrig];
+    let filtered = filterData.filter((item) => {
+      for (var key in myFilters) {
+        console.log("Filter options:", myFilters[key]);
+        console.log("Item value", item[key].constructor.name == "Array" ? item[key][0] : item[key]);
+        console.log(myFilters[key].indexOf(item[key]));
+        if (
+          item[key] === undefined ||
+          myFilters[key].indexOf(item[key].constructor.name == "Array" ? item[key][0] : item[key]) <
+            0
+        )
+          return false;
+      }
+      return true;
+    });
+    setRepairs(filtered);
+  };
+  useEffect(() => {
+    doFilter();
+  }, [myFilters, repairsOrig]);
+  const filter = (filter) => {
+    setmyFilters(filter);
+  };
+
+  const resetFilter = () => {
+    setRepairs(repairsOrig);
+  };
   const Customer = ({ image, name, email, id }) => (
     <MDBox
       display="flex"
@@ -313,6 +347,9 @@ export default function data(globalFunc, contIntake) {
   };
 
   return {
+    repairs: repairsOrig,
+    resetFilter: resetFilter,
+    filter: filter,
     reRender: reRender,
     columns: [
       { Header: "customer", accessor: "customer", width: "25%", align: "left" },
