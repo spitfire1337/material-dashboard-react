@@ -19,6 +19,7 @@ import RepairHistory from "./components/history";
 import Actions from "./components/actions";
 import moment from "moment";
 import NotesItem from "examples/Timeline/NotesItem";
+import RepairImages from "./components/images";
 // Vars
 import vars from "../../config";
 
@@ -88,6 +89,7 @@ const RepairDetails = ({ globalFunc }) => {
   const [loading, setLoading] = useState(true);
   const [repairDetails, setrepairDetails] = useState({});
   const [repairHistory, setrepairHistory] = useState({});
+  const [repairImages, setrepairImages] = useState([]);
   const [newRepairNotes, setnewRepairNotes] = useState(false);
   const [RepairNotes, setRepairNotes] = useState();
   const [AllRepairNotes, setAllRepairNotes] = useState();
@@ -126,6 +128,7 @@ const RepairDetails = ({ globalFunc }) => {
       setnewMinutes(Math.round(res.data.repairTime * 60));
       setrepairDetails(res.data);
       setrepairHistory(res.history);
+      setrepairImages(res.images);
       setAllRepairNotes(res.notes);
       setAllParts(res.parts);
     }
@@ -644,6 +647,31 @@ const RepairDetails = ({ globalFunc }) => {
                       );
                     })}
                     <MDTypography variant="subtitle2"></MDTypography>
+                  </MDBox>
+                </Card>
+              </Grid>
+              <Grid item xs={12}>
+                <Card>
+                  <MDBox
+                    mx={1}
+                    mt={-3}
+                    py={2}
+                    px={1}
+                    variant="gradient"
+                    bgColor="info"
+                    borderRadius="lg"
+                    coloredShadow="info"
+                  >
+                    <Grid container>
+                      <Grid item xs={6} alignItems="center">
+                        <MDTypography variant="h6" color="white">
+                          Images
+                        </MDTypography>
+                      </Grid>
+                    </Grid>
+                  </MDBox>
+                  <MDBox mx={2} py={3} px={2}>
+                    <RepairImages itemData={repairImages} />
                   </MDBox>
                 </Card>
               </Grid>

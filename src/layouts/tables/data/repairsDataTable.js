@@ -373,9 +373,9 @@ export default function data(globalFunc, contIntake, filters) {
                 <Customer
                   id={repair._id}
                   name={
-                    repair.Customer.given_name + " " + repair.Customer.family_name != undefined
-                      ? repair.Customer.family_name
-                      : ""
+                    (repair.Customer.given_name != undefined ? repair.Customer.given_name : "") +
+                    " " +
+                    (repair.Customer.family_name != undefined ? repair.Customer.family_name : "")
                   }
                   email={repair.Customer.phone_number || repair.Customer.email_address}
                 />
