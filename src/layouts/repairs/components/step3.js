@@ -17,13 +17,26 @@ import {
   FormGroup,
   Checkbox,
 } from "@mui/material";
-
+import IconButton from "@mui/material/IconButton";
+import Icon from "@mui/material/Icon";
 import vars from "../../../config";
+const iconsStyle = ({ palette: { dark, white, text }, functions: { rgba } }) => ({
+  color: () => {
+    let colorValue = dark.main;
 
+    // if (transparentNavbar) {
+    //   colorValue = darkMode ? rgba(text.main, 0.6) : text.main;
+    // }
+
+    return colorValue;
+  },
+});
 const step3 = ({ globalFunc, repairID, nextRepairStep }) => {
   const [repairType, setRepairType] = useState([]);
   const [repairDetails, setRepairDetails] = useState();
   const [warranty, setWarranty] = useState(false);
+  const [accessories, setAccessories] = useState([]);
+  const [accessoryCount, setAccessoryCount] = useState(0);
   const useForm = (initialValues) => {
     const [values, setValues] = useState(initialValues);
     return [
@@ -43,6 +56,7 @@ const step3 = ({ globalFunc, repairID, nextRepairStep }) => {
         Details: repairDetails,
         RepairType: repairType,
         warranty: warranty,
+        accessories: accessories,
       };
       const response = await fetch(`${vars.serverUrl}/repairs/updateRepair`, {
         method: "POST",
@@ -68,7 +82,18 @@ const step3 = ({ globalFunc, repairID, nextRepairStep }) => {
       // TODO: Add error notification
     }
   };
-
+  const addAccessorie = () => {
+    let newaccessoryCount = accessoryCount + 1;
+    setAccessoryCount(newaccessoryCount);
+    let details = {
+      id: newaccessoryCount,
+      name: "",
+    };
+    let oldAccessory = [...accessories];
+    oldAccessory.push(details);
+    console.log(accessories);
+    setAccessories(oldAccessory);
+  };
   return (
     <>
       <MDTypography id="modal-modal-title" variant="h6" component="h2">
@@ -187,6 +212,47 @@ const step3 = ({ globalFunc, repairID, nextRepairStep }) => {
                   setWarranty(e.target.checked);
                 }}
               />
+            </Grid>
+            <Grid item sm={12}>
+              <MDTypography variant="body1">Accessories</MDTypography>
+            </Grid>
+            {accessories.map((accessorie, i) => {
+              return (
+                <>
+                  <Grid item key={accessorie.id} sm={11}>
+                    <TextField
+                      fullWidth
+                      value={accessorie.name}
+                      onChange={(e) => {
+                        console.log(accessories);
+                        let oldAccessory = [...accessories];
+                        oldAccessory[i].name = e.currentTarget.value;
+                        //oldAccessory.find((x) => (x.id = accessorie.id)).name = e.currentTarget.value;
+                        setAccessories(oldAccessory);
+                      }}
+                    />
+                  </Grid>
+                  <Grid item key={accessorie.id} sm={1}>
+                    <IconButton
+                      size="small"
+                      disableRipple
+                      color="red"
+                      onClick={() => {
+                        let oldAccessory = [...accessories];
+                        oldAccessory.splice(i, 1);
+                        setAccessories(oldAccessory);
+                      }}
+                    >
+                      <Icon sx={iconsStyle}>clear</Icon>
+                    </IconButton>
+                  </Grid>
+                </>
+              );
+            })}
+            <Grid item sm={12}>
+              <MDButton variant="outlined" color="secondary" onClick={() => addAccessorie()}>
+                Add accessory
+              </MDButton>
             </Grid>
             <Grid item sm={12}>
               <MDButton fullWidth variant="outlined" color="primary" onClick={() => updateRepair()}>

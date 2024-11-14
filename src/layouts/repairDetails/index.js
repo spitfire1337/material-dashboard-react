@@ -48,7 +48,6 @@ import MDBadge from "components/MDBadge";
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import Footer from "examples/Footer";
-import Loading from "components/loading";
 import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
@@ -58,7 +57,8 @@ import CircularProgress from "@mui/material/CircularProgress";
 import IconButton from "@mui/material/IconButton";
 import Icon from "@mui/material/Icon";
 import PartsAdd from "./components/addParts";
-
+import Loading from "../../components/Loading_Dialog";
+import AddPhotos from "./components/addPhoto";
 const iconsStyle = ({ palette: { dark, white, text }, functions: { rgba } }) => ({
   color: () => {
     let colorValue = dark.main;
@@ -94,7 +94,6 @@ const RepairDetails = ({ globalFunc }) => {
   const [RepairNotes, setRepairNotes] = useState();
   const [AllRepairNotes, setAllRepairNotes] = useState();
   const [allparts, setAllParts] = useState();
-  const [loadingOpen, setloadingOpen] = useState(false);
   const [newRepairPart, setnewRepairPart] = useState(false);
   const [dialogOpen, toggleDialogOpen] = useState(false);
   const [repairOrder, setRepairOrder] = useState();
@@ -104,8 +103,9 @@ const RepairDetails = ({ globalFunc }) => {
   const [partName, setPartName] = useState();
   const [newMinutes, setnewMinutes] = useState();
 
+  const { setShowLoad, LoadBox } = Loading();
   const getRepair = async () => {
-    setloadingOpen(true);
+    setShowLoad(true);
     const response = await fetch(`${vars.serverUrl}/repairs/repairDetails`, {
       method: "POST",
       headers: {
@@ -132,11 +132,11 @@ const RepairDetails = ({ globalFunc }) => {
       setAllRepairNotes(res.notes);
       setAllParts(res.parts);
     }
-    setloadingOpen(false);
+    setShowLoad(false);
   };
 
   const createInvoice = async () => {
-    setloadingOpen(true);
+    setShowLoad(true);
     const response = await fetch(`${vars.serverUrl}/repairs/getRepairOrder`, {
       method: "POST",
       headers: {
@@ -154,21 +154,11 @@ const RepairDetails = ({ globalFunc }) => {
       globalFunc.setErrorSBText("Server error occured");
       globalFunc.setErrorSB(true);
     }
-    setloadingOpen(false);
+    setShowLoad(false);
   };
 
-  const LoadDialog = () => {
-    return (
-      <Dialog open={loadingOpen || loading}>
-        <DialogTitle>Loading</DialogTitle>
-        <DialogContent>
-          <CircularProgress />
-        </DialogContent>
-      </Dialog>
-    );
-  };
   const saveNotes = async () => {
-    setloadingOpen(true);
+    setShowLoad(true);
     const response = await fetch(`${vars.serverUrl}/repairs/repairNotes`, {
       method: "POST",
       headers: {
@@ -192,7 +182,7 @@ const RepairDetails = ({ globalFunc }) => {
       globalFunc.setSuccessSBText("Notes saved");
       globalFunc.setSuccessSB(true);
     }
-    setloadingOpen(false);
+    setShowLoad(false);
   };
   const ConfirmActionDialog = ({ title, content, action, openState, closeState }) => {
     return (
@@ -255,7 +245,7 @@ const RepairDetails = ({ globalFunc }) => {
 
   const removeParts = async (id, status) => {
     toggleconfirmOpen({ removePart: false });
-    setloadingOpen(true);
+    setShowLoad(true);
     const response = await fetch(`${vars.serverUrl}/repairs/removeParts`, {
       method: "POST",
       headers: {
@@ -271,7 +261,7 @@ const RepairDetails = ({ globalFunc }) => {
       }),
     });
     const json = await response.json();
-    setloadingOpen(false);
+    setShowLoad(false);
     if (json.res == 200) {
       globalFunc.setSuccessSBText("Part removed from repair");
       globalFunc.setSuccessSB(true);
@@ -287,7 +277,7 @@ const RepairDetails = ({ globalFunc }) => {
 
   const saveTime = async (id, status) => {
     toggleconfirmOpen({ editTime: false });
-    setloadingOpen(true);
+    setShowLoad(true);
     const response = await fetch(`${vars.serverUrl}/repairs/removeParts`, {
       method: "POST",
       headers: {
@@ -301,7 +291,7 @@ const RepairDetails = ({ globalFunc }) => {
       }),
     });
     const json = await response.json();
-    setloadingOpen(false);
+    setShowLoad(false);
     if (json.res == 200) {
       globalFunc.setSuccessSBText("Repair time adjusted");
       globalFunc.setSuccessSB(true);
@@ -335,14 +325,20 @@ const RepairDetails = ({ globalFunc }) => {
     );
   };
   useEffect(() => {
+    setrepairID(repairID);
     getRepair();
-  }, [repairID]);
+  }, []);
 
+  const { showUploadFunc, AddPhotoModal, setRepairId } = AddPhotos({
+    getRepair,
+    globalFunc,
+  });
+  console.log("Details Render");
   if (loading) {
     return (
       <DashboardLayout>
         <DashboardNavbar globalFunc={globalFunc} />
-        <LoadDialog />
+        <LoadBox />
       </DashboardLayout>
     );
   }
@@ -781,6 +777,7 @@ const RepairDetails = ({ globalFunc }) => {
                       setRepairOrder={setRepairOrder}
                       setRepairOrderReady={setRepairOrderReady}
                       createInvoice={createInvoice}
+                      showUploadFunc={showUploadFunc}
                     />
                   </MDBox>
                 </Card>
@@ -810,7 +807,7 @@ const RepairDetails = ({ globalFunc }) => {
                     getRepair={getRepair}
                     repairID={repairDetails._id}
                     globalFunc={globalFunc}
-                    setloadingOpen={setloadingOpen}
+                    setShowLoad={setShowLoad}
                   />
                 </MDBox>
               </Card>
@@ -872,14 +869,15 @@ const RepairDetails = ({ globalFunc }) => {
         globalFunc={globalFunc}
         showPartsModal={newRepairPart}
         setshowPartsModal={setnewRepairPart}
-        toggleloadingOpen={setloadingOpen}
+        toggleloadingOpen={setShowLoad}
         createInvoice={createInvoice}
         dialogOpen={dialogOpen}
         toggleDialogOpen={toggleDialogOpen}
         repairID={repairID}
         getRepair={getRepair}
       />
-      <LoadDialog />
+      <LoadBox />
+      <AddPhotoModal />
       <ConfirmActionDialog
         title="Are you sure?"
         content="Do you wish to remove this item?"

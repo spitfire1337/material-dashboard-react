@@ -144,41 +144,6 @@ const Repairs = ({ globalFunc }) => {
     setRepairStep(0);
   };
 
-  // const FilterDialog = () => {
-  //   return (
-  //     <Dialog open={showFilter}>
-  //       <DialogTitle>Filter Repairs</DialogTitle>
-  //       <DialogContent>
-  //         <FormControl fullWidth>
-  //           <InputLabel id="demo-simple-select-label">Status</InputLabel>
-  //           <Select
-  //             labelId="demo-simple-select-label"
-  //             id="demo-simple-select"
-  //             value={filterVal}
-  //             label="Status"
-  //             onChange={(e) => {
-  //               setfilterVal(e.target.value);
-  //               setfilterKey("status");
-  //             }}
-  //           >
-  //             <MenuItem value={0}>Created</MenuItem>
-  //             <MenuItem value={1}>Not started</MenuItem>
-  //             <MenuItem value={2}>In Progress</MenuItem>
-  //             <MenuItem value={3}>Paused</MenuItem>
-  //             <MenuItem value={4}>Repair Complete</MenuItem>
-  //             <MenuItem value={5}>Invoice Created</MenuItem>
-  //             <MenuItem value={6}>Complete</MenuItem>
-  //           </Select>
-  //         </FormControl>
-  //       </DialogContent>
-  //       <DialogActions>
-  //         <MDButton onClick={() => setShowFiler(false)}>Cancel</MDButton>
-  //         <MDButton onClick={() => filter(filteKey, filterVal)}>Filter</MDButton>
-  //       </DialogActions>
-  //     </Dialog>
-  //   );
-  // };
-
   return (
     <DashboardLayout>
       <DashboardNavbar globalFunc={globalFunc} />

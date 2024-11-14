@@ -1,15 +1,23 @@
 import MDButton from "components/MDButton";
 import { Input, TextField, Dialog, DialogTitle, DialogContent, DialogActions } from "@mui/material";
 import { useState } from "react";
+import Loading from "components/Loading_Dialog";
 import vars from "../../../config";
 
-function AddPhoto({ setloadingOpen, getRepair, repairID, globalFunc, hide, openVar }) {
+function AddPhotos({ getRepair, globalFunc, open, close }) {
   const [file, setFile] = useState();
+  const [showUpload, setShowUpload] = useState(false);
+  const [repairID, setRepairId] = useState();
+  const [uploadData, setUploadData] = useState({
+    file: {},
+    description: "",
+  });
   const [description, setDescription] = useState("");
-
+  const { setShowLoad, LoadBox } = Loading();
   const submit = async (event) => {
     event.preventDefault();
-
+    setShowUpload(false);
+    setShowLoad(true);
     const formData = new FormData();
     formData.append("image", file);
     formData.append("description", description);
@@ -25,43 +33,62 @@ function AddPhoto({ setloadingOpen, getRepair, repairID, globalFunc, hide, openV
     if (!response.ok) {
       globalFunc.setErrorSBText("Server error occured");
       globalFunc.setErrorSB(true);
-      hide(false);
+      setShowLoad(false);
       return;
     }
     if (json.res == 200) {
       globalFunc.setSuccessSBText("Photo uploaded");
       globalFunc.setSuccessSB(true);
-      hide(false);
+      setShowLoad(false);
       getRepair();
     }
   };
+  const showUploadFunc = () => {
+    setShowUpload(true);
+  };
 
-  return (
-    <Dialog open={openVar}>
-      <form onSubmit={submit}>
-        <DialogTitle>Enter adjusted hours</DialogTitle>
-        <DialogContent>
-          <Input
-            label="Image"
-            type="file"
-            filename={file}
-            onChange={(e) => setFile(e.target.files[0])}
-            accept="image/*"
-          />
-          <br />
-          <TextField
-            label="Description"
-            onChange={(e) => setDescription(e.target.value)}
-            type="text"
-          ></TextField>
-        </DialogContent>
-        <DialogActions>
-          <MDButton onClick={() => hide(false)}>Cancel</MDButton>
-          <MDButton type="submit">Upload</MDButton>
-        </DialogActions>
-      </form>
-    </Dialog>
-  );
+  const setFileState = (e) => {
+    console.log(e);
+    setUploadData({ file: e.target.files[0] });
+    console.log(file);
+  };
+  const AddPhotoModal = () => {
+    console.log("Rerender");
+    return (
+      <>
+        <Dialog open={open}>
+          <form onSubmit={submit}>
+            <DialogTitle>Upload image</DialogTitle>
+            <DialogContent>
+              <Input
+                label="Image"
+                type="file"
+                filename={uploadData.file}
+                onChange={setFileState}
+                accept="image/*"
+              />
+              <br />
+              <TextField
+                fullWidth
+                value={uploadData.description}
+                onChange={(e) => setUploadData({ description: e.currentTarget.value })}
+              />
+            </DialogContent>
+            <DialogActions>
+              <MDButton onClick={() => setShowUpload(false)}>Cancel</MDButton>
+              <MDButton type="submit">Upload</MDButton>
+            </DialogActions>
+          </form>
+        </Dialog>
+        <LoadBox />
+      </>
+    );
+  };
+  return {
+    showUploadFunc: showUploadFunc,
+    AddPhotoModal: AddPhotoModal,
+    setRepairId: setRepairId,
+  };
 }
 
-export default AddPhoto;
+export default AddPhotos;

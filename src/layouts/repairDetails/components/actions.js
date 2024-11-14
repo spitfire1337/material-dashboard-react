@@ -23,8 +23,10 @@ import DialogContentText from "@mui/material/DialogContentText";
 import DialogActions from "@mui/material/DialogActions";
 import CircularProgress from "@mui/material/CircularProgress";
 
-import AddPhoto from "./addPhoto";
+import AddPhotos from "./addPhoto";
 import PartsAdd from "../components/addParts";
+import Loading from "../../../components/Loading_Dialog";
+
 const style = {
   position: "absolute",
   top: "50%",
@@ -70,11 +72,16 @@ function Actions({
   const [timeUsed, setLaborTime] = useState(repairTime.toFixed(2));
 
   const [newRepairPart, setnewRepairPart] = useState(false);
-  const [loadingOpen, toggleloadingOpen] = useState(false);
   const [dialogOpen, toggleDialogOpen] = useState(false);
   const [confirmOpen, toggleconfirmOpen] = useState({ cancelInvoice: false });
-  const [addPhotoDialog, toggleaddPhotoDialog] = useState(false);
+  const [showUpload, showUploadFunc] = useState(false);
+  const { setShowLoad, LoadBox } = Loading();
+  const { AddPhotoModal, setRepairId } = AddPhotos({
+    getRepair,
+    globalFunc,
+  });
 
+  console.log("actions render");
   const dialogHandleClose = () => {
     // setPartCost(0);
     // setPartQuantity(1);
@@ -127,7 +134,7 @@ function Actions({
   };
 
   const getParts = async () => {
-    toggleloadingOpen(true);
+    setShowLoad(true);
     const response = await fetch(`${vars.serverUrl}/repairs/getParts`, {
       method: "POST",
       headers: {
@@ -161,12 +168,12 @@ function Actions({
       });
       setPartDetail(false);
       setnewRepairPart(true);
-      toggleloadingOpen(false);
+      setShowLoad(false);
     }
   };
 
   const repairAction = async (status, Event, icon, color, globalFunc) => {
-    toggleloadingOpen(true);
+    setShowLoad(true);
     const response = await fetch(`${vars.serverUrl}/repairs/updateRepairStatus`, {
       method: "POST",
       headers: {
@@ -195,12 +202,12 @@ function Actions({
       globalFunc.setErrorSBText("Server error occured");
       globalFunc.setErrorSB(true);
     }
-    toggleloadingOpen(false);
+    setShowLoad(false);
     return null;
   };
 
   const addParts = async () => {
-    toggleloadingOpen(true);
+    setShowLoad(true);
     const response = await fetch(`${vars.serverUrl}/repairs/addParts`, {
       method: "POST",
       headers: {
@@ -221,7 +228,7 @@ function Actions({
       }),
     });
     const json = await response.json();
-    toggleloadingOpen(false);
+    setShowLoad(false);
     if (json.res == 200) {
       globalFunc.setSuccessSBText("Part added to repair");
       globalFunc.setSuccessSB(true);
@@ -239,7 +246,7 @@ function Actions({
   //const selectedValues = useMemo(() => parts.filter((v) => v.selected), [parts]);
 
   const doCreateInvoice = async () => {
-    toggleloadingOpen(true);
+    setShowLoad(true);
     let dueTaxes;
     if (Taxable) {
       dueTaxes = { taxes: [{ percentage: TaxRate.toString(), name: "FL Sales Tax" }] };
@@ -274,12 +281,12 @@ function Actions({
       globalFunc.setErrorSBText("Server error occured");
       globalFunc.setErrorSB(true);
     }
-    toggleloadingOpen(false);
+    setShowLoad(false);
   };
 
   const doCancelInvoice = async () => {
     toggleconfirmOpen({ cancelInvoice: false });
-    toggleloadingOpen(true);
+    setShowLoad(true);
     const response = await fetch(`${vars.serverUrl}/repairs/cancelInvoice`, {
       method: "POST",
       headers: {
@@ -300,11 +307,11 @@ function Actions({
       globalFunc.setErrorSB(true);
     }
     getRepair();
-    toggleloadingOpen(false);
+    setShowLoad(false);
   };
 
   const reprintPaperwork = async () => {
-    toggleloadingOpen(true);
+    setShowLoad(true);
     try {
       let postData = {
         id: repairID,
@@ -332,7 +339,7 @@ function Actions({
       globalFunc.setErrorSB(true);
       // TODO: Add error notification
     }
-    toggleloadingOpen(false);
+    setShowLoad(false);
   };
 
   const PhotoButton = () => {
@@ -342,56 +349,46 @@ function Actions({
           fullwidth
           color="warning"
           variant="contained"
-          onClick={() => toggleaddPhotoDialog(true)}
+          onClick={() => showUploadFunc(true)}
         >
           Add Photo
         </MDButton>
-        <AddPhoto
-          setloadingOpen={toggleloadingOpen}
+        <AddPhotoModal
+          open={showUpload}
+          close={showUploadFunc}
           getRepair={getRepair}
-          repairID={repairID}
           globalFunc={globalFunc}
-          hide={toggleaddPhotoDialog}
-          openVar={addPhotoDialog}
         />
       </Grid>
     );
   };
+  // useEffect(() => {
+  //   setRepairId(repairID);
+  // });
 
-  useEffect(() => {
-    if (status == 4) {
-      createInvoice();
-    }
-  }, [status]);
+  // useEffect(() => {
+  //   if (status == 4) {
+  //     createInvoice();
+  //   }
+  // }, [status]);
 
-  useEffect(() => {
-    let mySubtotal = parseFloat(0);
-    if (repairOrderReady && status == 4) {
-      repairOrder.lineItems.map((item) => {
-        let cost = item.basePriceMoney.amount * item.quantity;
-        mySubtotal = parseFloat(mySubtotal) + parseFloat(cost);
-      });
-      mySubtotal = parseFloat(mySubtotal / 100) + parseFloat(timeUsed * Labor);
-      setSubtotal(mySubtotal);
-      if (Taxable) {
-        setTax(mySubtotal * (TaxRate / 100));
-        setTotal(mySubtotal + mySubtotal * (TaxRate / 100));
-      } else {
-        setTotal(mySubtotal);
-      }
-    }
-  }, [repairOrderReady, timeUsed, Labor]);
-
-  const LoadDialog = () => {
-    return (
-      <Dialog open={loadingOpen}>
-        <DialogTitle>Loading</DialogTitle>
-        <DialogContent>
-          <CircularProgress />
-        </DialogContent>
-      </Dialog>
-    );
-  };
+  // useEffect(() => {
+  //   let mySubtotal = parseFloat(0);
+  //   if (repairOrderReady && status == 4) {
+  //     repairOrder.lineItems.map((item) => {
+  //       let cost = item.basePriceMoney.amount * item.quantity;
+  //       mySubtotal = parseFloat(mySubtotal) + parseFloat(cost);
+  //     });
+  //     mySubtotal = parseFloat(mySubtotal / 100) + parseFloat(timeUsed * Labor);
+  //     setSubtotal(mySubtotal);
+  //     if (Taxable) {
+  //       setTax(mySubtotal * (TaxRate / 100));
+  //       setTotal(mySubtotal + mySubtotal * (TaxRate / 100));
+  //     } else {
+  //       setTotal(mySubtotal);
+  //     }
+  //   }
+  // }, [repairOrderReady, timeUsed, Labor]);
 
   const ConfirmActionDialog = ({ title, content, action, openState, closeState }) => {
     return (
@@ -612,7 +609,7 @@ function Actions({
           <ReprintButton />
           <PhotoButton />
         </Grid>
-        <LoadDialog />
+        <LoadBox />
       </>
     );
   }
@@ -666,7 +663,7 @@ function Actions({
           globalFunc={globalFunc}
           showPartsModal={newRepairPart}
           setshowPartsModal={setnewRepairPart}
-          toggleloadingOpen={toggleloadingOpen}
+          setShowLoad={setShowLoad}
           createInvoice={createInvoice}
           dialogOpen={dialogOpen}
           toggleDialogOpen={toggleDialogOpen}
@@ -674,7 +671,7 @@ function Actions({
           getRepair={getRepair}
           status={status}
         />
-        <LoadDialog />
+        <LoadBox />
       </>
     );
   }
@@ -723,7 +720,7 @@ function Actions({
           <ReprintButton />
           <PhotoButton />
         </Grid>
-        <toggleloadingOpen />
+        <setShowLoad />
       </>
     );
   }
@@ -762,7 +759,7 @@ function Actions({
           <ReprintButton />
           <PhotoButton />
         </Grid>
-        <LoadDialog />
+        <LoadBox />
         {repairOrderReady ? (
           <Modal
             open={showInvoice}
@@ -942,7 +939,7 @@ function Actions({
           globalFunc={globalFunc}
           showPartsModal={newRepairPart}
           setshowPartsModal={setnewRepairPart}
-          toggleloadingOpen={toggleloadingOpen}
+          setShowLoad={setShowLoad}
           createInvoice={createInvoice}
           dialogOpen={dialogOpen}
           toggleDialogOpen={toggleDialogOpen}
@@ -970,7 +967,7 @@ function Actions({
           </Grid>
           <ReprintButton />
         </Grid>
-        <LoadDialog />
+        <LoadBox />
         <ConfirmActionDialog
           title="Are you sure?"
           content="Do you wish to cancel this invoice?"
