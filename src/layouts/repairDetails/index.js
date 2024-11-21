@@ -59,6 +59,7 @@ import Icon from "@mui/material/Icon";
 import PartsAdd from "./components/addParts";
 import Loading from "../../components/Loading_Dialog";
 import AddPhotos from "./components/addPhoto";
+import Notification from "components/Notifications";
 const iconsStyle = ({ palette: { dark, white, text }, functions: { rgba } }) => ({
   color: () => {
     let colorValue = dark.main;
@@ -102,7 +103,7 @@ const RepairDetails = ({ globalFunc }) => {
   const [partId, setPartid] = useState();
   const [partName, setPartName] = useState();
   const [newMinutes, setnewMinutes] = useState();
-
+  const { showSnackBar, RenderSnackbar } = Notification();
   const { setShowLoad, LoadBox } = Loading();
   const getRepair = async () => {
     setShowLoad(true);
@@ -118,11 +119,9 @@ const RepairDetails = ({ globalFunc }) => {
     const res = await response.json();
     if (res.res === 401) {
       globalFunc.setLoggedIn(false);
-      globalFunc.setErrorSBText("Unauthorized, redirecting to login");
-      globalFunc.setErrorSB(true);
+      showSnackBar("error", "Unauthorized, redirecting to login");
     } else if (res.res === 500) {
-      globalFunc.setErrorSBText("Server error occured");
-      globalFunc.setErrorSB(true);
+      showSnackBar("error", "Server error occured");
     } else {
       setLoading(false);
       setnewMinutes(Math.round(res.data.repairTime * 60));
@@ -151,8 +150,7 @@ const RepairDetails = ({ globalFunc }) => {
       setRepairOrder(json.data[0]);
       setRepairOrderReady(true);
     } else {
-      globalFunc.setErrorSBText("Server error occured");
-      globalFunc.setErrorSB(true);
+      showSnackBar("error", "Server error occured");
     }
     setShowLoad(false);
   };
@@ -171,16 +169,13 @@ const RepairDetails = ({ globalFunc }) => {
     const res = await response.json();
     if (res.res === 401) {
       globalFunc.setLoggedIn(false);
-      globalFunc.setErrorSBText("Unauthorized, redirecting to login");
-      globalFunc.setErrorSB(true);
+      showSnackBar("error", "Unauthorized, redirecting to login");
     } else if (res.res === 500) {
-      globalFunc.setErrorSBText("Server error occured");
-      globalFunc.setErrorSB(true);
+      showSnackBar("error", "Server error occured");
     } else {
       setnewRepairNotes(false);
       getRepair();
-      globalFunc.setSuccessSBText("Notes saved");
-      globalFunc.setSuccessSB(true);
+      showSnackBar("success", "Notes saved");
     }
     setShowLoad(false);
   };
@@ -263,15 +258,13 @@ const RepairDetails = ({ globalFunc }) => {
     const json = await response.json();
     setShowLoad(false);
     if (json.res == 200) {
-      globalFunc.setSuccessSBText("Part removed from repair");
-      globalFunc.setSuccessSB(true);
+      showSnackBar("success", "Part removed from repair");
       getRepair();
       if (status == 4) {
         createInvoice();
       }
     } else {
-      globalFunc.setErrorSBText("Server error occured");
-      globalFunc.setErrorSB(true);
+      showSnackBar("error", "Server error occured");
     }
   };
 
@@ -293,12 +286,10 @@ const RepairDetails = ({ globalFunc }) => {
     const json = await response.json();
     setShowLoad(false);
     if (json.res == 200) {
-      globalFunc.setSuccessSBText("Repair time adjusted");
-      globalFunc.setSuccessSB(true);
+      showSnackBar("success", "Repair time adjusted");
       getRepair();
     } else {
-      globalFunc.setErrorSBText("Server error occured");
-      globalFunc.setErrorSB(true);
+      showSnackBar("error", "Server error occured");
     }
   };
 
@@ -324,15 +315,17 @@ const RepairDetails = ({ globalFunc }) => {
       </Dialog>
     );
   };
-  useEffect(() => {
-    setrepairID(repairID);
-    getRepair();
-  }, []);
-
   const { showUploadFunc, AddPhotoModal, setRepairId } = AddPhotos({
     getRepair,
     globalFunc,
   });
+
+  useEffect(() => {
+    setrepairID(repairID);
+    setRepairId(repairID);
+    getRepair();
+  }, []);
+
   console.log("Details Render");
   if (loading) {
     return (
@@ -646,6 +639,7 @@ const RepairDetails = ({ globalFunc }) => {
                   </MDBox>
                 </Card>
               </Grid>
+              {/* Repair pictures */}
               <Grid item xs={12}>
                 <Card>
                   <MDBox
@@ -663,6 +657,16 @@ const RepairDetails = ({ globalFunc }) => {
                         <MDTypography variant="h6" color="white">
                           Images
                         </MDTypography>
+                      </Grid>
+                      <Grid item xs={6} alignItems="center" textAlign="right">
+                        <MDButton
+                          size="small"
+                          color="warning"
+                          variant="contained"
+                          onClick={() => showUploadFunc()}
+                        >
+                          Add Photo
+                        </MDButton>
                       </Grid>
                     </Grid>
                   </MDBox>
@@ -877,7 +881,7 @@ const RepairDetails = ({ globalFunc }) => {
         getRepair={getRepair}
       />
       <LoadBox />
-      <AddPhotoModal />
+      <AddPhotoModal repairID={repairID} getRepair={getRepair} globalFunc={globalFunc} />
       <ConfirmActionDialog
         title="Are you sure?"
         content="Do you wish to remove this item?"
@@ -885,6 +889,7 @@ const RepairDetails = ({ globalFunc }) => {
         openState={confirmOpen.removePart}
         closeState={() => toggleconfirmOpen({ removePart: false })}
       />
+      <RenderSnackbar />
       <Footer />
     </DashboardLayout>
   );

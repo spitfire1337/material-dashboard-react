@@ -21,9 +21,8 @@ import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
 import DialogActions from "@mui/material/DialogActions";
-import CircularProgress from "@mui/material/CircularProgress";
+import Notification from "components/Notifications";
 
-import AddPhotos from "./addPhoto";
 import PartsAdd from "../components/addParts";
 import Loading from "../../../components/Loading_Dialog";
 
@@ -73,13 +72,14 @@ function Actions({
 
   const [newRepairPart, setnewRepairPart] = useState(false);
   const [dialogOpen, toggleDialogOpen] = useState(false);
+  const [printDialogOpen, toggleprintDialogOpen] = useState(false);
+  const [documents, setDocuments] = useState([]);
+
   const [confirmOpen, toggleconfirmOpen] = useState({ cancelInvoice: false });
   const [showUpload, showUploadFunc] = useState(false);
   const { setShowLoad, LoadBox } = Loading();
-  const { AddPhotoModal, setRepairId } = AddPhotos({
-    getRepair,
-    globalFunc,
-  });
+
+  const { showSnackBar, RenderSnackbar } = Notification();
 
   console.log("actions render");
   const dialogHandleClose = () => {
@@ -172,7 +172,27 @@ function Actions({
     }
   };
 
-  const repairAction = async (status, Event, icon, color, globalFunc) => {
+  const getDocuments = async () => {
+    const response = await fetch(`${vars.serverUrl}/repairs/documents`, {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ repairID: repairID }),
+    });
+    const json = await response.json();
+    if (json.res == 200) {
+      console.log("Docs:", json.data);
+      setDocuments(json.data);
+      toggleprintDialogOpen(true);
+    } else {
+      setDocuments([]);
+    }
+  };
+
+  const repairAction = async (status, Event, icon, color) => {
     setShowLoad(true);
     const response = await fetch(`${vars.serverUrl}/repairs/updateRepairStatus`, {
       method: "POST",
@@ -195,12 +215,10 @@ function Actions({
     });
     const json = await response.json();
     if (json.res == 200) {
-      globalFunc.setSuccessSBText("Repair updated");
-      globalFunc.setSuccessSB(true);
+      showSnackBar("success", "Repair Updated");
       getRepair();
     } else {
-      globalFunc.setErrorSBText("Server error occured");
-      globalFunc.setErrorSB(true);
+      showSnackBar("error", "Server error occured");
     }
     setShowLoad(false);
     return null;
@@ -230,16 +248,14 @@ function Actions({
     const json = await response.json();
     setShowLoad(false);
     if (json.res == 200) {
-      globalFunc.setSuccessSBText("Part added to repair");
-      globalFunc.setSuccessSB(true);
+      showSnackBar("success", "Part added to repair");
       getRepair();
       if (status == 4) {
         createInvoice();
       }
       setnewRepairPart(false);
     } else {
-      globalFunc.setErrorSBText("Server error occured");
-      globalFunc.setErrorSB(true);
+      showSnackBar("error", "Server error occured");
     }
   };
 
@@ -273,13 +289,11 @@ function Actions({
     });
     const json = await response.json();
     if (json.res == 200) {
-      globalFunc.setSuccessSBText("Invoice created");
-      globalFunc.setSuccessSB(true);
+      showSnackBar("success", "Invoice created");
       setShowInvoice(false);
       getRepair();
     } else {
-      globalFunc.setErrorSBText("Server error occured");
-      globalFunc.setErrorSB(true);
+      showSnackBar("error", "Server error occured");
     }
     setShowLoad(false);
   };
@@ -300,22 +314,29 @@ function Actions({
     });
     const json = await response.json();
     if (json.res == 200) {
-      globalFunc.setSuccessSBText("Invoice canceled");
-      globalFunc.setSuccessSB(true);
+      showSnackBar("success", "Invoice Cancelled");
     } else {
-      globalFunc.setErrorSBText("Server error occured");
-      globalFunc.setErrorSB(true);
+      showSnackBar("error", "Server error occured");
     }
     getRepair();
     setShowLoad(false);
   };
 
-  const reprintPaperwork = async () => {
+  const reprintPaperwork = async (docid = null) => {
+    toggleprintDialogOpen(false);
     setShowLoad(true);
     try {
-      let postData = {
-        id: repairID,
-      };
+      let postData;
+      if (docid == null) {
+        postData = {
+          id: repairID,
+        };
+      } else {
+        postData = {
+          id: repairID,
+          fileId: [docid],
+        };
+      }
       const response = await fetch(`${vars.serverUrl}/repairs/printDropOff`, {
         method: "POST",
         headers: {
@@ -327,16 +348,13 @@ function Actions({
       });
       const json = await response.json();
       if (json.res == 200) {
-        globalFunc.setSuccessSBText("Sent to printer");
-        globalFunc.setSuccessSB(true);
+        showSnackBar("success", "Sent to printer");
       } else {
-        globalFunc.setErrorSBText("Error occurred saving repair progress.");
-        globalFunc.setErrorSB(true);
+        showSnackBar("error", "Error occured during printing");
       }
     } catch (e) {
       console.error(e);
-      globalFunc.setErrorSBText("Error occurred saving repair progress.");
-      globalFunc.setErrorSB(true);
+      showSnackBar("error", "Error occured during printing");
       // TODO: Add error notification
     }
     setShowLoad(false);
@@ -353,42 +371,9 @@ function Actions({
         >
           Add Photo
         </MDButton>
-        <AddPhotoModal
-          open={showUpload}
-          close={showUploadFunc}
-          getRepair={getRepair}
-          globalFunc={globalFunc}
-        />
       </Grid>
     );
   };
-  // useEffect(() => {
-  //   setRepairId(repairID);
-  // });
-
-  // useEffect(() => {
-  //   if (status == 4) {
-  //     createInvoice();
-  //   }
-  // }, [status]);
-
-  // useEffect(() => {
-  //   let mySubtotal = parseFloat(0);
-  //   if (repairOrderReady && status == 4) {
-  //     repairOrder.lineItems.map((item) => {
-  //       let cost = item.basePriceMoney.amount * item.quantity;
-  //       mySubtotal = parseFloat(mySubtotal) + parseFloat(cost);
-  //     });
-  //     mySubtotal = parseFloat(mySubtotal / 100) + parseFloat(timeUsed * Labor);
-  //     setSubtotal(mySubtotal);
-  //     if (Taxable) {
-  //       setTax(mySubtotal * (TaxRate / 100));
-  //       setTotal(mySubtotal + mySubtotal * (TaxRate / 100));
-  //     } else {
-  //       setTotal(mySubtotal);
-  //     }
-  //   }
-  // }, [repairOrderReady, timeUsed, Labor]);
 
   const ConfirmActionDialog = ({ title, content, action, openState, closeState }) => {
     return (
@@ -405,6 +390,42 @@ function Actions({
     );
   };
 
+  useEffect(() => {
+    //getDocuments();
+  }, []);
+  const PrintDocsDialog = () => {
+    return (
+      <Dialog open={printDialogOpen}>
+        <DialogTitle>Reprint Paperwork</DialogTitle>
+        <DialogContent>
+          {documents.map((doc) => {
+            return (
+              // eslint-disable-next-line react/jsx-key
+              <>
+                <MDButton
+                  mt={1}
+                  fullWidth
+                  color="success"
+                  onClick={() => reprintPaperwork(doc._id)}
+                >
+                  {doc.name}
+                </MDButton>
+                <br /> <br />
+              </>
+            );
+          })}
+          <MDButton color="success" fullWidth onClick={() => reprintPaperwork()}>
+            Reprint All
+          </MDButton>
+        </DialogContent>
+        <DialogActions>
+          <MDButton color="error" fullWidth onClick={() => toggleprintDialogOpen(false)}>
+            Close
+          </MDButton>
+        </DialogActions>
+      </Dialog>
+    );
+  };
   const PartsModal = () => {
     return (
       <>
@@ -582,9 +603,10 @@ function Actions({
   const ReprintButton = () => {
     return (
       <Grid item xs={12} md={6}>
-        <MDButton fullwidth color="dark" variant="contained" onClick={() => reprintPaperwork()}>
+        <MDButton fullwidth color="dark" variant="contained" onClick={() => getDocuments()}>
           Reprint paperwork
         </MDButton>
+        <PrintDocsDialog />
       </Grid>
     );
   };
@@ -607,9 +629,9 @@ function Actions({
             </MDButton>
           </Grid>
           <ReprintButton />
-          <PhotoButton />
         </Grid>
         <LoadBox />
+        <RenderSnackbar />
       </>
     );
   }
@@ -657,7 +679,6 @@ function Actions({
             </MDButton>
           </Grid>
           <ReprintButton />
-          <PhotoButton />
         </Grid>
         <PartsAdd
           globalFunc={globalFunc}
@@ -672,6 +693,7 @@ function Actions({
           status={status}
         />
         <LoadBox />
+        <RenderSnackbar />
       </>
     );
   }
@@ -718,9 +740,9 @@ function Actions({
             </MDButton>
           </Grid>
           <ReprintButton />
-          <PhotoButton />
         </Grid>
         <setShowLoad />
+        <RenderSnackbar />
       </>
     );
   }
@@ -757,7 +779,6 @@ function Actions({
             </MDButton>
           </Grid>
           <ReprintButton />
-          <PhotoButton />
         </Grid>
         <LoadBox />
         {repairOrderReady ? (
@@ -936,7 +957,6 @@ function Actions({
           </Modal>
         ) : null}
         <PartsAdd
-          globalFunc={globalFunc}
           showPartsModal={newRepairPart}
           setshowPartsModal={setnewRepairPart}
           setShowLoad={setShowLoad}
@@ -947,6 +967,7 @@ function Actions({
           getRepair={getRepair}
           status={status}
         />
+        <RenderSnackbar />
       </>
     );
   }
@@ -975,6 +996,18 @@ function Actions({
           openState={confirmOpen.cancelInvoice}
           closeState={() => toggleconfirmOpen({ cancelInvoice: false })}
         />
+        <RenderSnackbar />
+      </>
+    );
+  }
+  if (status == 6) {
+    return (
+      <>
+        <Grid container spacing={1} mb={3}>
+          <ReprintButton />
+        </Grid>
+        <setShowLoad />
+        <RenderSnackbar />
       </>
     );
   }
