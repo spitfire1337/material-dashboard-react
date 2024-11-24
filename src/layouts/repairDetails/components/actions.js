@@ -2,7 +2,7 @@ import MDButton from "components/MDButton";
 import MDBox from "components/MDBox";
 import { Grid } from "@mui/material";
 import vars from "../../../config";
-import { useState, React, useEffect, useMemo } from "react";
+import { useState, React, useEffect, useMemo, useDebugValue } from "react";
 import MDTypography from "components/MDTypography";
 import {
   Modal,
@@ -80,7 +80,24 @@ function Actions({
   const { setShowLoad, LoadBox } = Loading();
 
   const { showSnackBar, RenderSnackbar } = Notification();
-
+  useEffect(() => {
+    if (repairOrderReady == true) {
+      let mySubTotal = timeUsed * Labor;
+      repairOrder.lineItems.map((item) => {
+        mySubTotal = mySubTotal + item.basePriceMoney.amount / 100;
+      });
+      setSubtotal(mySubTotal);
+      let mytax = 0;
+      if (Taxable) {
+        mytax = subTotal * (TaxRate / 100);
+        setTax(mytax);
+      } else {
+        mytax = 0;
+        setTax(0);
+      }
+      setTotal(mySubTotal + mytax);
+    }
+  }, [repairOrderReady, Labor, Taxable, TaxRate, timeUsed]);
   console.log("actions render");
   const dialogHandleClose = () => {
     // setPartCost(0);
@@ -684,7 +701,7 @@ function Actions({
           globalFunc={globalFunc}
           showPartsModal={newRepairPart}
           setshowPartsModal={setnewRepairPart}
-          setShowLoad={setShowLoad}
+          toggleloadingOpen={setShowLoad}
           createInvoice={createInvoice}
           dialogOpen={dialogOpen}
           toggleDialogOpen={toggleDialogOpen}
@@ -959,7 +976,7 @@ function Actions({
         <PartsAdd
           showPartsModal={newRepairPart}
           setshowPartsModal={setnewRepairPart}
-          setShowLoad={setShowLoad}
+          toggleloadingOpen={setShowLoad}
           createInvoice={createInvoice}
           dialogOpen={dialogOpen}
           toggleDialogOpen={toggleDialogOpen}

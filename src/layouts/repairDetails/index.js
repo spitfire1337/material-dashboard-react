@@ -130,6 +130,7 @@ const RepairDetails = ({ globalFunc }) => {
       setrepairImages(res.images);
       setAllRepairNotes(res.notes);
       setAllParts(res.parts);
+      //setRepairOrderReady(true);
     }
     setShowLoad(false);
   };
@@ -324,6 +325,7 @@ const RepairDetails = ({ globalFunc }) => {
     setrepairID(repairID);
     setRepairId(repairID);
     getRepair();
+    createInvoice();
   }, []);
 
   console.log("Details Render");
@@ -812,6 +814,7 @@ const RepairDetails = ({ globalFunc }) => {
                     repairID={repairDetails._id}
                     globalFunc={globalFunc}
                     setShowLoad={setShowLoad}
+                    setloadingOpen={setShowLoad}
                   />
                 </MDBox>
               </Card>
