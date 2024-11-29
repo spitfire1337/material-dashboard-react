@@ -39,6 +39,7 @@ Coded by www.creative-tim.com
 import Dashboard from "layouts/dashboard";
 import Tables from "layouts/tables";
 import Repairs from "layouts/repairs";
+import Customers from "layouts/customers";
 import RepairDetails from "layouts/repairDetails";
 import Billing from "layouts/billing";
 import RTL from "layouts/rtl";
@@ -70,11 +71,11 @@ const routes = (globalFunc) => {
     },
     {
       type: "collapse",
-      name: "Notifications",
-      key: "notifications",
-      icon: <Icon fontSize="small">notifications</Icon>,
-      route: "/notifications",
-      component: <Notifications />,
+      name: "Customers",
+      key: "customers",
+      icon: <Icon fontSize="small">group</Icon>,
+      route: "/Customers",
+      component: <Customers />,
     },
     {
       name: "Repairs",
