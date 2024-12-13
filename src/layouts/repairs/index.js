@@ -189,11 +189,12 @@ const Repairs = ({ globalFunc }) => {
               </MDBox>
               <MDBox pt={3}>
                 <DataTable
+                  entriesPerPage={15}
                   table={{ columns, rows }}
                   isSorted={true}
-                  entriesPerPage={false}
                   showTotalEntries={true}
                   noEndBorder
+                  pagination
                 />
               </MDBox>
             </Card>
