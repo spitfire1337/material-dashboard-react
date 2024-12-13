@@ -29,6 +29,7 @@ export default function data(globalFunc, contIntake, filters) {
   let redirect = useNavigate();
   const [repairsOrig, setrepairsOrig] = useState([]);
   const [repairs, setRepairs] = useState([]);
+  const [searchTerm, setsearchTerm] = useState(null);
   const [myFilters, setmyFilters] = useState({
     status: [0, 1, 2, 3, 4, 5],
     RepairType: ["Tire Change", "Tube Change", "Power issue", "Mechanical Repair", "Other"],
@@ -90,6 +91,50 @@ export default function data(globalFunc, contIntake, filters) {
   }, [myFilters, repairsOrig]);
   const filter = (filter) => {
     setmyFilters(filter);
+  };
+
+  useEffect(() => {
+    doSearch();
+  }, [searchTerm, repairsOrig]);
+
+  const doSearch = () => {
+    let filterData = [...repairs];
+    let filtered = filterData.filter((item) => {
+      if (searchTerm == "" || searchTerm == null) {
+        return true;
+      }
+      // eslint-disable-next-line prettier/prettier
+      if (
+        item.repairID.toString().toLowerCase().includes(searchTerm.toLowerCase())
+      )
+        return true;
+      if (
+        item.Customer.given_name != undefined &&
+        item.Customer.given_name.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+        return true;
+      if (
+        item.Customer.family_name != undefined &&
+        item.Customer.family_name.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+        return true;
+      if (
+        item.Customer.email_address != undefined &&
+        item.Customer.email_address.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+        return true;
+      if (
+        item.Customer.phone_number != undefined &&
+        item.Customer.phone_number.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+        return true;
+      if (item.pev.Brand.name.toLowerCase().includes(searchTerm.toLowerCase())) return true;
+      if (item.pev.Model.toLowerCase().includes(searchTerm.toLowerCase())) return true;
+      if (item.receivedby.toLowerCase().includes(searchTerm.toLowerCase())) return true;
+
+      return false;
+    });
+    setRepairs(filtered);
   };
 
   const resetFilter = () => {
@@ -351,7 +396,10 @@ export default function data(globalFunc, contIntake, filters) {
     resetFilter: resetFilter,
     filter: filter,
     reRender: reRender,
+    setsearchTerm: setsearchTerm,
+    searchTerm: searchTerm,
     columns: [
+      { Header: "repair id", accessor: "id", align: "left" },
       { Header: "customer", accessor: "customer", width: "25%", align: "left" },
       { Header: "pev", accessor: "pev", align: "left" },
       { Header: "status", accessor: "status", align: "center" },
@@ -369,6 +417,7 @@ export default function data(globalFunc, contIntake, filters) {
       repairs.length > 0
         ? repairs.map((repair) => {
             return {
+              id: repair.repairID,
               customer: (
                 <Customer
                   id={repair._id}

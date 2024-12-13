@@ -41,6 +41,7 @@ import Tables from "layouts/tables";
 import Repairs from "layouts/repairs";
 import Customers from "layouts/customers";
 import RepairDetails from "layouts/repairDetails";
+import CustomerDetails from "layouts/customerDetails";
 import Billing from "layouts/billing";
 import RTL from "layouts/rtl";
 import Notifications from "layouts/notifications";
@@ -82,6 +83,12 @@ const routes = (globalFunc) => {
       key: "repairs2",
       route: "/repairs/:id",
       component: <RepairDetails globalFunc={globalFunc} />,
+    },
+    {
+      name: "Customers",
+      key: "customers2",
+      route: "/customer/:id",
+      component: <CustomerDetails globalFunc={globalFunc} />,
     } /*
       {
     type: "collapse",

@@ -29,8 +29,10 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  TextField,
 } from "@mui/material";
 
+import { makeStyles } from "@mui/styles";
 import { Modal, Select, IconButton, Icon } from "@mui/material";
 // Material Dashboard 2 React components
 import MDBox from "components/MDBox";
@@ -63,6 +65,12 @@ const style = {
   p: 4,
   borderRadius: "25px",
 };
+
+const useStyles = makeStyles((theme) => ({
+  input: {
+    background: "rgb(232, 241, 250)",
+  },
+}));
 const iconsStyle = ({ palette: { dark, white, text }, functions: { rgba } }) => ({
   color: () => {
     let colorValue = dark.main;
@@ -76,6 +84,7 @@ const iconsStyle = ({ palette: { dark, white, text }, functions: { rgba } }) => 
 });
 // eslint-disable-next-line react/prop-types
 const Customers = ({ globalFunc }) => {
+  const classes = useStyles();
   const { columns: pColumns, rows: pRows } = projectsTableData();
   const [newRepair, setNewRepair] = useState(false);
   const [repairData, setRepairData] = useState({});
@@ -109,7 +118,7 @@ const Customers = ({ globalFunc }) => {
     setRepairStep(3);
   };
 
-  const { columns, rows, reRender, filter, resetFilter, repairs } = authorsTableData(
+  const { columns, rows, reRender, filter, resetFilter, repairs, myFilters } = authorsTableData(
     globalFunc,
     contIntake
   );
@@ -157,35 +166,23 @@ const Customers = ({ globalFunc }) => {
                 coloredShadow="info"
               >
                 <Grid container>
-                  <Grid item xs={6} alignItems="center">
-                    <MDButton
-                      variant="contained"
-                      color="success"
-                      onClick={() => {
-                        showNewRepair();
+                  <Grid item xs={12} md={4} alignItems="center" textAlign="right">
+                    <TextField
+                      label="Search"
+                      InputProps={{ className: classes.input }}
+                      fullWidth
+                      value={myFilters}
+                      onChange={(e) => {
+                        filter(e.target.value);
                       }}
-                    >
-                      New Repair
-                    </MDButton>
+                    />
                   </Grid>
-                  <Grid item xs={6} alignItems="center" textAlign="right">
-                    <IconButton
-                      size="large"
-                      disableRipple
-                      color="red"
-                      onClick={() => {
-                        setShowFiler(true);
-                      }}
-                    >
-                      <Icon sx={iconsStyle}>filter_list</Icon>
-                    </IconButton>
-                  </Grid>
+                  <Grid item md={8} alignItems="center"></Grid>
                 </Grid>
               </MDBox>
               <MDBox pt={3}>
                 <DataTable
                   table={{ columns, rows }}
-                  isSorted={true}
                   entriesPerPage={false}
                   showTotalEntries={true}
                   noEndBorder

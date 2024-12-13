@@ -29,7 +29,7 @@ export default function data(globalFunc, contIntake, filters) {
   let redirect = useNavigate();
   const [repairsOrig, setrepairsOrig] = useState([]);
   const [repairs, setRepairs] = useState([]);
-  const [myFilters, setmyFilters] = useState({});
+  const [myFilters, setmyFilters] = useState(null);
   const defaultFilter = {
     status: [0, 1, 2, 3, 4, 5],
   };
@@ -67,18 +67,30 @@ export default function data(globalFunc, contIntake, filters) {
     console.log("Requested filter: ", filter);
     let filterData = [...repairsOrig];
     let filtered = filterData.filter((item) => {
-      for (var key in myFilters) {
-        console.log("Filter options:", myFilters[key]);
-        console.log("Item value", item[key].constructor.name == "Array" ? item[key][0] : item[key]);
-        console.log(myFilters[key].indexOf(item[key]));
-        if (
-          item[key] === undefined ||
-          myFilters[key].indexOf(item[key].constructor.name == "Array" ? item[key][0] : item[key]) <
-            0
-        )
-          return false;
+      if (myFilters == "" || myFilters == null) {
+        return true;
       }
-      return true;
+      if (
+        item.given_name != undefined &&
+        item.given_name.toLowerCase().includes(myFilters.toLowerCase())
+      )
+        return true;
+      if (
+        item.family_name != undefined &&
+        item.family_name.toLowerCase().includes(myFilters.toLowerCase())
+      )
+        return true;
+      if (
+        item.email_address != undefined &&
+        item.email_address.toLowerCase().includes(myFilters.toLowerCase())
+      )
+        return true;
+      if (
+        item.phone_number != undefined &&
+        item.phone_number.toLowerCase().includes(myFilters.toLowerCase())
+      )
+        return true;
+      return false;
     });
     setRepairs(filtered);
   };
@@ -131,6 +143,7 @@ export default function data(globalFunc, contIntake, filters) {
     repairs: repairsOrig,
     resetFilter: resetFilter,
     filter: filter,
+    filtered: myFilters,
     reRender: reRender,
     columns: [
       { Header: "customer", accessor: "customer", width: "25%", align: "left" },

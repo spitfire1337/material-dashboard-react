@@ -29,8 +29,9 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  TextField,
 } from "@mui/material";
-
+import { makeStyles } from "@mui/styles";
 import { Modal, Select, IconButton, Icon } from "@mui/material";
 // Material Dashboard 2 React components
 import MDBox from "components/MDBox";
@@ -68,6 +69,13 @@ const style = {
   p: 4,
   borderRadius: "25px",
 };
+
+const useStyles = makeStyles((theme) => ({
+  input: {
+    background: "rgb(232, 241, 250)",
+  },
+}));
+
 const iconsStyle = ({ palette: { dark, white, text }, functions: { rgba } }) => ({
   color: () => {
     let colorValue = dark.main;
@@ -81,6 +89,7 @@ const iconsStyle = ({ palette: { dark, white, text }, functions: { rgba } }) => 
 });
 // eslint-disable-next-line react/prop-types
 const Repairs = ({ globalFunc }) => {
+  const classes = useStyles();
   const { columns: pColumns, rows: pRows } = projectsTableData();
   const [newRepair, setNewRepair] = useState(false);
   const [repairData, setRepairData] = useState({});
@@ -114,10 +123,8 @@ const Repairs = ({ globalFunc }) => {
     setRepairStep(3);
   };
 
-  const { columns, rows, reRender, filter, resetFilter, repairs } = authorsTableData(
-    globalFunc,
-    contIntake
-  );
+  const { columns, rows, reRender, filter, resetFilter, repairs, setsearchTerm, searchterm } =
+    authorsTableData(globalFunc, contIntake);
 
   const nextRepairStep = async (val, customer = null) => {
     if (val == 2) {
@@ -162,7 +169,7 @@ const Repairs = ({ globalFunc }) => {
                 coloredShadow="info"
               >
                 <Grid container>
-                  <Grid item xs={6} alignItems="center">
+                  <Grid item xs={12} md={4} alignItems="center">
                     <MDButton
                       variant="contained"
                       color="success"
@@ -173,7 +180,18 @@ const Repairs = ({ globalFunc }) => {
                       New Repair
                     </MDButton>
                   </Grid>
-                  <Grid item xs={6} alignItems="center" textAlign="right">
+                  <Grid item xs={11} md={7}>
+                    <TextField
+                      label="Search"
+                      InputProps={{ className: classes.input }}
+                      fullWidth
+                      value={searchterm}
+                      onChange={(e) => {
+                        setsearchTerm(e.target.value);
+                      }}
+                    />
+                  </Grid>
+                  <Grid item xs={1} alignItems="center" textAlign="right">
                     <IconButton
                       size="large"
                       disableRipple
@@ -189,9 +207,8 @@ const Repairs = ({ globalFunc }) => {
               </MDBox>
               <MDBox pt={3}>
                 <DataTable
-                  entriesPerPage={15}
+                  entriesPerPage={10}
                   table={{ columns, rows }}
-                  isSorted={true}
                   showTotalEntries={true}
                   noEndBorder
                   pagination
