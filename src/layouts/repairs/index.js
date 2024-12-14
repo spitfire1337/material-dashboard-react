@@ -189,7 +189,7 @@ const Repairs = ({ globalFunc }) => {
               </MDBox>
               <MDBox pt={3}>
                 <DataTable
-                  entriesPerPage={15}
+                  entriesPerPage={10}
                   table={{ columns, rows }}
                   isSorted={true}
                   showTotalEntries={true}
