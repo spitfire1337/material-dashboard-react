@@ -40,6 +40,8 @@ import OrdersOverview from "layouts/dashboard/components/OrdersOverview";
 // eslint-disable-next-line react/prop-types
 function Dashboard({ globalFunc }) {
   const [mysales, setSales] = useState({ lastweek: 0, thisweek: 0 });
+  const [myRepairs, setRepairs] = useState(0);
+  const [repairChange, setRepairChange] = useState(0);
   const [salesChange, setSalesChange] = useState(0);
   const { sales, tasks } = reportsLineChartData;
 
@@ -49,10 +51,22 @@ function Dashboard({ globalFunc }) {
     });
     const res = await response.json();
     if (res.res === 200) {
-      setSales(res.sales);
+      setSales(res.sales.find((x) => x._id == -7).sum);
       setSalesChange(
-        Math.round(((res.sales.thisweek - res.sales.lastweek) / res.sales.lastweek) * 100)
+        Math.round(
+          ((res.sales.find((x) => x._id == -7).sum - res.sales.find((x) => x._id == -14).sum) /
+            res.sales.find((x) => x._id == -14).sum) *
+            100
+        )
       );
+      setRepairs(res.repairs.find((x) => x._id == -30).count);
+      setRepairChange(
+        ((res.repairs.find((x) => x._id == -30).count -
+          res.repairs.find((x) => x._id == -60).count) /
+          res.repairs.find((x) => x._id == -60).count) *
+          100
+      );
+      console.log(repairChange);
     }
   };
 
@@ -71,9 +85,9 @@ function Dashboard({ globalFunc }) {
                 color="dark"
                 icon="leaderboard"
                 title="Sales"
-                count={(mysales.thisweek / 100)
+                count={`$${(mysales / 100)
                   .toFixed(2)
-                  .toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                  .toLocaleString(undefined, { minimumFractionDigits: 2 })}`}
                 percentage={{
                   color: salesChange > 0 ? "success" : "error",
                   amount: `${salesChange > 0 ? "+" : ""}${salesChange}%`,
@@ -82,7 +96,7 @@ function Dashboard({ globalFunc }) {
               />
             </MDBox>
           </Grid>
-          <Grid item xs={12} md={6} lg={3}>
+          {/* <Grid item xs={12} md={6} lg={3}>
             <MDBox mb={1.5}>
               <ComplexStatisticsCard
                 icon="leaderboard"
@@ -110,18 +124,18 @@ function Dashboard({ globalFunc }) {
                 }}
               />
             </MDBox>
-          </Grid>
+          </Grid> */}
           <Grid item xs={12} md={6} lg={3}>
             <MDBox mb={1.5}>
               <ComplexStatisticsCard
                 color="primary"
-                icon="person_add"
-                title="Followers"
-                count="+91"
+                icon="handyman"
+                title="Repairs"
+                count={myRepairs}
                 percentage={{
                   color: "success",
-                  amount: "",
-                  label: "Just updated",
+                  amount: `${repairChange.toFixed(2)}%`,
+                  label: "vs last 30 days",
                 }}
               />
             </MDBox>

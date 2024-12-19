@@ -123,31 +123,6 @@ const Customers = ({ globalFunc }) => {
     contIntake
   );
 
-  const nextRepairStep = async (val, customer = null) => {
-    if (val == 2) {
-      setRepairStep(2);
-      setRepairData({ Customer: customer });
-    }
-    if (val == 3) {
-      //Show step 3
-      setRepairStep(3);
-    }
-    if (val == 4) {
-      //Show step 3
-      setRepairStep(4);
-    }
-    if (val == 5) {
-      reRender();
-      setNewRepair(false);
-      setRepairStep(0);
-    }
-  };
-
-  const showNewRepair = async () => {
-    setNewRepair(true);
-    setRepairStep(0);
-  };
-
   return (
     <DashboardLayout>
       <DashboardNavbar globalFunc={globalFunc} />

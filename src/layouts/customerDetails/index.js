@@ -57,6 +57,7 @@ import IconButton from "@mui/material/IconButton";
 import Icon from "@mui/material/Icon";
 import Loading from "../../components/Loading_Dialog";
 import Notification from "components/Notifications";
+import CustomerData from "layouts/tables/data/customerDetails";
 const iconsStyle = ({ palette: { dark, white, text }, functions: { rgba } }) => ({
   color: () => {
     let colorValue = dark.main;
@@ -90,8 +91,11 @@ const CustomerDetails = ({ globalFunc }) => {
   const [confirmOpen, toggleconfirmOpen] = useState({ removePart: false, editTime: false });
   const { showSnackBar, RenderSnackbar } = Notification();
   const { setShowLoad, LoadBox } = Loading();
-  const { repairHistory, setRepairHistory } = useState([]);
+  const [repairHistory, setRepairHistory] = useState([]);
 
+  const { repairColumns, repairRows, setData } = CustomerData();
+  console.log("Repair columns: ", repairColumns);
+  console.log("Repair rows: ", repairRows);
   const Pev = ({ title, description, id }) => (
     <MDBox
       lineHeight={1}
@@ -320,51 +324,60 @@ const CustomerDetails = ({ globalFunc }) => {
     } else if (res.res === 500) {
       showSnackBar("error", "Server error occured");
     } else {
-      setLoading(false);
-      console.log("Customer data", res.data[0]);
+      console.log("Customer data", res.data[0].repairs);
       setcustomerDetails(res.data[0]);
-      let repairs = [];
-      if (res.data[0].repairs.length > 0) {
-        res.data[0].repairs.map((repair) => {
-          repairs.push({
-            id: repair.repairID,
-            pev: (
-              <Pev id={repair._id} title={repair.pev.Brand.name} description={repair.pev.Model} />
-            ),
-            status: <Status repairStatus={repair.status} id={repair._id} />,
-            received: (
-              <MDTypography
-                component="a"
-                href="#"
-                variant="caption"
-                color="text"
-                fontWeight="medium"
-                sx={{ cursor: "pointer" }}
-                onClick={() => redirect(`/repairs/${repair._id}`, { replace: false })}
-              >
-                {moment(repair.createdAt).format("MM/DD/yyyy hh:mm a")}
-              </MDTypography>
-            ),
-            updated: (
-              <MDTypography
-                component="a"
-                href={"/repairs/" + repair._id}
-                variant="caption"
-                color="text"
-                fontWeight="medium"
-              >
-                {moment(repair.updatedAt).format("MM/DD/yyyy hh:mm a")}
-              </MDTypography>
-            ),
-          });
-        });
-      }
-      setRepairHistory(repairs);
+      let repairs =
+        res.data[0].repairs.length > 0
+          ? res.data[0].repairs.map((repair) => {
+              return {
+                id: repair.repairID,
+                pev: (
+                  <Pev
+                    id={repair._id}
+                    title={repair.pev.Brand.name}
+                    description={repair.pev.Model}
+                  />
+                ),
+                status: <Status repairStatus={repair.status} id={repair._id} />,
+                received: (
+                  <MDTypography
+                    component="a"
+                    href="#"
+                    variant="caption"
+                    color="text"
+                    fontWeight="medium"
+                    sx={{ cursor: "pointer" }}
+                    onClick={() => redirect(`/repairs/${repair._id}`, { replace: false })}
+                  >
+                    {moment(repair.createdAt).format("MM/DD/yyyy hh:mm a")}
+                  </MDTypography>
+                ),
+                updated: (
+                  <MDTypography
+                    component="a"
+                    href={"/repairs/" + repair._id}
+                    variant="caption"
+                    color="text"
+                    fontWeight="medium"
+                  >
+                    {moment(repair.updatedAt).format("MM/DD/yyyy hh:mm a")}
+                  </MDTypography>
+                ),
+              };
+            })
+          : [];
+      //[repairColumns, repairRows] = CustomerData(res.data[0].repairs);
+      setData(res.data[0].repairs);
+      setRepairHistory();
+      setLoading(false);
+      console.log("Repair history:", repairs);
+      console.log("Repair history:", repairHistory);
       //setRepairOrderReady(true);
+      setShowLoad(false);
     }
-    setShowLoad(false);
   };
-
+  // useEffect(() => {
+  // }, [repairHistory]);
   const ConfirmActionDialog = ({ title, content, action, openState, closeState }) => {
     return (
       <Dialog open={openState}>
@@ -379,20 +392,6 @@ const CustomerDetails = ({ globalFunc }) => {
       </Dialog>
     );
   };
-
-  const columns = [
-    { Header: "repair id", accessor: "id", align: "left" },
-    { Header: "pev", accessor: "pev", align: "left" },
-    { Header: "status", accessor: "status", align: "center" },
-    {
-      Header: "received",
-      accessor: "received",
-      align: "center",
-      isSorted: true,
-      isSortedDesc: false,
-    },
-    { Header: "updated", accessor: "updated", align: "center" },
-  ];
 
   useEffect(() => {
     getCustomer();
@@ -521,13 +520,13 @@ const CustomerDetails = ({ globalFunc }) => {
                     </Grid>
                   </MDBox>
                   <MDBox mx={2} py={3} px={2}>
-                    {/* <DataTable
+                    <DataTable
                       entriesPerPage={10}
-                      table={{ columns, repairHistory }}
+                      table={{ repairColumns, repairRows }}
                       showTotalEntries={true}
                       noEndBorder
                       pagination
-                    /> */}
+                    />
                   </MDBox>
                 </Card>
               </Grid>

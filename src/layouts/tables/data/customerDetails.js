@@ -25,139 +25,16 @@ import MDTypography from "components/MDTypography";
 import MDBadge from "components/MDBadge";
 import moment from "moment";
 
-export default function data(globalFunc, contIntake, filters) {
+export default function data() {
   let redirect = useNavigate();
   const [repairsOrig, setrepairsOrig] = useState([]);
-  const [repairs, setRepairs] = useState([]);
+  const [data, setmyData] = useState([]);
   const [searchTerm, setsearchTerm] = useState(null);
-  const [myFilters, setmyFilters] = useState({
-    status: [0, 1, 2, 3, 4, 5],
-    RepairType: ["Tire Change", "Tube Change", "Power issue", "Mechanical Repair", "Other"],
-  });
-  const defaultFilter = {
-    status: [0, 1, 2, 3, 4, 5],
-  };
-  const fetchData = async (globalFunc) => {
-    const response = await fetch(`${vars.serverUrl}/square/getMyData?action=getRepairs`, {
-      credentials: "include",
-    });
-    if (response.status == 200) {
-      const res = await response.json();
 
-      if (res.res === 200) {
-        setrepairsOrig(res.data);
-        setRepairs(res.data);
-        doFilter();
-      } else if (res.res === 401) {
-        globalFunc.setLoggedIn(false);
-        globalFunc.setErrorSBText("Unauthorized, redirecting to login");
-        globalFunc.setErrorSB(true);
-      }
-    } else if (response.status == 401) {
-      globalFunc.setLoggedIn(false);
-      globalFunc.setErrorSBText("Unauthorized, redirecting to login");
-      globalFunc.setErrorSB(true);
-    }
-  };
-  useEffect(() => {
-    fetchData(globalFunc);
-  }, []);
-
-  const reRender = () => {
-    fetchData(globalFunc);
+  const setData = (mydata) => {
+    setmyData(mydata);
   };
 
-  const doFilter = (data = null) => {
-    console.log("Requested filter: ", filter);
-    let filterData;
-    if (data == null) {
-      filterData = [...repairsOrig];
-    } else {
-      filterData = [...data];
-    }
-    let filtered = filterData.filter((item) => {
-      for (var key in myFilters) {
-        console.log("Filter options:", myFilters[key]);
-        console.log("Item value", item[key].constructor.name == "Array" ? item[key][0] : item[key]);
-        console.log(myFilters[key].indexOf(item[key]));
-        if (
-          item[key] === undefined ||
-          myFilters[key].indexOf(item[key].constructor.name == "Array" ? item[key][0] : item[key]) <
-            0
-        )
-          return false;
-      }
-      return true;
-    });
-    if (data == null) {
-      doSearch(filtered);
-    } else {
-      setRepairs(filtered);
-    }
-  };
-  useEffect(() => {
-    doFilter();
-  }, [myFilters, repairsOrig]);
-  const filter = (filter) => {
-    setmyFilters(filter);
-  };
-
-  useEffect(() => {
-    doSearch();
-  }, [searchTerm, repairsOrig]);
-
-  const doSearch = (data = null) => {
-    let filterData;
-    if (data == null) {
-      filterData = [...repairsOrig];
-    } else {
-      filterData = [...data];
-    }
-    let filtered = filterData.filter((item) => {
-      if (searchTerm == "" || searchTerm == null) {
-        return true;
-      }
-      // eslint-disable-next-line prettier/prettier
-      if (
-        item.repairID.toString().toLowerCase().includes(searchTerm.toLowerCase())
-      )
-        return true;
-      if (
-        item.Customer.given_name != undefined &&
-        item.Customer.given_name.toLowerCase().includes(searchTerm.toLowerCase())
-      )
-        return true;
-      if (
-        item.Customer.family_name != undefined &&
-        item.Customer.family_name.toLowerCase().includes(searchTerm.toLowerCase())
-      )
-        return true;
-      if (
-        item.Customer.email_address != undefined &&
-        item.Customer.email_address.toLowerCase().includes(searchTerm.toLowerCase())
-      )
-        return true;
-      if (
-        item.Customer.phone_number != undefined &&
-        item.Customer.phone_number.toLowerCase().includes(searchTerm.toLowerCase())
-      )
-        return true;
-      if (item.pev.Brand.name.toLowerCase().includes(searchTerm.toLowerCase())) return true;
-      if (item.pev.Model.toLowerCase().includes(searchTerm.toLowerCase())) return true;
-      if (item.receivedby.toLowerCase().includes(searchTerm.toLowerCase())) return true;
-
-      return false;
-    });
-    if (data == null) {
-      doFilter(filtered);
-    } else {
-      setRepairs(filtered);
-    }
-  };
-
-  const resetFilter = () => {
-    setRepairs(repairsOrig);
-  };
   const Customer = ({ image, name, email, id }) => (
     <MDBox
       display="flex"
@@ -408,17 +285,13 @@ export default function data(globalFunc, contIntake, filters) {
       );
     }
   };
-
+  useEffect(() => {
+    console.log("Data Change:", data);
+  }, [data]);
   return {
-    repairs: repairsOrig,
-    resetFilter: resetFilter,
-    filter: filter,
-    reRender: reRender,
-    setsearchTerm: setsearchTerm,
-    searchTerm: searchTerm,
-    columns: [
+    setData: setData,
+    repairColumns: [
       { Header: "repair id", accessor: "id", align: "left" },
-      { Header: "customer", accessor: "customer", width: "25%", align: "left" },
       { Header: "pev", accessor: "pev", align: "left" },
       { Header: "status", accessor: "status", align: "center" },
       {
@@ -431,22 +304,11 @@ export default function data(globalFunc, contIntake, filters) {
       { Header: "updated", accessor: "updated", align: "center" },
     ],
 
-    rows:
-      repairs.length > 0
-        ? repairs.map((repair) => {
+    repairRows:
+      data.length > 0
+        ? data.map((repair) => {
             return {
               id: repair.repairID,
-              customer: (
-                <Customer
-                  id={repair._id}
-                  name={
-                    (repair.Customer.given_name != undefined ? repair.Customer.given_name : "") +
-                    " " +
-                    (repair.Customer.family_name != undefined ? repair.Customer.family_name : "")
-                  }
-                  email={repair.Customer.phone_number || repair.Customer.email_address}
-                />
-              ),
               pev: (
                 <Pev id={repair._id} title={repair.pev.Brand.name} description={repair.pev.Model} />
               ),
