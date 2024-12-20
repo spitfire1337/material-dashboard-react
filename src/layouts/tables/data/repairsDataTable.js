@@ -67,9 +67,14 @@ export default function data(globalFunc, contIntake, filters) {
     fetchData(globalFunc);
   };
 
-  const doFilter = () => {
+  const doFilter = (data = null) => {
     console.log("Requested filter: ", filter);
-    let filterData = [...repairsOrig];
+    let filterData;
+    if (data == null || data == "") {
+      filterData = [...repairsOrig];
+    } else {
+      filterData = [...data];
+    }
     let filtered = filterData.filter((item) => {
       for (var key in myFilters) {
         console.log("Filter options:", myFilters[key]);
@@ -99,6 +104,10 @@ export default function data(globalFunc, contIntake, filters) {
 
   const doSearch = () => {
     let filterData = [...repairs];
+    if (searchTerm == "" || searchTerm == null) {
+      doFilter(repairsOrig);
+      return;
+    }
     let filtered = filterData.filter((item) => {
       if (searchTerm == "" || searchTerm == null) {
         return true;
@@ -135,6 +144,7 @@ export default function data(globalFunc, contIntake, filters) {
       return false;
     });
     setRepairs(filtered);
+    doFilter(filtered);
   };
 
   const resetFilter = () => {
