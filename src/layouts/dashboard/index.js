@@ -51,13 +51,17 @@ function Dashboard({ globalFunc }) {
     });
     const res = await response.json();
     if (res.res === 200) {
-      setSales(res.sales.find((x) => x._id == -7).sum);
+      setSales(
+        res.sales.find((x) => x._id == -7) != undefined ? res.sales.find((x) => x._id == -7).sum : 0
+      );
       setSalesChange(
-        Math.round(
-          ((res.sales.find((x) => x._id == -7).sum - res.sales.find((x) => x._id == -14).sum) /
-            res.sales.find((x) => x._id == -14).sum) *
-            100
-        )
+        res.sales.find((x) => x._id == -7) != undefined
+          ? Math.round(
+              ((res.sales.find((x) => x._id == -7).sum - res.sales.find((x) => x._id == -14).sum) /
+                res.sales.find((x) => x._id == -14).sum) *
+                100
+            )
+          : -(res.sales.find((x) => x._id == -14).sum / 100)
       );
       setRepairs(res.repairs.find((x) => x._id == -30).count);
       setRepairChange(
