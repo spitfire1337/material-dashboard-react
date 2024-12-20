@@ -51,8 +51,7 @@ import SignUp from "layouts/authentication/sign-up";
 
 // @mui icons
 import Icon from "@mui/material/Icon";
-
-const routes = (globalFunc) => {
+const adminRoutes = (globalFunc) => {
   return [
     {
       type: "collapse",
@@ -89,7 +88,42 @@ const routes = (globalFunc) => {
       key: "customers2",
       route: "/customer/:id",
       component: <CustomerDetails globalFunc={globalFunc} />,
-    } /*
+    },
+  ];
+};
+
+const techRoutes = (globalFunc) => {
+  return [
+    {
+      type: "collapse",
+      name: "Dashboard",
+      key: "dashboard",
+      icon: <Icon fontSize="small">dashboard</Icon>,
+      route: "/dashboard",
+      component: <Dashboard globalFunc={globalFunc} />,
+    },
+    {
+      type: "collapse",
+      name: "Repairs",
+      key: "repairs",
+      icon: <Icon fontSize="small">assignment</Icon>,
+      route: "/repairs",
+      component: <Repairs globalFunc={globalFunc} />,
+    },
+    {
+      name: "Repairs",
+      key: "repairs2",
+      route: "/repairs/:id",
+      component: <RepairDetails globalFunc={globalFunc} />,
+    },
+  ];
+};
+
+const routes = (globalFunc) => {
+  console.log(adminRoutes(globalFunc));
+  if (globalFunc.user.isAdmin) return adminRoutes(globalFunc);
+  if (globalFunc.user.isTech) return techRoutes(globalFunc);
+  /*
       {
     type: "collapse",
     name: "Tables",
@@ -137,9 +171,7 @@ const routes = (globalFunc) => {
     icon: <Icon fontSize="small">assignment</Icon>,
     route: "/authentication/sign-up",
     component: <SignUp />,
-  }*/,
-    ,
-  ];
+  }*/
 };
 
 export default routes;

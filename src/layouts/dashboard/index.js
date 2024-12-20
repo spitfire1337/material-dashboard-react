@@ -36,6 +36,7 @@ import reportsLineChartData from "layouts/dashboard/data/reportsLineChartData";
 // Dashboard components
 import Projects from "layouts/dashboard/components/Projects";
 import OrdersOverview from "layouts/dashboard/components/OrdersOverview";
+import { useNavigate } from "react-router-dom";
 
 // eslint-disable-next-line react/prop-types
 function Dashboard({ globalFunc }) {
@@ -43,8 +44,16 @@ function Dashboard({ globalFunc }) {
   const [myRepairs, setRepairs] = useState(0);
   const [repairChange, setRepairChange] = useState(0);
   const [salesChange, setSalesChange] = useState(0);
-  const { sales, tasks } = reportsLineChartData;
+  const [sales, setSalesData] = useState({
+    labels: [],
+    datasets: { label: "Total Sales", data: [] },
+  });
+  const [salesVolume, setSalesVolume] = useState({
+    labels: [],
+    datasets: { label: "Sales Volume", data: [] },
+  });
 
+  let redirect = useNavigate();
   const getSales = async () => {
     const response = await fetch(`${vars.serverUrl}/square/getsales`, {
       credentials: "include",
@@ -70,12 +79,23 @@ function Dashboard({ globalFunc }) {
           res.repairs.find((x) => x._id == -60).count) *
           100
       );
+      let monthlySales = [];
+      let saleMonths = [];
+      let mysalesVolume = [];
+      res.monthlySales.map((month) => {
+        saleMonths.push(month.Month);
+        mysalesVolume.push(month.totalsales);
+        monthlySales.push(month.sum / 100);
+      });
+      setSalesData({ labels: saleMonths, datasets: { data: monthlySales } });
+      setSalesVolume({ labels: saleMonths, datasets: { data: mysalesVolume } });
       console.log(repairChange);
     }
   };
 
   useEffect(() => {
     getSales();
+    console.log("User: ", globalFunc.user);
   }, []);
 
   return (
@@ -83,119 +103,141 @@ function Dashboard({ globalFunc }) {
       <DashboardNavbar globalFunc={globalFunc} />
       <MDBox py={3}>
         <Grid container spacing={3}>
-          <Grid item xs={12} md={6} lg={3}>
-            <MDBox mb={1.5}>
-              <ComplexStatisticsCard
-                color="dark"
-                icon="leaderboard"
-                title="Sales"
-                count={`$${(mysales / 100)
-                  .toFixed(2)
-                  .toLocaleString(undefined, { minimumFractionDigits: 2 })}`}
-                percentage={{
-                  color: salesChange > 0 ? "success" : "error",
-                  amount: `${salesChange > 0 ? "+" : ""}${salesChange}%`,
-                  label: "than lask week",
-                }}
-              />
-            </MDBox>
-          </Grid>
+          {globalFunc.user.isAdmin ? (
+            <Grid item xs={12} md={6} lg={3}>
+              <MDBox mb={1.5}>
+                <ComplexStatisticsCard
+                  color="dark"
+                  icon="leaderboard"
+                  title="Sales"
+                  count={`$${(mysales / 100)
+                    .toFixed(2)
+                    .toLocaleString(undefined, { minimumFractionDigits: 2 })}`}
+                  percentage={{
+                    color: salesChange > 0 ? "success" : "error",
+                    amount: `${salesChange > 0 ? "+" : ""}${salesChange}%`,
+                    label: "than lask week",
+                  }}
+                />
+              </MDBox>
+            </Grid>
+          ) : (
+            ""
+          )}
           {/* <Grid item xs={12} md={6} lg={3}>
-            <MDBox mb={1.5}>
-              <ComplexStatisticsCard
-                icon="leaderboard"
-                title="Today's Users"
-                count="2,300"
-                percentage={{
-                  color: "success",
-                  amount: "+3%",
-                  label: "than last month",
-                }}
-              />
-            </MDBox>
-          </Grid>
-          <Grid item xs={12} md={6} lg={3}>
-            <MDBox mb={1.5}>
-              <ComplexStatisticsCard
-                color="success"
-                icon="store"
-                title="Revenue"
-                count="34k"
-                percentage={{
-                  color: "success",
-                  amount: "+1%",
-                  label: "than yesterday",
-                }}
-              />
-            </MDBox>
-          </Grid> */}
-          <Grid item xs={12} md={6} lg={3}>
-            <MDBox mb={1.5}>
-              <ComplexStatisticsCard
-                color="primary"
-                icon="handyman"
-                title="Repairs"
-                count={myRepairs}
-                percentage={{
-                  color: "success",
-                  amount: `${repairChange.toFixed(2)}%`,
-                  label: "vs last 30 days",
-                }}
-              />
-            </MDBox>
-          </Grid>
+      <MDBox mb={1.5}>
+        <ComplexStatisticsCard
+          icon="leaderboard"
+          title="Today's Users"
+          count="2,300"
+          percentage={{
+            color: "success",
+            amount: "+3%",
+            label: "than last month",
+          }}
+        />
+      </MDBox>
+    </Grid>
+    <Grid item xs={12} md={6} lg={3}>
+      <MDBox mb={1.5}>
+        <ComplexStatisticsCard
+          color="success"
+          icon="store"
+          title="Revenue"
+          count="34k"
+          percentage={{
+            color: "success",
+            amount: "+1%",
+            label: "than yesterday",
+          }}
+        />
+      </MDBox>
+    </Grid> */}
+          {globalFunc.user.isAdmin || globalFunc.user.isTech ? (
+            <Grid item xs={12} md={6} lg={3}>
+              <MDBox mb={1.5}>
+                <ComplexStatisticsCard
+                  color="primary"
+                  icon="handyman"
+                  title="Repairs"
+                  onClick={() => redirect(`/repairs`, { replace: false })}
+                  count={myRepairs}
+                  percentage={{
+                    color: repairChange < 0 ? "error" : "success",
+                    amount: `${repairChange.toFixed(2)}%`,
+                    label: "vs last 30 days",
+                  }}
+                />
+              </MDBox>
+            </Grid>
+          ) : (
+            ""
+          )}
         </Grid>
         <MDBox mt={4.5}>
           <Grid container spacing={3}>
-            <Grid item xs={12} md={6} lg={4}>
-              <MDBox mb={3}>
-                <ReportsBarChart
-                  color="info"
-                  title="website views"
-                  description="Last Campaign Performance"
-                  date="campaign sent 2 days ago"
-                  chart={reportsBarChartData}
-                />
-              </MDBox>
-            </Grid>
-            <Grid item xs={12} md={6} lg={4}>
-              <MDBox mb={3}>
-                <ReportsLineChart
-                  color="success"
-                  title="daily sales"
-                  description={
-                    <>
-                      (<strong>+15%</strong>) increase in today sales.
-                    </>
-                  }
-                  date="updated 4 min ago"
-                  chart={sales}
-                />
-              </MDBox>
-            </Grid>
-            <Grid item xs={12} md={6} lg={4}>
-              <MDBox mb={3}>
-                <ReportsLineChart
-                  color="dark"
-                  title="completed tasks"
-                  description="Last Campaign Performance"
-                  date="just updated"
-                  chart={tasks}
-                />
-              </MDBox>
-            </Grid>
+            {globalFunc.user.isAdmin ? (
+              <Grid item xs={12} md={6} lg={4}>
+                <MDBox mb={3}>
+                  <ReportsLineChart
+                    color="success"
+                    title="monthly sales"
+                    description={
+                      <>
+                        {(
+                          ((sales.datasets.data[sales.datasets.data.length - 1] -
+                            sales.datasets.data[sales.datasets.data.length - 2]) /
+                            sales.datasets.data[sales.datasets.data.length - 2]) *
+                          100
+                        ).toFixed(2)}
+                        {"% "}
+                        vs last month
+                      </>
+                    }
+                    chart={sales}
+                  />
+                </MDBox>
+              </Grid>
+            ) : (
+              ""
+            )}
+            {globalFunc.user.isAdmin ? (
+              <Grid item xs={12} md={6} lg={4}>
+                <MDBox mb={3}>
+                  <ReportsLineChart
+                    color="dark"
+                    title="Sales Volume"
+                    description={
+                      <>
+                        {(
+                          ((salesVolume.datasets.data[salesVolume.datasets.data.length - 1] -
+                            salesVolume.datasets.data[salesVolume.datasets.data.length - 2]) /
+                            salesVolume.datasets.data[salesVolume.datasets.data.length - 2]) *
+                          100
+                        ).toFixed(2)}
+                        {"% "}
+                        vs last month
+                      </>
+                    }
+                    chart={salesVolume}
+                  />
+                </MDBox>
+              </Grid>
+            ) : (
+              ""
+            )}
           </Grid>
         </MDBox>
-        <MDBox>
-          <Grid container spacing={3}>
-            <Grid item xs={12} md={6} lg={8}>
-              <Projects />
-            </Grid>
-            <Grid item xs={12} md={6} lg={4}>
-              <OrdersOverview />
-            </Grid>
+        {/* <MDBox>
+        <Grid container spacing={3}>
+          <Grid item xs={12} md={6} lg={8}>
+            <Projects />
           </Grid>
-        </MDBox>
+          <Grid item xs={12} md={6} lg={4}>
+            <OrdersOverview />
+          </Grid>
+        </Grid>
+      </MDBox> */}
       </MDBox>
       <Footer />
     </DashboardLayout>
