@@ -1,5 +1,5 @@
 const vars = {
-  server: "https://api.pevconnection.com",
+  server: "https://crm.pevconnection.com",
 };
 
 export default vars;

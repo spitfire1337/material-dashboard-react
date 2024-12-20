@@ -70,7 +70,7 @@ export default function data(globalFunc, contIntake, filters) {
   const doFilter = (data = null) => {
     console.log("Requested filter: ", filter);
     let filterData;
-    if (data == null) {
+    if (data == null || data == "") {
       filterData = [...repairsOrig];
     } else {
       filterData = [...data];
@@ -106,12 +106,11 @@ export default function data(globalFunc, contIntake, filters) {
     doSearch();
   }, [searchTerm, repairsOrig]);
 
-  const doSearch = (data = null) => {
-    let filterData;
-    if (data == null) {
-      filterData = [...repairsOrig];
-    } else {
-      filterData = [...data];
+  const doSearch = () => {
+    let filterData = [...repairs];
+    if (searchTerm == "" || searchTerm == null) {
+      doFilter(repairsOrig);
+      return;
     }
     let filtered = filterData.filter((item) => {
       if (searchTerm == "" || searchTerm == null) {
@@ -148,11 +147,8 @@ export default function data(globalFunc, contIntake, filters) {
 
       return false;
     });
-    if (data == null) {
-      doFilter(filtered);
-    } else {
-      setRepairs(filtered);
-    }
+    setRepairs(filtered);
+    doFilter(filtered);
   };
 
   const resetFilter = () => {
