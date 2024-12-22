@@ -52,7 +52,14 @@ function Dashboard({ globalFunc }) {
     labels: [],
     datasets: { label: "Sales Volume", data: [] },
   });
-
+  const [topSellersAll, settopSellersAll] = useState({
+    labels: [],
+    datasets: { label: "Sales", data: [] },
+  });
+  const [topSellersSixty, settoptopSellersSixty] = useState({
+    labels: [],
+    datasets: { label: "Sales", data: [] },
+  });
   let redirect = useNavigate();
   const getSales = async () => {
     const response = await fetch(`${vars.serverUrl}/square/getsales`, {
@@ -87,6 +94,24 @@ function Dashboard({ globalFunc }) {
         mysalesVolume.push(month.totalsales);
         monthlySales.push(month.sum / 100);
       });
+      let salesItemsAll = [];
+      let salesItemAllVol = [];
+      res.topSellersAll.map((item, i) => {
+        if (item._id != "Labor" || item._id != "Gen Merch" || i < 10) {
+          salesItemsAll.push(item._id);
+          salesItemAllVol.push(item.sales);
+        }
+      });
+      let salesItemsSixty = [];
+      let salesItemAllSixty = [];
+      res.topSellersSixty.map((item, i) => {
+        if (item._id != "Labor" || item._id != "Gen Merch" || i < 10) {
+          salesItemsSixty.push(item._id);
+          salesItemAllSixty.push(item.sales);
+        }
+      });
+      settoptopSellersSixty({ labels: salesItemsSixty, datasets: { data: salesItemAllSixty } });
+      settopSellersAll({ labels: salesItemsAll, datasets: { data: salesItemAllVol } });
       setSalesData({ labels: saleMonths, datasets: { data: monthlySales } });
       setSalesVolume({ labels: saleMonths, datasets: { data: mysalesVolume } });
       console.log(repairChange);
@@ -153,6 +178,7 @@ function Dashboard({ globalFunc }) {
         />
       </MDBox>
     </Grid> */}
+
           {globalFunc.user.isAdmin || globalFunc.user.isTech ? (
             <Grid item xs={12} md={6} lg={3}>
               <MDBox mb={1.5}>
@@ -174,60 +200,95 @@ function Dashboard({ globalFunc }) {
             ""
           )}
         </Grid>
-        <MDBox mt={4.5}>
-          <Grid container spacing={3}>
-            {globalFunc.user.isAdmin ? (
-              <Grid item xs={12} md={6} lg={4}>
-                <MDBox mb={3}>
-                  <ReportsLineChart
-                    color="success"
-                    title="monthly sales"
-                    description={
-                      <>
-                        {(
-                          ((sales.datasets.data[sales.datasets.data.length - 1] -
-                            sales.datasets.data[sales.datasets.data.length - 2]) /
-                            sales.datasets.data[sales.datasets.data.length - 2]) *
-                          100
-                        ).toFixed(2)}
-                        {"% "}
-                        vs last month
-                      </>
-                    }
-                    chart={sales}
-                  />
-                </MDBox>
+        <Grid container spacing={3}>
+          <Grid item xs={12} md={8}>
+            <MDBox mt={4.5}>
+              <Grid container spacing={3}>
+                {globalFunc.user.isAdmin ? (
+                  <Grid item xs={12} md={6}>
+                    <MDBox mb={3}>
+                      <ReportsLineChart
+                        color="success"
+                        title="monthly sales"
+                        description={
+                          <>
+                            {(
+                              ((sales.datasets.data[sales.datasets.data.length - 1] -
+                                sales.datasets.data[sales.datasets.data.length - 2]) /
+                                sales.datasets.data[sales.datasets.data.length - 2]) *
+                              100
+                            ).toFixed(2)}
+                            {"% "}
+                            vs last month
+                          </>
+                        }
+                        chart={sales}
+                      />
+                    </MDBox>
+                  </Grid>
+                ) : (
+                  ""
+                )}
+                {globalFunc.user.isAdmin ? (
+                  <Grid item xs={12} md={6}>
+                    <MDBox mb={3}>
+                      <ReportsLineChart
+                        color="dark"
+                        title="Sales Volume"
+                        description={
+                          <>
+                            {(
+                              ((salesVolume.datasets.data[salesVolume.datasets.data.length - 1] -
+                                salesVolume.datasets.data[salesVolume.datasets.data.length - 2]) /
+                                salesVolume.datasets.data[salesVolume.datasets.data.length - 2]) *
+                              100
+                            ).toFixed(2)}
+                            {"% "}
+                            vs last month
+                          </>
+                        }
+                        chart={salesVolume}
+                      />
+                    </MDBox>
+                  </Grid>
+                ) : (
+                  ""
+                )}
+                {globalFunc.user.isAdmin ? (
+                  <Grid item xs={12} md={6}>
+                    <MDBox mb={3}>
+                      <ReportsBarChart
+                        color="info"
+                        title="top sellers"
+                        description="All time top selling items"
+                        chart={topSellersAll}
+                      />
+                    </MDBox>
+                  </Grid>
+                ) : (
+                  ""
+                )}
+                {globalFunc.user.isAdmin ? (
+                  <Grid item xs={12} md={6}>
+                    <MDBox mb={3}>
+                      <ReportsBarChart
+                        color="info"
+                        title="top sellers"
+                        description="Top selling items last 60 days"
+                        chart={topSellersSixty}
+                      />
+                    </MDBox>
+                  </Grid>
+                ) : (
+                  ""
+                )}
               </Grid>
-            ) : (
-              ""
-            )}
-            {globalFunc.user.isAdmin ? (
-              <Grid item xs={12} md={6} lg={4}>
-                <MDBox mb={3}>
-                  <ReportsLineChart
-                    color="dark"
-                    title="Sales Volume"
-                    description={
-                      <>
-                        {(
-                          ((salesVolume.datasets.data[salesVolume.datasets.data.length - 1] -
-                            salesVolume.datasets.data[salesVolume.datasets.data.length - 2]) /
-                            salesVolume.datasets.data[salesVolume.datasets.data.length - 2]) *
-                          100
-                        ).toFixed(2)}
-                        {"% "}
-                        vs last month
-                      </>
-                    }
-                    chart={salesVolume}
-                  />
-                </MDBox>
-              </Grid>
-            ) : (
-              ""
-            )}
+            </MDBox>
           </Grid>
-        </MDBox>
+          <Grid item xs={12} md={4}>
+            <OrdersOverview />
+          </Grid>
+        </Grid>
         {/* <MDBox>
         <Grid container spacing={3}>
           <Grid item xs={12} md={6} lg={8}>

@@ -19,7 +19,7 @@ function configs(labels, datasets) {
       labels,
       datasets: [
         {
-          label: datasets.label,
+          //label: datasets.label,
           tension: 0.4,
           borderWidth: 0,
           borderRadius: 4,
@@ -31,6 +31,9 @@ function configs(labels, datasets) {
       ],
     },
     options: {
+      legend: {
+        display: false,
+      },
       responsive: true,
       maintainAspectRatio: false,
       plugins: {
@@ -77,11 +80,11 @@ function configs(labels, datasets) {
             color: "rgba(255, 255, 255, .2)",
           },
           ticks: {
-            display: true,
+            display: false,
             color: "#f8f9fa",
             padding: 10,
             font: {
-              size: 14,
+              size: 8,
               weight: 300,
               family: "Roboto",
               style: "normal",

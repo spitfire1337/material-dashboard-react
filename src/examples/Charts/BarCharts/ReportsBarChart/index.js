@@ -71,18 +71,26 @@ function ReportsBarChart({ color, title, description, date, chart }) {
           <MDTypography variant="h6" textTransform="capitalize">
             {title}
           </MDTypography>
-          <MDTypography component="div" variant="button" color="text" fontWeight="light">
-            {description}
-          </MDTypography>
+          {description != undefined ? (
+            <MDTypography component="div" variant="button" color="text" fontWeight="light">
+              {description}
+            </MDTypography>
+          ) : (
+            ""
+          )}
           <Divider />
-          <MDBox display="flex" alignItems="center">
-            <MDTypography variant="button" color="text" lineHeight={1} sx={{ mt: 0.15, mr: 0.5 }}>
-              <Icon>schedule</Icon>
-            </MDTypography>
-            <MDTypography variant="button" color="text" fontWeight="light">
-              {date}
-            </MDTypography>
-          </MDBox>
+          {date != undefined ? (
+            <MDBox display="flex" alignItems="center">
+              <MDTypography variant="button" color="text" lineHeight={1} sx={{ mt: 0.15, mr: 0.5 }}>
+                <Icon>schedule</Icon>
+              </MDTypography>
+              <MDTypography variant="button" color="text" fontWeight="light">
+                {date}
+              </MDTypography>
+            </MDBox>
+          ) : (
+            ""
+          )}
         </MDBox>
       </MDBox>
     </Card>
