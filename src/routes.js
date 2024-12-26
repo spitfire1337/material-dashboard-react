@@ -49,6 +49,7 @@ import Profile from "layouts/profile";
 import SignIn from "layouts/authentication/sign-in";
 import SignUp from "layouts/authentication/sign-up";
 import GroupRides from "layouts/grouprides";
+import WarrantyAdmin from "layouts/warranty_admin";
 
 // @mui icons
 import Icon from "@mui/material/Icon";
@@ -89,6 +90,14 @@ const adminRoutes = (globalFunc) => {
       key: "customers2",
       route: "/customer/:id",
       component: <CustomerDetails globalFunc={globalFunc} />,
+    },
+    {
+      type: "collapse",
+      name: "Warranty Data",
+      icon: <Icon fontSize="small">app_registration</Icon>,
+      key: "grouprides",
+      route: "/admin_warranty",
+      component: <WarrantyAdmin />,
     },
     {
       name: "Group Rides",
