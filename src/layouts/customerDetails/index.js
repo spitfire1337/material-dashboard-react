@@ -58,6 +58,7 @@ import Icon from "@mui/material/Icon";
 import Loading from "../../components/Loading_Dialog";
 import Notification from "components/Notifications";
 import CustomerData from "layouts/tables/data/customerDetails";
+import CustomerOrders from "layouts/tables/data/customerOrders";
 const iconsStyle = ({ palette: { dark, white, text }, functions: { rgba } }) => ({
   color: () => {
     let colorValue = dark.main;
@@ -94,6 +95,7 @@ const CustomerDetails = ({ globalFunc }) => {
   const [repairHistory, setRepairHistory] = useState([]);
 
   const { repairColumns, repairRows, setData } = CustomerData();
+  const { orderColumns, orderRows, setOrderData } = CustomerOrders();
   console.log("Repair columns: ", repairColumns);
   console.log("Repair rows: ", repairRows);
   const Pev = ({ title, description, id }) => (
@@ -366,12 +368,21 @@ const CustomerDetails = ({ globalFunc }) => {
               };
             })
           : [];
-      //[repairColumns, repairRows] = CustomerData(res.data[0].repairs);
+      let orders =
+        res.data[0].orders.length > 0
+          ? res.data[0].orders.map((order) => {
+              return {
+                date: moment(order.created_at).format("MM/DD/yyyy hh:mm a"),
+                items: order.line_items.length,
+                status: order.state,
+                ammount: `$${order.total_money.amount / 100}`,
+              };
+            })
+          : [];
+      setOrderData(res.data[0].orders);
       setData(res.data[0].repairs);
       setRepairHistory();
       setLoading(false);
-      console.log("Repair history:", repairs);
-      console.log("Repair history:", repairHistory);
       //setRepairOrderReady(true);
       setShowLoad(false);
     }
@@ -445,8 +456,9 @@ const CustomerDetails = ({ globalFunc }) => {
                         ? [
                             <br key="" />,
                             customerDetail.address.locality || "",
-                            ",",
+                            ", ",
                             customerDetail.address.administrative_district_level_1 || "",
+                            " ",
                             customerDetail.address.postal_code || "",
                           ]
                         : ""}
@@ -483,19 +495,15 @@ const CustomerDetails = ({ globalFunc }) => {
                       <Grid item xs={6} alignItems="center" textAlign="right"></Grid>
                     </Grid>
                   </MDBox>
-                  {/* <MDBox mx={2} py={3} px={2}>
-                    <MDTypography variant="body1">
-                      {repairDetails.pev.Brand.name} {repairDetails.pev.Model}
-                    </MDTypography>
-                    <MDTypography variant="body1">Repair Type:</MDTypography>
-                    <MDTypography variant="body2">
-                      {repairDetails.RepairType.map((type) => {
-                        return ` ${type}, `;
-                      })}
-                    </MDTypography>
-                    <MDTypography variant="body1">Details:</MDTypography>
-                    <MDTypography variant="body2">{repairDetails.Details}</MDTypography>
-                  </MDBox> */}
+                  <MDBox mx={2} py={3} px={2}>
+                    <DataTable
+                      entriesPerPage={{ defaultValue: 5 }}
+                      table={{ columns: orderColumns, rows: orderRows }}
+                      showTotalEntries={true}
+                      noEndBorder
+                      pagination
+                    />
+                  </MDBox>
                 </Card>
               </Grid>
               {/* Repair history */}
@@ -521,8 +529,8 @@ const CustomerDetails = ({ globalFunc }) => {
                   </MDBox>
                   <MDBox mx={2} py={3} px={2}>
                     <DataTable
-                      entriesPerPage={10}
-                      table={{ repairColumns, repairRows }}
+                      entriesPerPage={{ defaultValue: 5 }}
+                      table={{ columns: repairColumns, rows: repairRows }}
                       showTotalEntries={true}
                       noEndBorder
                       pagination

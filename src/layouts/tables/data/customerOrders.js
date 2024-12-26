@@ -31,26 +31,9 @@ export default function data() {
   const [data, setmyData] = useState([]);
   const [searchTerm, setsearchTerm] = useState(null);
 
-  const setData = (mydata) => {
+  const setOrderData = (mydata) => {
     setmyData(mydata);
   };
-
-  const Customer = ({ image, name, email, id }) => (
-    <MDBox
-      display="flex"
-      alignItems="center"
-      lineHeight={1}
-      sx={{ cursor: "pointer" }}
-      onClick={() => redirect(`/repairs/${id}`, { replace: false })}
-    >
-      <MDBox ml={2} lineHeight={1}>
-        <MDTypography display="block" variant="button" fontWeight="medium">
-          {name}
-        </MDTypography>
-        <MDTypography variant="caption">{email}</MDTypography>
-      </MDBox>
-    </MDBox>
-  );
 
   const Pev = ({ title, description, id }) => (
     <MDBox
@@ -85,14 +68,10 @@ export default function data() {
     }
   };
 
-  const Status = ({ repairStatus, id }) => {
+  const Status = ({ repairStatus }) => {
     if (repairStatus == 0) {
       return (
-        <MDBox
-          ml={-1}
-          sx={{ cursor: "pointer" }}
-          onClick={() => redirect(`/repairs/${id}`, { replace: false })}
-        >
+        <MDBox ml={-1}>
           <MDBadge
             badgeContent="Created"
             sx={{
@@ -110,11 +89,7 @@ export default function data() {
     }
     if (repairStatus == 1) {
       return (
-        <MDBox
-          ml={-1}
-          sx={{ cursor: "pointer" }}
-          onClick={() => redirect(`/repairs/${id}`, { replace: false })}
-        >
+        <MDBox ml={-1}>
           <MDBadge
             badgeContent="Not started"
             sx={{
@@ -132,11 +107,7 @@ export default function data() {
     }
     if (repairStatus == 2) {
       return (
-        <MDBox
-          ml={-1}
-          sx={{ cursor: "pointer" }}
-          onClick={() => redirect(`/repairs/${id}`, { replace: false })}
-        >
+        <MDBox ml={-1}>
           <MDBadge
             badgeContent="In Progress"
             sx={{
@@ -154,11 +125,7 @@ export default function data() {
     }
     if (repairStatus == 3) {
       return (
-        <MDBox
-          ml={-1}
-          sx={{ cursor: "pointer" }}
-          onClick={() => redirect(`/repairs/${id}`, { replace: false })}
-        >
+        <MDBox ml={-1}>
           <MDBadge
             badgeContent="Paused"
             sx={{
@@ -174,15 +141,11 @@ export default function data() {
         </MDBox>
       );
     }
-    if (repairStatus == 4) {
+    if (repairStatus == "COMPLETED") {
       return (
-        <MDBox
-          ml={-1}
-          sx={{ cursor: "pointer" }}
-          onClick={() => redirect(`/repairs/${id}`, { replace: false })}
-        >
+        <MDBox ml={-1}>
           <MDBadge
-            badgeContent="Repair Complete"
+            badgeContent="Complete"
             sx={{
               "& .MuiBadge-badge": {
                 color: "#000",
@@ -198,11 +161,7 @@ export default function data() {
     }
     if (repairStatus == 5) {
       return (
-        <MDBox
-          ml={-1}
-          sx={{ cursor: "pointer" }}
-          onClick={() => redirect(`/repairs/${id}`, { replace: false })}
-        >
+        <MDBox ml={-1}>
           <MDBadge
             badgeContent="Invoice Created"
             sx={{
@@ -220,11 +179,7 @@ export default function data() {
     }
     if (repairStatus == 6) {
       return (
-        <MDBox
-          ml={-1}
-          sx={{ cursor: "pointer" }}
-          onClick={() => redirect(`/repairs/${id}`, { replace: false })}
-        >
+        <MDBox ml={-1}>
           <MDBadge
             badgeContent="Complete"
             sx={{
@@ -242,11 +197,7 @@ export default function data() {
     }
     if (repairStatus == 998) {
       return (
-        <MDBox
-          ml={-1}
-          sx={{ cursor: "pointer" }}
-          onClick={() => redirect(`/repairs/${id}`, { replace: false })}
-        >
+        <MDBox ml={-1}>
           <MDBadge
             badgeContent="Cancelled"
             sx={{
@@ -264,11 +215,7 @@ export default function data() {
     }
     if (repairStatus == 999) {
       return (
-        <MDBox
-          ml={-1}
-          sx={{ cursor: "pointer" }}
-          onClick={() => redirect(`/repairs/${id}`, { replace: false })}
-        >
+        <MDBox ml={-1}>
           <MDBadge
             badgeContent="Unrepairable"
             sx={{
@@ -289,42 +236,28 @@ export default function data() {
     console.log("Data Change:", data);
   }, [data]);
   return {
-    setData: setData,
-    repairColumns: [
-      { Header: "repair id", accessor: "id", align: "left" },
-      { Header: "pev", accessor: "pev", align: "left" },
+    setOrderData: setOrderData,
+    orderColumns: [
+      { Header: "date", accessor: "date", align: "left" },
+      { Header: "items", accessor: "items", align: "left" },
       { Header: "status", accessor: "status", align: "center" },
       {
-        Header: "received",
-        accessor: "received",
+        Header: "amount",
+        accessor: "amount",
         align: "center",
         isSorted: true,
         isSortedDesc: false,
       },
     ],
 
-    repairRows:
+    orderRows:
       data.length > 0
-        ? data.map((repair) => {
+        ? data.map((order) => {
             return {
-              id: repair.repairID,
-              pev: (
-                <Pev id={repair._id} title={repair.pev.Brand.name} description={repair.pev.Model} />
-              ),
-              status: <Status repairStatus={repair.status} id={repair._id} />,
-              received: (
-                <MDTypography
-                  component="a"
-                  href="#"
-                  variant="caption"
-                  color="text"
-                  fontWeight="medium"
-                  sx={{ cursor: "pointer" }}
-                  onClick={() => redirect(`/repairs/${repair._id}`, { replace: false })}
-                >
-                  {moment(repair.createdAt).format("MM/DD/yyyy hh:mm a")}
-                </MDTypography>
-              ),
+              date: moment(order.updated_at).format("MM/DD/yyyy hh:mm a"),
+              items: order.line_items.length,
+              status: <Status repairStatus={order.state} />,
+              amount: `$${order.total_money.amount / 100}`,
             };
           })
         : [],

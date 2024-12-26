@@ -85,8 +85,6 @@ const iconsStyle = ({ palette: { dark, white, text }, functions: { rgba } }) => 
 // eslint-disable-next-line react/prop-types
 const Customers = ({ globalFunc }) => {
   const classes = useStyles();
-  const { columns: pColumns, rows: pRows } = projectsTableData();
-  const [newRepair, setNewRepair] = useState(false);
   const [repairData, setRepairData] = useState({});
   const [repairID, setrepairID] = useState(null);
   const [showFilter, setShowFiler] = useState(false);

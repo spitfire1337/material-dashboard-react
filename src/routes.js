@@ -48,6 +48,7 @@ import Notifications from "layouts/notifications";
 import Profile from "layouts/profile";
 import SignIn from "layouts/authentication/sign-in";
 import SignUp from "layouts/authentication/sign-up";
+import GroupRides from "layouts/grouprides";
 
 // @mui icons
 import Icon from "@mui/material/Icon";
@@ -89,6 +90,12 @@ const adminRoutes = (globalFunc) => {
       route: "/customer/:id",
       component: <CustomerDetails globalFunc={globalFunc} />,
     },
+    {
+      name: "Group Rides",
+      key: "grouprides",
+      route: "/grouprides",
+      component: <GroupRides />,
+    },
   ];
 };
 
@@ -116,13 +123,30 @@ const techRoutes = (globalFunc) => {
       route: "/repairs/:id",
       component: <RepairDetails globalFunc={globalFunc} />,
     },
+    {
+      name: "Group Rides",
+      key: "grouprides",
+      route: "/grouprides",
+      component: <GroupRides />,
+    },
   ];
 };
 
+const publicRoutes = () => {
+  return [
+    {
+      name: "Group Rides",
+      key: "grouprides",
+      route: "/grouprides",
+      component: <GroupRides />,
+    },
+  ];
+};
 const routes = (globalFunc) => {
   console.log(adminRoutes(globalFunc));
   if (globalFunc.user.isAdmin) return adminRoutes(globalFunc);
   if (globalFunc.user.isTech) return techRoutes(globalFunc);
+  return publicRoutes;
   /*
       {
     type: "collapse",
