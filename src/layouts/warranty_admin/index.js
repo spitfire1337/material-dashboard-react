@@ -48,7 +48,7 @@ import Step1 from "./components/step1";
 import Step2 from "./components/step2";
 
 // Data
-import authorsTableData from "layouts/tables/data/repairsDataTable";
+import authorsTableData from "layouts/tables/data/warrantyData";
 
 const style = {
   position: "absolute",
@@ -87,11 +87,13 @@ const iconsStyle = ({ palette: { dark, white, text }, functions: { rgba } }) => 
 const WarrantyAdmin = ({ globalFunc }) => {
   const classes = useStyles();
   const [newRepair, setNewRepair] = useState(false);
-  const [repairData, setRepairData] = useState({});
-  const [repairID, setrepairID] = useState(null);
-  const [showFilter, setShowFiler] = useState(false);
-  const [filterVal, setfilterVal] = useState();
-  const [filteKey, setfilterKey] = useState();
+  const [warrantyData, setWarrantyData] = useState({
+    pev: null,
+    serialNumber: null,
+    warrantyLengthBattery: null,
+    warrantyLengthOther: null,
+    warrantyStart: null,
+  });
 
   const useForm = (initialValues) => {
     const [values, setValues] = useState(initialValues);
@@ -107,37 +109,63 @@ const WarrantyAdmin = ({ globalFunc }) => {
   };
   const [repairStep, setRepairStep] = useState(1);
 
-  const updateRepairData = (val) => {
-    setRepairData({ ...val });
-  };
+  useEffect(() => {
+    console.log("Warranty data: ", warrantyData);
+  }, [warrantyData]);
+  const { columns, rows, reRender, setsearchTerm, searchterm } = authorsTableData(globalFunc);
 
-  const contIntake = (repair) => {
-    setrepairID(repair._id);
-    updateRepairData({ customer: repair.Customer._id, pev: repair.pev._id });
-    setNewRepair(true);
-    setRepairStep(3);
-  };
-
-  const { columns, rows, reRender, filter, resetFilter, repairs, setsearchTerm, searchterm } =
-    authorsTableData(globalFunc, contIntake);
-
-  const nextRepairStep = async (val, customer = null) => {
+  const nextRepairStep = async (val, data = null) => {
     if (val == 2) {
+      setWarrantyData({ pev: data });
       setRepairStep(2);
-      setRepairData({ Customer: customer });
     }
     if (val == 3) {
       //Show step 3
-      setRepairStep(3);
-    }
-    if (val == 4) {
-      //Show step 3
-      setRepairStep(4);
-    }
-    if (val == 5) {
-      reRender();
+      console.log(data.serialNumber);
+      let newWarrantyData = { ...warrantyData };
+      newWarrantyData.serialNumber = data.serialNumber;
+      newWarrantyData.warrantyStart = new Date(data.warrantyStart.$d).toLocaleDateString();
+      newWarrantyData.warrantyLengthBattery = data.warrantyLengthBattery;
+      newWarrantyData.warrantyLengthOther = data.warrantyLengthOther;
+      setWarrantyData(newWarrantyData);
       setNewRepair(false);
-      setRepairStep(0);
+      submitWarranty(newWarrantyData);
+    }
+  };
+
+  const submitWarranty = async (newWarrantyData) => {
+    const response = await fetch(`${vars.serverUrl}/warranty_admin/createWarranty`, {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(newWarrantyData),
+      credentials: "include",
+    });
+    const json = await response.json();
+    //setCustomerID(json.data.customer.id);
+    if (json.res == 200) {
+      setWarrantyData({
+        pev: null,
+        serialNumber: null,
+        warrantyLengthBattery: null,
+        warrantyLengthOther: null,
+        warrantyStart: null,
+      });
+      globalFunc.setSuccessSBText("Warranty details saved");
+      globalFunc.setSuccessSB(true);
+      reRender();
+    } else {
+      setWarrantyData({
+        pev: null,
+        serialNumber: null,
+        warrantyLengthBattery: null,
+        warrantyLengthOther: null,
+        warrantyStart: null,
+      });
+      globalFunc.setErrorSBText("Error occurred saving warranty details.");
+      globalFunc.setErrorSB(true);
     }
   };
 
@@ -189,13 +217,13 @@ const WarrantyAdmin = ({ globalFunc }) => {
                 </Grid>
               </MDBox>
               <MDBox pt={3}>
-                {/* <DataTable
+                <DataTable
                   entriesPerPage={10}
                   table={{ columns, rows }}
                   showTotalEntries={true}
                   noEndBorder
                   pagination
-                /> */}
+                />
               </MDBox>
             </Card>
           </Grid>
@@ -205,14 +233,15 @@ const WarrantyAdmin = ({ globalFunc }) => {
       <Modal
         open={newRepair}
         onClose={() => null}
-        // onClose={() => {
-        //   setNewRepair(false);
-        // }}
         aria-labelledby="modal-modal-title"
         aria-describedby="modal-modal-description"
       >
         <MDBox sx={style}>
-          <Step1 nextRepairStep={nextRepairStep} globalFunc={globalFunc}></Step1>
+          {repairStep == 0 ? (
+            <Step1 callback={nextRepairStep} globalFunc={globalFunc}></Step1>
+          ) : (
+            <Step2 callback={nextRepairStep} globalFunc={globalFunc}></Step2>
+          )}
           <MDButton
             sx={{ marginTop: "2px" }}
             fullWidth

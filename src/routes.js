@@ -96,8 +96,8 @@ const adminRoutes = (globalFunc) => {
       name: "Warranty Data",
       icon: <Icon fontSize="small">app_registration</Icon>,
       key: "grouprides",
-      route: "/admin_warranty",
-      component: <WarrantyAdmin />,
+      route: "/warranty_admin",
+      component: <WarrantyAdmin globalFunc={globalFunc} />,
     },
     {
       name: "Group Rides",
