@@ -127,6 +127,7 @@ const WarrantyAdmin = ({ globalFunc }) => {
       newWarrantyData.warrantyStart = new Date(data.warrantyStart.$d).toLocaleDateString();
       newWarrantyData.warrantyLengthBattery = data.warrantyLengthBattery;
       newWarrantyData.warrantyLengthOther = data.warrantyLengthOther;
+      newWarrantyData.startonpurchase = data.startonpurchase;
       setWarrantyData(newWarrantyData);
       setNewRepair(false);
       submitWarranty(newWarrantyData);
@@ -152,6 +153,7 @@ const WarrantyAdmin = ({ globalFunc }) => {
         warrantyLengthBattery: null,
         warrantyLengthOther: null,
         warrantyStart: null,
+        startonpurchase: false,
       });
       globalFunc.setSuccessSBText("Warranty details saved");
       globalFunc.setSuccessSB(true);
@@ -163,6 +165,7 @@ const WarrantyAdmin = ({ globalFunc }) => {
         warrantyLengthBattery: null,
         warrantyLengthOther: null,
         warrantyStart: null,
+        startonpurchase: false,
       });
       globalFunc.setErrorSBText("Error occurred saving warranty details.");
       globalFunc.setErrorSB(true);

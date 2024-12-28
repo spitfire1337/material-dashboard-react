@@ -403,7 +403,9 @@ export default function data(globalFunc, contIntake, filters) {
                   color="text"
                   fontWeight="medium"
                 >
-                  {moment(repair.warrantyStart).format("MM/DD/yyyy hh:mm a")}
+                  {!repair.startonpurchase
+                    ? moment(repair.warrantyStart).format("MM/DD/yyyy hh:mm a")
+                    : "Not started"}
                 </MDTypography>
               ),
               warrantyLengthBattery: (
@@ -414,9 +416,11 @@ export default function data(globalFunc, contIntake, filters) {
                   color="text"
                   fontWeight="medium"
                 >
-                  {moment(repair.warrantyStart)
-                    .add(repair.warrantyLengthBattery, "years")
-                    .format("MM/DD/yyyy hh:mm a")}
+                  {!repair.startonpurchase
+                    ? moment(repair.warrantyStart)
+                        .add(repair.warrantyLengthBattery, "years")
+                        .format("MM/DD/yyyy hh:mm a")
+                    : "-"}
                 </MDTypography>
               ),
               warrantyLengthOther: (
@@ -427,9 +431,11 @@ export default function data(globalFunc, contIntake, filters) {
                   color="text"
                   fontWeight="medium"
                 >
-                  {moment(repair.warrantyStart)
-                    .add(repair.warrantyLengthOther, "years")
-                    .format("MM/DD/yyyy hh:mm a")}
+                  {!repair.startonpurchase
+                    ? moment(repair.warrantyStart)
+                        .add(repair.warrantyLengthOther, "years")
+                        .format("MM/DD/yyyy hh:mm a")
+                    : "-"}
                 </MDTypography>
               ),
               customer:

@@ -93,11 +93,21 @@ const adminRoutes = (globalFunc) => {
     },
     {
       type: "collapse",
-      name: "Warranty Data",
+      name: "Warranty Admin",
       icon: <Icon fontSize="small">app_registration</Icon>,
-      key: "grouprides",
+      key: "Admin",
       route: "/warranty_admin",
+
       component: <WarrantyAdmin globalFunc={globalFunc} />,
+
+      collapse: [
+        {
+          name: "Warranty Data",
+          key: "warrantyAdmin",
+          route: "/warranty_admin",
+          component: <WarrantyAdmin globalFunc={globalFunc} />,
+        },
+      ],
     },
     {
       name: "Group Rides",

@@ -30,6 +30,7 @@ const step2 = ({ globalFunc, callback }) => {
     warrantyStart: dayjs(new Date()),
     warrantyLengthBattery: 0,
     warrantyLengthOther: 0,
+    startonpurchase: false,
   });
   const [paramCount, setparamCount] = useState({
     serialNumber: false,
@@ -106,6 +107,13 @@ const step2 = ({ globalFunc, callback }) => {
                     onChange={(date) => onChange(date, "warrantyStart")}
                   />
                 </LocalizationProvider>
+                <FormControlLabel
+                  control={<Checkbox />}
+                  label="Starts @ purchase"
+                  onChange={(e) => {
+                    onChange(e.target.checked, "startonpurchase");
+                  }}
+                />
               </FormControl>
             </Grid>
             <Grid item md={6} sm={12}>
@@ -118,6 +126,7 @@ const step2 = ({ globalFunc, callback }) => {
                   label="Battery Warranty"
                   onChange={(e) => onChange(e.target.value, "warrantyLengthBattery")}
                 >
+                  <MenuItem value={0.5}>.5 year</MenuItem>
                   <MenuItem value={1}>1 year</MenuItem>
                   <MenuItem value={1.5}>1.5 years</MenuItem>
                   <MenuItem value={2}>2 years</MenuItem>
