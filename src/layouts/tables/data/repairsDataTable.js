@@ -32,11 +32,15 @@ export default function data(globalFunc, contIntake, filters) {
   const [searchTerm, setsearchTerm] = useState(null);
   const [myFilters, setmyFilters] = useState({
     status: [0, 1, 2, 3, 4, 5],
-    RepairType: ["Tire Change", "Tube Change", "Power issue", "Mechanical Repair", "Other"],
+    RepairType: [
+      "Tire Change",
+      "Tube Change",
+      "Power issue",
+      "Mechanical Repair",
+      "Other",
+      undefined,
+    ],
   });
-  const defaultFilter = {
-    status: [0, 1, 2, 3, 4, 5],
-  };
   const fetchData = async (globalFunc) => {
     const response = await fetch(`${vars.serverUrl}/square/getMyData?action=getRepairs`, {
       credentials: "include",

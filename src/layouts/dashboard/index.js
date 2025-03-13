@@ -286,7 +286,7 @@ function Dashboard({ globalFunc }) {
             </MDBox>
           </Grid>
           <Grid item xs={12} md={4}>
-            <OrdersOverview />
+            <OrdersOverview globalFunc={globalFunc} />
           </Grid>
         </Grid>
         {/* <MDBox>
