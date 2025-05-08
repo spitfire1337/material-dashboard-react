@@ -51,7 +51,8 @@ import SignUp from "layouts/authentication/sign-up";
 import GroupRides from "layouts/grouprides";
 import WarrantyAdmin from "layouts/warranty_admin";
 import Inventory from "layouts/inventory";
-
+import InmotionItems from "layouts/inmotionItems";
+import PEVDatabase from "layouts/pevs";
 // @mui icons
 import Icon from "@mui/material/Icon";
 const adminRoutes = (globalFunc) => {
@@ -99,6 +100,22 @@ const adminRoutes = (globalFunc) => {
       key: "customers2",
       route: "/customer/:id",
       component: <CustomerDetails globalFunc={globalFunc} />,
+    },
+    {
+      type: "collapse",
+      name: "InMotion Dropship",
+      key: "imdrops",
+      route: "/inmotionDropShipping",
+      icon: <Icon fontSize="small">inventory_2</Icon>,
+      component: <InmotionItems globalFunc={globalFunc} />,
+    },
+    {
+      type: "collapse",
+      name: "PEV Database",
+      key: "pevs",
+      route: "/pevDB",
+      icon: <Icon fontSize="small">electric_scooter</Icon>,
+      component: <PEVDatabase globalFunc={globalFunc} />,
     },
     {
       type: "collapse",

@@ -4,6 +4,7 @@ import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 import MDButton from "components/MDButton";
 import {
+  Modal,
   FormControl,
   Select,
   MenuItem,
@@ -11,7 +12,6 @@ import {
   Autocomplete,
   TextField,
   Divider,
-  Modal,
   Grid,
   FormControlLabel,
   FormGroup,
@@ -20,8 +20,9 @@ import {
 } from "@mui/material";
 
 import vars from "../../../config";
+import { RFC_2822 } from "moment";
 
-const step2 = ({ globalFunc, repairData, updateRepairData, setrepairID, nextRepairStep }) => {
+const step1 = ({ globalFunc, repairData, callback }) => {
   const [pevSelection, setPEVSelection] = useState([]);
   const [allowContinue, setAllowContinue] = useState(false);
   const [pevBrand, setPEVBrand] = useState([]);
@@ -30,6 +31,8 @@ const step2 = ({ globalFunc, repairData, updateRepairData, setrepairID, nextRepa
   const [newPev, setNewPev] = useState({ Brand: { name: "" }, Model: "", PevType: "EUC" });
   const [brands, setBrands] = useState([]);
   const [models, setModels] = useState([]);
+  const [pevID, setPevID] = useState();
+
   const useForm = (initialValues) => {
     const [values, setValues] = useState(initialValues);
     return [
@@ -120,39 +123,11 @@ const step2 = ({ globalFunc, repairData, updateRepairData, setrepairID, nextRepa
     setNewPev({ ...value });
   };
 
-  const createRepair = async (pev) => {
-    try {
-      const response = await fetch(`${vars.serverUrl}/repairs/createRepair`, {
-        method: "POST",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(pev),
-        credentials: "include",
-      });
-      const json = await response.json();
-      //setCustomerID(json.data.customer.id);
-      if (json.res == 200) {
-        setrepairID(json.data._id);
-        nextRepairStep(3);
-      } else {
-        globalFunc.setErrorSBText("Error occurred saving repair progress.");
-        globalFunc.setErrorSB(true);
-      }
-    } catch (e) {
-      console.error(e);
-      globalFunc.setErrorSBText("Error occurred saving repair progress.");
-      globalFunc.setErrorSB(true);
-      // TODO: Add error notification
-    }
-  };
-
   const processPevData = async () => {
     if (newPev.Brand._id == 0) {
       //First we must create the new brand and return the ID
       try {
-        const response = await fetch(`${vars.serverUrl}/repairs/createBrand`, {
+        const response = await fetch(`${vars.serverUrl}/warranty_admin/createBrand`, {
           method: "POST",
           headers: {
             Accept: "application/json",
@@ -167,7 +142,7 @@ const step2 = ({ globalFunc, repairData, updateRepairData, setrepairID, nextRepa
           let newData = { ...newPev };
           newData.Brand._id = json.data;
           setNewPev(newData);
-          let newpevresp = await fetch(`${vars.serverUrl}/repairs/createPEV`, {
+          let newpevresp = await fetch(`${vars.serverUrl}/warranty_admin/createPEV`, {
             method: "POST",
             headers: {
               Accept: "application/json",
@@ -180,9 +155,8 @@ const step2 = ({ globalFunc, repairData, updateRepairData, setrepairID, nextRepa
           if (pevjson.res == 200) {
             globalFunc.setSuccessSBText("New PEV Added to database");
             globalFunc.setSuccessSB(true);
-            let newRepairData = { ...repairData };
-            newRepairData.pev = pevjson.data._id;
-            createRepair(newRepairData);
+            //PASS TO PARENT
+            callback(2, pevjson.data._id);
           } else {
             globalFunc.setErrorSBText("An error occured while saving data, please try again");
             globalFunc.setErrorSB(true);
@@ -198,10 +172,9 @@ const step2 = ({ globalFunc, repairData, updateRepairData, setrepairID, nextRepa
       }
     } else if (pevBrand == 1) {
       //
-      let newRepairData = { ...repairData };
       let newData = { ...newPev };
       newData.Brand._id = newPev.Brand._id;
-      let newpevresp = await fetch(`${vars.serverUrl}/repairs/createPEV`, {
+      let newpevresp = await fetch(`${vars.serverUrl}/warranty_admin/createPEV`, {
         method: "POST",
         headers: {
           Accept: "application/json",
@@ -214,18 +187,13 @@ const step2 = ({ globalFunc, repairData, updateRepairData, setrepairID, nextRepa
       if (pevjson.res == 200) {
         globalFunc.setSuccessSBText("New PEV Added to database");
         globalFunc.setSuccessSB(true);
-        let newRepairData = { ...repairData };
-        newRepairData.pev = pevjson.data._id;
-        createRepair(newRepairData);
+        callback(2, pevjson.data._id);
       } else {
         globalFunc.setErrorSBText("An error occured while saving data, please try again");
         globalFunc.setErrorSB(true);
       }
     } else {
-      let newRepairData = { ...repairData };
-      newRepairData.pev = pevBrand;
-      console.log(newRepairData);
-      createRepair(newRepairData);
+      callback(2, pevBrand);
     }
   };
   return (
@@ -302,16 +270,6 @@ const step2 = ({ globalFunc, repairData, updateRepairData, setrepairID, nextRepa
                         newPevData(newData);
                       }}
                     >
-                      {/* <Select
-                      value={newPev.PevType}
-                      label="PEV Type"
-                      onChange={(e) => {
-                        let newData = { ...newPev };
-                        newData.PevType = e.target.value;
-                        newPevData(newData);
-                      }}
-                    > */}
-                      <option></option>
                       <option value="EUC">EUC</option>
                       <option value="Scooter">Scooter</option>
                       <option value="OneWheel">OneWheel</option>
@@ -448,114 +406,6 @@ const step2 = ({ globalFunc, repairData, updateRepairData, setrepairID, nextRepa
                     />
                   </FormGroup>
                 </Grid>
-                {/*<Grid item sm={12}>
-                  <TextField
-                    label="Address line 1"
-                    fullWidth
-                    value={
-                      selectedcustomer.address != undefined
-                        ? selectedcustomer.address.address_line_1
-                        : ""
-                    }
-                    onChange={(e) => {
-                      selectedcustomer.address == undefined
-                        ? (selectedcustomer.address = {})
-                        : null;
-                      selectedcustomer.address.address_line_1 = e.target.value;
-                      updateCustomer(selectedcustomer);
-                    }}
-                  />
-                </Grid>
-                <Grid item sm={12}>
-                  <TextField
-                    label="Address line 2"
-                    fullWidth
-                    value={
-                      selectedcustomer.address != undefined &&
-                      selectedcustomer.address.address_line_2 != undefined
-                        ? selectedcustomer.address.address_line_2
-                        : ""
-                    }
-                    onChange={(e) => {
-                      selectedcustomer.address == undefined
-                        ? (selectedcustomer.address = {})
-                        : null;
-                      selectedcustomer.address.address_line_2 = e.target.value;
-                      updateCustomer(selectedcustomer);
-                    }}
-                  />
-                </Grid>
-                <Grid item sm={12}>
-                  <TextField
-                    label="Address line 3"
-                    fullWidth
-                    value={
-                      selectedcustomer.address != undefined &&
-                      selectedcustomer.address.address_line_3 != undefined
-                        ? selectedcustomer.address.address_line_3
-                        : ""
-                    }
-                    onChange={(e) => {
-                      selectedcustomer.address == undefined
-                        ? (selectedcustomer.address = {})
-                        : null;
-                      selectedcustomer.address.address_line_3 = e.target.value;
-                      updateCustomer(selectedcustomer);
-                    }}
-                  />
-                </Grid>
-                <Grid item sm={12} md={6}>
-                  <TextField
-                    label="City"
-                    fullWidth
-                    value={
-                      selectedcustomer.address != undefined ? selectedcustomer.address.locality : ""
-                    }
-                    onChange={(e) => {
-                      selectedcustomer.address == undefined
-                        ? (selectedcustomer.address = {})
-                        : null;
-                      selectedcustomer.address.locality = e.target.value;
-                      updateCustomer(selectedcustomer);
-                    }}
-                  />
-                </Grid>
-                <Grid item sm={12} md={3}>
-                  <TextField
-                    label="State"
-                    fullWidth
-                    value={
-                      selectedcustomer.address != undefined
-                        ? selectedcustomer.address.administrative_district_level_1
-                        : ""
-                    }
-                    onChange={(e) => {
-                      selectedcustomer.address == undefined
-                        ? (selectedcustomer.address = {})
-                        : null;
-                      selectedcustomer.address.administrative_district_level_1 = e.target.value;
-                      updateCustomer(selectedcustomer);
-                    }}
-                  />
-                </Grid>
-                <Grid item sm={12} md={3}>
-                  <TextField
-                    label="Zip"
-                    fullWidth
-                    value={
-                      selectedcustomer.address != undefined
-                        ? selectedcustomer.address.postal_code
-                        : ""
-                    }
-                    onChange={(e) => {
-                      selectedcustomer.address == undefined
-                        ? (selectedcustomer.address = {})
-                        : null;
-                      selectedcustomer.address.postal_code = e.target.value;
-                      updateCustomer(selectedcustomer);
-                    }}
-                  />
-                </Grid> */}
               </>
             ) : null}
             <Grid item sm={12}>
@@ -575,4 +425,4 @@ const step2 = ({ globalFunc, repairData, updateRepairData, setrepairID, nextRepa
     </>
   );
 };
-export default step2;
+export default step1;

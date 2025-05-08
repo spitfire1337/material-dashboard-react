@@ -64,11 +64,9 @@ const step1 = ({ globalFunc, nextRepairStep }) => {
           let custList = [];
           useableCustomers.map((cust) => {
             custList.push({
-              label: `${
-                cust.given_name != undefined && cust.family_name != undefined
-                  ? `${cust.given_name} ${cust.family_name}`
-                  : ""
-              } ${cust.email_address != undefined ? ` | ${cust.email_address}` : ""} ${
+              label: `${cust.given_name != undefined ? `${cust.given_name} ` : ""}
+                ${cust.family_name != undefined ? `${cust.family_name}` : ""}
+             ${cust.email_address != undefined ? ` | ${cust.email_address}` : ""} ${
                 cust.phone_number != undefined ? ` | ${cust.phone_number}` : ""
               }`,
               id: cust.id,

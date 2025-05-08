@@ -107,6 +107,8 @@ const RepairDetails = ({ globalFunc }) => {
   const { setShowLoad, LoadBox } = Loading();
   const getRepair = async () => {
     setShowLoad(true);
+    createInvoice();
+    setRepairOrderReady(false);
     const response = await fetch(`${vars.serverUrl}/repairs/repairDetails`, {
       method: "POST",
       headers: {
