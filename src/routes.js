@@ -42,7 +42,7 @@ import Repairs from "layouts/repairs";
 import Customers from "layouts/customers";
 import RepairDetails from "layouts/repairDetails";
 import CustomerDetails from "layouts/customerDetails";
-import Billing from "layouts/billing";
+import Appointments from "layouts/appointments";
 import RTL from "layouts/rtl";
 import Notifications from "layouts/notifications";
 import Profile from "layouts/profile";
@@ -72,6 +72,14 @@ const adminRoutes = (globalFunc) => {
       icon: <Icon fontSize="small">assignment</Icon>,
       route: "/repairs",
       component: <Repairs globalFunc={globalFunc} />,
+    },
+    {
+      type: "collapse",
+      name: "Appointments",
+      key: "appointments",
+      icon: <Icon fontSize="small">calendar</Icon>,
+      route: "/appointments",
+      component: <Appointments globalFunc={globalFunc} />,
     },
     {
       type: "collapse",
