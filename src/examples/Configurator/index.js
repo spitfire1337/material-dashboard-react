@@ -30,23 +30,27 @@ import Notification from "components/Notifications";
 // @mui icons
 import TwitterIcon from "@mui/icons-material/Twitter";
 import FacebookIcon from "@mui/icons-material/Facebook";
-
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { renderTimeViewClock } from "@mui/x-date-pickers/timeViewRenderers";
 // Material Dashboard 2 React components
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 import MDButton from "components/MDButton";
+import TimePicker from "react-time-picker";
 import {
   Modal,
-  FormControl,
-  Select,
-  MenuItem,
+  FormGroup,
+  FormControlLabel,
+  Checkbox,
   InputLabel,
   Autocomplete,
   TextField,
+  Grid,
 } from "@mui/material";
 // Custom styles for the Configurator
 import ConfiguratorRoot from "examples/Configurator/ConfiguratorRoot";
-
+import moment from "moment";
 // Material Dashboard 2 React context
 import {
   useMaterialUIController,
@@ -57,7 +61,14 @@ import {
   setSidenavColor,
   setDarkMode,
 } from "context";
-
+import "react-time-picker/dist/TimePicker.css";
+import "react-clock/dist/Clock.css";
+const TPStyle = {
+  input: { fontSize: "0.7rem", paddingRight: "1px", width: "90%" },
+  "& .MuiSvgIcon-root": {
+    color: "white",
+  },
+};
 // eslint-disable-next-line react/prop-types
 function Configurator({ globalFunc }) {
   const [controller, dispatch] = useMaterialUIController();
@@ -73,7 +84,8 @@ function Configurator({ globalFunc }) {
   const [availablePrinters, setAvailablePrinters] = useState([]);
   const [eightXelevenPrinter, seteightXelevenPrinter] = useState();
   const [twoXonePrinter, settwoXonePrinter] = useState();
-
+  const [businessHours, setBusinessHours] = useState([]);
+  const [myAvailability, setMyAvailabilty] = useState([]);
   const sidenavColors = ["primary", "dark", "info", "success", "warning", "error"];
 
   const { showSnackBar, RenderSnackbar } = Notification();
@@ -105,7 +117,33 @@ function Configurator({ globalFunc }) {
         settwoXonePrinter(printerres.data.twoxone.printerName);
       }
     };
+    const fetchBusinessHours = async () => {
+      const response = await fetch(`${vars.serverUrl}/settings/getBusinesshours`, {
+        credentials: "include",
+      });
+      const res = await response.json();
+      if (res.res === 200) {
+        setBusinessHours(res.data);
+      } else if (res.res === 401) {
+        globalFunc.setLoggedIn(false);
+        showSnackBar("error", "Unauthorized");
+      }
+    };
+    const fetchMyAvailability = async () => {
+      const response = await fetch(`${vars.serverUrl}/settings/getMyAvailability`, {
+        credentials: "include",
+      });
+      const res = await response.json();
+      if (res.res === 200) {
+        setMyAvailabilty(res.data);
+      } else if (res.res === 401) {
+        globalFunc.setLoggedIn(false);
+        showSnackBar("error", "Unauthorized");
+      }
+    };
+    fetchMyAvailability();
     fetchPrinters();
+    fetchBusinessHours();
     // A function that sets the disabled state of the buttons for the sidenav type.
     function handleDisabled() {
       return window.innerWidth > 1200 ? setDisabled(false) : setDisabled(true);
@@ -162,24 +200,97 @@ function Configurator({ globalFunc }) {
     return item || {};
   };
 
+  const updateBusinessHours = async (day, start, end, closed) => {
+    let updatedHours = [...businessHours];
+    let hours = updatedHours.find((h) => h.day === day);
+    //First remove old hours for the day
+    //
+    //Then add the new hours
+    if (hours) {
+      hours.hours.start = closed ? null : start;
+      hours.hours.end = closed ? null : end;
+      hours.closed = closed || false;
+      updatedHours = updatedHours.filter((h) => h.day !== day);
+      updatedHours.push(hours);
+      setBusinessHours(updatedHours);
+      console.log("Updated business hours:", businessHours);
+    } else {
+      // If no hours exist for the day, create a new entry
+      updatedHours.push({
+        day: day,
+        hours: {
+          start: closed ? null : start,
+          end: closed ? null : end,
+        },
+        closed: closed || false,
+      });
+      setBusinessHours(updatedHours);
+      console.log("Updated business hours:", businessHours);
+    }
+  };
+
   const savePrinters = async () => {
-    const response = await fetch(`${vars.serverUrl}/settings/SetPrinters`, {
+    const response = await fetch(`${vars.serverUrl}/settings/saveConfig`, {
       method: "post",
       headers: {
         Accept: "application/json",
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ eight: eightXelevenPrinter, two: twoXonePrinter }),
+      body: JSON.stringify({
+        eight: eightXelevenPrinter,
+        two: twoXonePrinter,
+        businessHours: businessHours,
+      }),
       credentials: "include",
     });
     const res = await response.json();
     if (res.res == 200) {
-      showSnackBar("success", "Printer config saved");
+      showSnackBar("success", "Config saved");
       return null;
     } else if (res.res == 401) {
       globalFunc.setLoggedIn(false);
       showSnackBar("error", "Unauthorized");
     }
+  };
+
+  const saveAvailability = async () => {
+    const response = await fetch(`${vars.serverUrl}/settings/setMyAvailability`, {
+      method: "post",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        availability: myAvailability,
+      }),
+      credentials: "include",
+    });
+    const res = await response.json();
+    if (res.res == 200) {
+      showSnackBar("success", "Availability saved");
+      return null;
+    } else if (res.res == 401) {
+      globalFunc.setLoggedIn(false);
+      showSnackBar("error", "Unauthorized");
+    }
+  };
+
+  const updateMyAvailability = async (day, checked) => {
+    const newAvailability = [...myAvailability];
+    if (checked) {
+      // If checked, add the day to availability
+      if (!newAvailability.includes(day)) {
+        newAvailability.push(day);
+      }
+    } else {
+      // If unchecked, remove the day from availability
+      const index = newAvailability.indexOf(day);
+      if (index > -1) {
+        newAvailability.splice(index, 1);
+      }
+    }
+    setMyAvailabilty(newAvailability);
+    console.log("Updated my availability:", newAvailability);
   };
 
   // sidenav type active button styles
@@ -228,10 +339,464 @@ function Configurator({ globalFunc }) {
           close
         </Icon>
       </MDBox>
-
+      <Divider />
+      <MDBox pt={0.5} pb={3} px={3}>
+        <MDBox>
+          <MDTypography variant="h6">My Availability</MDTypography>
+          <MDTypography variant="caption">For appointment scheduling</MDTypography>
+          <FormControlLabel
+            control={
+              <Checkbox checked={myAvailability.find((x) => x == "Sunday") ? true : false} />
+            }
+            onChange={(e) => {
+              updateMyAvailability("Sunday", e.target.checked);
+            }}
+            label="Sunday"
+          />
+          <FormControlLabel
+            control={
+              <Checkbox checked={myAvailability.find((x) => x == "Monday") ? true : false} />
+            }
+            onChange={(e) => {
+              updateMyAvailability("Monday", e.target.checked);
+            }}
+            label="Monday"
+          />
+          <FormControlLabel
+            control={
+              <Checkbox checked={myAvailability.find((x) => x == "Tuesday") ? true : false} />
+            }
+            onChange={(e) => {
+              updateMyAvailability("Tuesday", e.target.checked);
+            }}
+            label="Tuesday"
+          />
+          <FormControlLabel
+            control={
+              <Checkbox checked={myAvailability.find((x) => x == "Wednesday") ? true : false} />
+            }
+            onChange={(e) => {
+              updateMyAvailability("Wednesday", e.target.checked);
+            }}
+            label="Wednesday"
+          />
+          <FormControlLabel
+            control={
+              <Checkbox checked={myAvailability.find((x) => x == "Thursday") ? true : false} />
+            }
+            onChange={(e) => {
+              updateMyAvailability("Thursday", e.target.checked);
+            }}
+            label="Thursday"
+          />
+          <FormControlLabel
+            control={
+              <Checkbox checked={myAvailability.find((x) => x == "Friday") ? true : false} />
+            }
+            onChange={(e) => {
+              updateMyAvailability("Friday", e.target.checked);
+            }}
+            label="Friday"
+          />
+          <FormControlLabel
+            control={
+              <Checkbox checked={myAvailability.find((x) => x == "Saturday") ? true : false} />
+            }
+            onChange={(e) => {
+              updateMyAvailability("Saturday", e.target.checked);
+            }}
+            label="Saturday"
+          />
+        </MDBox>
+        <MDBox mb={2}>
+          <MDButton
+            fullWidth
+            variant="outlined"
+            color="primary"
+            onClick={() => {
+              saveAvailability();
+            }}
+          >
+            Save availability
+          </MDButton>
+        </MDBox>
+      </MDBox>
       <Divider />
 
       <MDBox pt={0.5} pb={3} px={3}>
+        <MDBox>
+          <MDTypography variant="h6">Business hours</MDTypography>
+          <LocalizationProvider dateAdapter={AdapterDayjs}>
+            <MDBox mb={2} mt={2}>
+              <Grid container spacing={1}>
+                <Grid item xs={2}>
+                  <MDTypography variant="caption">Sun</MDTypography>
+                </Grid>
+                <Grid item xs={4}>
+                  <input
+                    aria-label="Time"
+                    type="time"
+                    label="Open"
+                    onChange={(e) => {
+                      console.log("New value for Sunday start:", e.target.value);
+                      updateBusinessHours(
+                        "Sunday",
+                        e.target.value,
+                        businessHours.find((x) => x.day == "Sunday")?.hours.end,
+                        businessHours.find((x) => x.day == "Sunday")?.closed
+                      );
+                    }}
+                    value={businessHours.find((x) => x.day == "Sunday")?.hours.start || "00:00"}
+                  />
+                </Grid>
+                <Grid item xs={4}>
+                  <input
+                    aria-label="Time"
+                    type="time"
+                    label="Open"
+                    onChange={(e) => {
+                      console.log("New value for Sunday end:", e.target.value);
+                      updateBusinessHours(
+                        "Sunday",
+                        businessHours.find((x) => x.day == "Sunday")?.hours.start,
+                        e.target.value,
+                        businessHours.find((x) => x.day == "Sunday")?.closed
+                      );
+                    }}
+                    value={businessHours.find((x) => x.day == "Sunday")?.hours.end || "00:00"}
+                  />
+                </Grid>
+                <Grid item xs={2}>
+                  <FormGroup>
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={businessHours.find((x) => x.day == "Sunday")?.closed || false}
+                        />
+                      }
+                      onChange={(e) => {
+                        updateBusinessHours("Sunday", null, null, e.target.checked);
+                      }}
+                      label="Closed"
+                    />
+                  </FormGroup>
+                </Grid>
+                <Grid item xs={2}>
+                  <MDTypography variant="caption">Mon</MDTypography>
+                </Grid>
+                <Grid item xs={4}>
+                  <input
+                    aria-label="Time"
+                    type="time"
+                    label="Open"
+                    onChange={(e) => {
+                      console.log("New value for Monday start:", e.target.value);
+                      updateBusinessHours(
+                        "Monday",
+                        e.target.value,
+                        businessHours.find((x) => x.day == "Monday")?.hours.end,
+                        businessHours.find((x) => x.day == "Monday")?.closed
+                      );
+                    }}
+                    value={businessHours.find((x) => x.day == "Monday")?.hours.start || "00:00"}
+                  />
+                </Grid>
+                <Grid item xs={4}>
+                  <input
+                    aria-label="Time"
+                    type="time"
+                    label="Open"
+                    onChange={(e) => {
+                      console.log("New value for Monday end:", e.target.value);
+                      updateBusinessHours(
+                        "Monday",
+                        businessHours.find((x) => x.day == "Monday")?.hours.start,
+                        e.target.value,
+                        businessHours.find((x) => x.day == "Monday")?.closed
+                      );
+                    }}
+                    value={businessHours.find((x) => x.day == "Monday")?.hours.end || "00:00"}
+                  />
+                </Grid>
+                <Grid item xs={2}>
+                  <FormGroup>
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={businessHours.find((x) => x.day == "Monday")?.closed || false}
+                        />
+                      }
+                      onChange={(e) => {
+                        updateBusinessHours("Monday", null, null, e.target.checked);
+                      }}
+                      label="Closed"
+                    />
+                  </FormGroup>
+                </Grid>
+                <Grid item xs={2}>
+                  <MDTypography variant="caption">Tues</MDTypography>
+                </Grid>
+                <Grid item xs={4}>
+                  <input
+                    aria-label="Time"
+                    type="time"
+                    label="Open"
+                    onChange={(e) => {
+                      console.log("New value for Tuesday start:", e.target.value);
+                      updateBusinessHours(
+                        "Tuesday",
+                        e.target.value,
+                        businessHours.find((x) => x.day == "Tuesday")?.hours.end,
+                        businessHours.find((x) => x.day == "Tuesday")?.closed
+                      );
+                    }}
+                    value={businessHours.find((x) => x.day == "Tuesday")?.hours.start || "00:00"}
+                  />
+                </Grid>
+                <Grid item xs={4}>
+                  <input
+                    aria-label="Time"
+                    type="time"
+                    label="Open"
+                    onChange={(e) => {
+                      console.log("New value for Tuesday end:", e.target.value);
+                      updateBusinessHours(
+                        "Tuesday",
+                        businessHours.find((x) => x.day == "Tuesday")?.hours.start,
+                        e.target.value,
+                        businessHours.find((x) => x.day == "Tuesday")?.closed
+                      );
+                    }}
+                    value={businessHours.find((x) => x.day == "Tuesday")?.hours.end || "00:00"}
+                  />
+                </Grid>
+                <Grid item xs={2}>
+                  <FormGroup>
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={businessHours.find((x) => x.day == "Tuesday")?.closed || false}
+                        />
+                      }
+                      onChange={(e) => {
+                        updateBusinessHours("Tuesday", null, null, e.target.checked);
+                      }}
+                      label="Closed"
+                    />
+                  </FormGroup>
+                </Grid>
+                <Grid item xs={2}>
+                  <MDTypography variant="caption">Wend</MDTypography>
+                </Grid>
+                <Grid item xs={4}>
+                  <input
+                    aria-label="Time"
+                    type="time"
+                    label="Open"
+                    onChange={(e) => {
+                      console.log("New value for Wednesday start:", e.target.value);
+                      updateBusinessHours(
+                        "Wednesday",
+                        e.target.value,
+                        businessHours.find((x) => x.day == "Wednesday")?.hours.end,
+                        businessHours.find((x) => x.day == "Wednesday")?.closed
+                      );
+                    }}
+                    value={businessHours.find((x) => x.day == "Wednesday")?.hours.start || "00:00"}
+                  />
+                </Grid>
+                <Grid item xs={4}>
+                  <input
+                    aria-label="Time"
+                    type="time"
+                    label="Open"
+                    onChange={(e) => {
+                      console.log("New value for Wednesday end:", e.target.value);
+                      updateBusinessHours(
+                        "Wednesday",
+                        businessHours.find((x) => x.day == "Wednesday")?.hours.start,
+                        e.target.value,
+                        businessHours.find((x) => x.day == "Wednesday")?.closed
+                      );
+                    }}
+                    value={businessHours.find((x) => x.day == "Wednesday")?.hours.end || "00:00"}
+                  />
+                </Grid>
+                <Grid item xs={2}>
+                  <FormGroup>
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={businessHours.find((x) => x.day == "Wednesday")?.closed || false}
+                        />
+                      }
+                      onChange={(e) => {
+                        updateBusinessHours("Wednesday", null, null, e.target.checked);
+                      }}
+                      label="Closed"
+                    />
+                  </FormGroup>
+                </Grid>
+                <Grid item xs={2}>
+                  <MDTypography variant="caption">Thurs</MDTypography>
+                </Grid>
+                <Grid item xs={4}>
+                  <input
+                    aria-label="Time"
+                    type="time"
+                    label="Open"
+                    onChange={(e) => {
+                      console.log("New value for Thursday start:", e.target.value);
+                      updateBusinessHours(
+                        "Thursday",
+                        e.target.value,
+                        businessHours.find((x) => x.day == "Thursday")?.hours.end,
+                        businessHours.find((x) => x.day == "Thursday")?.closed
+                      );
+                    }}
+                    value={businessHours.find((x) => x.day == "Thursday")?.hours.start || "00:00"}
+                  />
+                </Grid>
+                <Grid item xs={4}>
+                  <input
+                    aria-label="Time"
+                    type="time"
+                    label="Open"
+                    onChange={(e) => {
+                      console.log("New value for Thursday end:", e.target.value);
+                      updateBusinessHours(
+                        "Thursday",
+                        businessHours.find((x) => x.day == "Thursday")?.hours.start,
+                        e.target.value,
+                        businessHours.find((x) => x.day == "Thursday")?.closed
+                      );
+                    }}
+                    value={businessHours.find((x) => x.day == "Thursday")?.hours.end || "00:00"}
+                  />
+                </Grid>
+                <Grid item xs={2}>
+                  <FormGroup>
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={businessHours.find((x) => x.day == "Thursday")?.closed || false}
+                        />
+                      }
+                      onChange={(e) => {
+                        updateBusinessHours("Thursday", null, null, e.target.checked);
+                      }}
+                      label="Closed"
+                    />
+                  </FormGroup>
+                </Grid>
+                <Grid item xs={2}>
+                  <MDTypography variant="caption">Fri</MDTypography>
+                </Grid>
+                <Grid item xs={4}>
+                  <input
+                    aria-label="Time"
+                    type="time"
+                    label="Open"
+                    onChange={(e) => {
+                      console.log("New value for Friday start:", e.target.value);
+                      updateBusinessHours(
+                        "Friday",
+                        e.target.value,
+                        businessHours.find((x) => x.day == "Friday")?.hours.end,
+                        businessHours.find((x) => x.day == "Friday")?.closed
+                      );
+                    }}
+                    value={businessHours.find((x) => x.day == "Friday")?.hours.start || "00:00"}
+                  />
+                </Grid>
+                <Grid item xs={4}>
+                  <input
+                    aria-label="Time"
+                    type="time"
+                    label="Open"
+                    onChange={(e) => {
+                      console.log("New value for Friday end:", e.target.value);
+                      updateBusinessHours(
+                        "Friday",
+                        businessHours.find((x) => x.day == "Friday")?.hours.start,
+                        e.target.value,
+                        businessHours.find((x) => x.day == "Friday")?.closed
+                      );
+                    }}
+                    value={businessHours.find((x) => x.day == "Friday")?.hours.end || "00:00"}
+                  />
+                </Grid>
+                <Grid item xs={2}>
+                  <FormGroup>
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={businessHours.find((x) => x.day == "Friday")?.closed || false}
+                        />
+                      }
+                      onChange={(e) => {
+                        updateBusinessHours("Friday", null, null, e.target.checked);
+                      }}
+                      label="Closed"
+                    />
+                  </FormGroup>
+                </Grid>
+                <Grid item xs={2}>
+                  <MDTypography variant="caption">Sat</MDTypography>
+                </Grid>
+                <Grid item xs={4}>
+                  <input
+                    aria-label="Time"
+                    type="time"
+                    label="Open"
+                    onChange={(e) => {
+                      console.log("New value for Saturday start:", e.target.value);
+                      updateBusinessHours(
+                        "Saturday",
+                        e.target.value,
+                        businessHours.find((x) => x.day == "Saturday")?.hours.end,
+                        businessHours.find((x) => x.day == "Saturday")?.closed
+                      );
+                    }}
+                    value={businessHours.find((x) => x.day == "Saturday")?.hours.start || "00:00"}
+                  />
+                </Grid>
+                <Grid item xs={4}>
+                  <input
+                    aria-label="Time"
+                    type="time"
+                    label="Open"
+                    onChange={(e) => {
+                      console.log("New value for Saturday end:", e.target.value);
+                      updateBusinessHours(
+                        "Saturday",
+                        businessHours.find((x) => x.day == "Saturday")?.hours.start,
+                        e.target.value,
+                        businessHours.find((x) => x.day == "Saturday")?.closed
+                      );
+                    }}
+                    value={businessHours.find((x) => x.day == "Saturday")?.hours.end || "00:00"}
+                  />
+                </Grid>
+                <Grid item xs={2}>
+                  <FormGroup>
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={businessHours.find((x) => x.day == "Saturday")?.closed || false}
+                        />
+                      }
+                      onChange={(e) => {
+                        updateBusinessHours("Saturday", null, null, e.target.checked);
+                      }}
+                      label="Closed"
+                    />
+                  </FormGroup>
+                </Grid>
+              </Grid>
+            </MDBox>
+          </LocalizationProvider>
+        </MDBox>
         <MDBox>
           <MDTypography variant="h6">Printers</MDTypography>
 
