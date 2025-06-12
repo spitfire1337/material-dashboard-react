@@ -1,10 +1,10 @@
 /**
 =========================================================
-* Material Dashboard 2 React - v2.2.0
+* Material Dashboard 3 PRO React - v2.4.0
 =========================================================
 
-* Product Page: https://www.creative-tim.com/product/material-dashboard-react
-* Copyright 2023 Creative Tim (https://www.creative-tim.com)
+* Product Page: https://www.creative-tim.com/product/material-dashboard-pro-react
+* Copyright 2024 Creative Tim (https://www.creative-tim.com)
 
 Coded by www.creative-tim.com
 
@@ -21,9 +21,9 @@ export default styled(Drawer)(({ theme, ownerState }) => {
   const { palette, boxShadows, transitions, breakpoints, functions } = theme;
   const { transparentSidenav, whiteSidenav, miniSidenav, darkMode } = ownerState;
 
-  const sidebarWidth = 250;
-  const { transparent, gradients, white, background } = palette;
-  const { xxl } = boxShadows;
+  const sidebarWidth = 222;
+  const { transparent, gradients, white, background, grey } = palette;
+  const { xs } = boxShadows;
   const { pxToRem, linearGradient } = functions;
 
   let backgroundValue = darkMode
@@ -38,6 +38,8 @@ export default styled(Drawer)(({ theme, ownerState }) => {
 
   // styles for the sidenav when miniSidenav={false}
   const drawerOpenStyles = () => ({
+    margin: "8px",
+    borderRadius: "8px",
     background: backgroundValue,
     transform: "translateX(0)",
     transition: transitions.create("transform", {
@@ -46,7 +48,7 @@ export default styled(Drawer)(({ theme, ownerState }) => {
     }),
 
     [breakpoints.up("xl")]: {
-      boxShadow: transparentSidenav ? "none" : xxl,
+      boxShadow: transparentSidenav ? "none" : xs,
       marginBottom: transparentSidenav ? 0 : "inherit",
       left: "0",
       width: sidebarWidth,
@@ -68,7 +70,7 @@ export default styled(Drawer)(({ theme, ownerState }) => {
     }),
 
     [breakpoints.up("xl")]: {
-      boxShadow: transparentSidenav ? "none" : xxl,
+      boxShadow: transparentSidenav ? "none" : xs,
       marginBottom: transparentSidenav ? 0 : "inherit",
       left: "0",
       width: pxToRem(96),
@@ -83,8 +85,8 @@ export default styled(Drawer)(({ theme, ownerState }) => {
 
   return {
     "& .MuiDrawer-paper": {
-      boxShadow: xxl,
-      border: "none",
+      boxShadow: xs,
+      border: transparentSidenav ? "none" : `1px solid ${darkMode ? grey[800] : grey[200]}`,
 
       ...(miniSidenav ? drawerCloseStyles() : drawerOpenStyles()),
     },

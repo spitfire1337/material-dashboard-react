@@ -1,10 +1,10 @@
 /**
 =========================================================
-* Material Dashboard 2 React - v2.2.0
+* Material Dashboard 3 PRO React - v2.4.0
 =========================================================
 
-* Product Page: https://www.creative-tim.com/product/material-dashboard-react
-* Copyright 2023 Creative Tim (https://www.creative-tim.com)
+* Product Page: https://www.creative-tim.com/product/material-dashboard-pro-react
+* Copyright 2024 Creative Tim (https://www.creative-tim.com)
 
 Coded by www.creative-tim.com
 
@@ -20,7 +20,7 @@ export default function sidenavLogoLabel(theme, ownerState) {
   const { fontWeightMedium } = typography;
 
   return {
-    ml: 0.5,
+    ml: 2,
     fontWeight: fontWeightMedium,
     wordSpacing: pxToRem(-1),
     transition: transitions.create("opacity", {

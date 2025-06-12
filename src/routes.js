@@ -59,6 +59,7 @@ const adminRoutes = (globalFunc) => {
   return [
     {
       type: "collapse",
+      noCollapse: true,
       name: "Dashboard",
       key: "dashboard",
       icon: <Icon fontSize="small">dashboard</Icon>,
@@ -68,6 +69,7 @@ const adminRoutes = (globalFunc) => {
     {
       type: "collapse",
       name: "Repairs",
+      noCollapse: true,
       key: "repairs",
       icon: <Icon fontSize="small">assignment</Icon>,
       route: "/repairs",
@@ -76,14 +78,16 @@ const adminRoutes = (globalFunc) => {
     {
       type: "collapse",
       name: "Appointments",
+      noCollapse: true,
       key: "appointments",
-      icon: <Icon fontSize="small">calendar</Icon>,
+      icon: <Icon fontSize="small">calendar_month</Icon>,
       route: "/appointments",
       component: <Appointments globalFunc={globalFunc} />,
     },
     {
       type: "collapse",
       name: "Customers",
+      noCollapse: true,
       key: "customers",
       icon: <Icon fontSize="small">group</Icon>,
       route: "/Customers",
@@ -96,6 +100,24 @@ const adminRoutes = (globalFunc) => {
       icon: <Icon fontSize="small">inventory_2</Icon>,
       route: "/inventory/",
       component: <Inventory globalFunc={globalFunc} />,
+      collapse: [
+        {
+          type: "collapse",
+          name: "Inventory",
+          key: "Inventory",
+          icon: <Icon fontSize="small">inventory_2</Icon>,
+          route: "/inventory/",
+          component: <Inventory globalFunc={globalFunc} />,
+        },
+        {
+          type: "collapse",
+          name: "InMotion Dropship",
+          key: "imdrops",
+          route: "/inmotionDropShipping",
+          icon: <Icon fontSize="small">inventory_2</Icon>,
+          component: <InmotionItems globalFunc={globalFunc} />,
+        },
+      ],
     },
     {
       name: "Repairs",
@@ -111,54 +133,24 @@ const adminRoutes = (globalFunc) => {
     },
     {
       type: "collapse",
-      name: "InMotion Dropship",
-      key: "imdrops",
-      route: "/inmotionDropShipping",
-      icon: <Icon fontSize="small">inventory_2</Icon>,
-      component: <InmotionItems globalFunc={globalFunc} />,
-    },
-    {
-      type: "collapse",
       name: "PEV Database",
       key: "pevs",
       route: "/pevDB",
       icon: <Icon fontSize="small">electric_scooter</Icon>,
       component: <PEVDatabase globalFunc={globalFunc} />,
-    },
-    {
-      type: "collapse",
-      name: "Warranty Admin",
-      icon: <Icon fontSize="small">app_registration</Icon>,
-      key: "Admin",
-      route: "/warranty_admin",
-
-      component: <WarrantyAdmin globalFunc={globalFunc} />,
-
       collapse: [
         {
-          name: "Warranty Data",
-          key: "warrantyAdmin",
+          name: "PEV Database",
+          key: "pevs",
+          route: "/pevDB",
+          component: <PEVDatabase globalFunc={globalFunc} />,
+        },
+        {
+          type: "collapse",
+          name: "Warranty Admin",
+          icon: <Icon fontSize="small">app_registration</Icon>,
+          key: "Admin",
           route: "/warranty_admin",
-          component: <WarrantyAdmin globalFunc={globalFunc} />,
-        },
-      ],
-    },
-    {
-      type: "collapse",
-      name: "Dashboards",
-      key: "dashboards",
-      icon: <Icon fontSize="small">app_registration</Icon>,
-      collapse: [
-        {
-          name: "Analytics",
-          key: "analytics",
-          route: "/dashboards/analytics",
-          component: <WarrantyAdmin globalFunc={globalFunc} />,
-        },
-        {
-          name: "Sales",
-          key: "sales",
-          route: "/dashboards/sales",
           component: <WarrantyAdmin globalFunc={globalFunc} />,
         },
       ],
