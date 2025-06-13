@@ -64,7 +64,7 @@ import {
 import { Internationalization } from "@syncfusion/ej2-base";
 const localizer = momentLocalizer(moment);
 // eslint-disable-next-line react/prop-types
-function Appointments({ globalFunc }) {
+function Availability({ globalFunc }) {
   const instance = new Internationalization();
   let redirect = useNavigate();
   const [appointments, setAppointments] = useState([]);
@@ -184,4 +184,4 @@ function Appointments({ globalFunc }) {
   );
 }
 
-export default Appointments;
+export default Availability;

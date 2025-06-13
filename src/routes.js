@@ -43,7 +43,7 @@ import Customers from "layouts/customers";
 import RepairDetails from "layouts/repairDetails";
 import CustomerDetails from "layouts/customerDetails";
 import Appointments from "layouts/appointments";
-import RTL from "layouts/rtl";
+import Availability from "layouts/availability";
 import Notifications from "layouts/notifications";
 import Profile from "layouts/profile";
 import SignIn from "layouts/authentication/sign-in";
@@ -77,22 +77,13 @@ const adminRoutes = (globalFunc) => {
     },
     {
       type: "collapse",
-      name: "Appointments",
-      noCollapse: true,
-      key: "appointments",
-      icon: <Icon fontSize="small">calendar_month</Icon>,
-      route: "/appointments",
-      component: <Appointments globalFunc={globalFunc} />,
-    },
-    {
-      type: "collapse",
-      name: "Appointments",
+      name: "Scheduling",
       key: "appoint",
       icon: <Icon fontSize="small">calendar_month</Icon>,
       collapse: [
         {
           type: "collapse",
-          name: "Inventory",
+          name: "Appointments",
           key: "appointment",
           icon: <Icon fontSize="small">inventory_2</Icon>,
           route: "/appointments/",
@@ -100,11 +91,11 @@ const adminRoutes = (globalFunc) => {
         },
         {
           type: "collapse",
-          name: "InMotion Dropship",
+          name: "My Availability",
           key: "availabilty",
           route: "/myavailability",
           icon: <Icon fontSize="small">inventory_2</Icon>,
-          component: <InmotionItems globalFunc={globalFunc} />,
+          component: <Availability globalFunc={globalFunc} />,
         },
       ],
     },
