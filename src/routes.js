@@ -86,6 +86,31 @@ const adminRoutes = (globalFunc) => {
     },
     {
       type: "collapse",
+      name: "Appointments",
+      key: "appoint",
+      icon: <Icon fontSize="small">calendar_month</Icon>,
+      collapse: [
+        {
+          type: "collapse",
+          name: "Inventory",
+          key: "appointment",
+          icon: <Icon fontSize="small">inventory_2</Icon>,
+          route: "/appointments/",
+          component: <Appointments globalFunc={globalFunc} />,
+        },
+        {
+          type: "collapse",
+          name: "InMotion Dropship",
+          key: "availabilty",
+          route: "/myavailability",
+          icon: <Icon fontSize="small">inventory_2</Icon>,
+          component: <InmotionItems globalFunc={globalFunc} />,
+        },
+      ],
+    },
+
+    {
+      type: "collapse",
       name: "Customers",
       noCollapse: true,
       key: "customers",
