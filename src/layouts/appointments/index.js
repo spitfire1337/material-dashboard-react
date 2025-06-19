@@ -17,7 +17,7 @@ import { useState, useEffect, useMemo } from "react";
 // @mui material components
 import Grid from "@mui/material/Grid";
 import vars from "../../config";
-
+import "../../schedule.css";
 // Material Dashboard 2 React components
 import MDBox from "components/MDBox";
 
@@ -26,30 +26,7 @@ import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import Footer from "examples/Footer";
 import { useNavigate } from "react-router-dom";
-import { Calendar, momentLocalizer } from "react-big-calendar";
 import moment from "moment";
-import "react-big-calendar/lib/css/react-big-calendar.css";
-import { format, subHours, startOfMonth } from "date-fns";
-import {
-  MonthlyBody,
-  WeeklyDays,
-  WeeklyContainer,
-  WeeklyBody,
-  DefaultWeeklyEventItem,
-  WeeklyCalendar,
-} from "@zach.codes/react-calendar";
-import "@zach.codes/react-calendar/dist/calendar-tailwind.css";
-import { Title } from "@mui/icons-material";
-import "@syncfusion/ej2-base/styles/material.css";
-import "@syncfusion/ej2-buttons/styles/material.css";
-import "@syncfusion/ej2-calendars/styles/material.css";
-import "@syncfusion/ej2-dropdowns/styles/material.css";
-import "@syncfusion/ej2-inputs/styles/material.css";
-import "@syncfusion/ej2-lists/styles/material.css";
-import "@syncfusion/ej2-navigations/styles/material.css";
-import "@syncfusion/ej2-popups/styles/material.css";
-import "@syncfusion/ej2-splitbuttons/styles/material.css";
-import "@syncfusion/ej2-react-schedule/styles/material.css";
 import {
   ScheduleComponent,
   Day,
@@ -62,18 +39,12 @@ import {
   ViewDirective,
 } from "@syncfusion/ej2-react-schedule";
 import { Internationalization } from "@syncfusion/ej2-base";
-const localizer = momentLocalizer(moment);
 // eslint-disable-next-line react/prop-types
 function Appointments({ globalFunc }) {
   const instance = new Internationalization();
   let redirect = useNavigate();
   const [appointments, setAppointments] = useState([]);
-  const { defaultDate } = useMemo(
-    () => ({
-      defaultDate: new Date(),
-    }),
-    []
-  );
+
   const getAppointments = async () => {
     const response = await fetch(`${vars.serverUrl}/api/appointments`, {
       method: "get",
@@ -115,7 +86,7 @@ function Appointments({ globalFunc }) {
     SecondaryColor: { name: "SecondaryColor" },
   };
   const getTimeString = (value) => {
-    return instance.formatDate(value, { skeleton: "hm" });
+    return moment(value).format("hh:mm A");
   };
   const eventTemplate = (props) => {
     const secondaryColor = { background: props.SecondaryColor };
@@ -128,7 +99,7 @@ function Appointments({ globalFunc }) {
           {props.Subject}
         </div>
         <div className="time" style={primaryColor_2}>
-          Time: {moment(props.start).format("hh:mm A")} - {moment(props.end).format("hh:mm A")}
+          Time: {getTimeString(props.start)} - {getTimeString(props.end)}
         </div>
       </div>
     );
@@ -169,7 +140,7 @@ function Appointments({ globalFunc }) {
               />
             </WeeklyContainer>
           </WeeklyCalendar> */}
-      <ScheduleComponent width="100%" height="85vh" eventSettings={eventSettings}>
+      <ScheduleComponent width="100%" eventSettings={eventSettings}>
         <ViewsDirective>
           <ViewDirective option="Day" startHour="10:00" endHour="18:00" />
           <ViewDirective option="Week" startHour="10:00" endHour="18:00" />
