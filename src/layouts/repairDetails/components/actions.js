@@ -81,10 +81,11 @@ function Actions({
 
   const { showSnackBar, RenderSnackbar } = Notification();
   useEffect(() => {
+    setLaborTime(repairTime.toFixed(2));
     if (repairOrderReady == true) {
       let mySubTotal = timeUsed * Labor;
       repairOrder.lineItems.map((item) => {
-        mySubTotal = mySubTotal + item.basePriceMoney.amount / 100;
+        mySubTotal = mySubTotal + (item.basePriceMoney.amount * item.quantity) / 100;
       });
       setSubtotal(mySubTotal);
       let mytax = 0;
@@ -97,7 +98,7 @@ function Actions({
       }
       setTotal(mySubTotal + mytax);
     }
-  }, [repairOrderReady, Labor, Taxable, TaxRate, timeUsed]);
+  }, [repairOrderReady, Labor, Taxable, TaxRate, timeUsed, repairTime]);
   console.log("actions render");
   const dialogHandleClose = () => {
     // setPartCost(0);

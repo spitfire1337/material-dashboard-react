@@ -75,30 +75,30 @@ const adminRoutes = (globalFunc) => {
       route: "/repairs",
       component: <Repairs globalFunc={globalFunc} />,
     },
-    {
-      type: "collapse",
-      name: "Scheduling",
-      key: "appoint",
-      icon: <Icon fontSize="small">calendar_month</Icon>,
-      collapse: [
-        {
-          type: "collapse",
-          name: "Appointments",
-          key: "appointment",
-          icon: <Icon fontSize="small">inventory_2</Icon>,
-          route: "/appointments/",
-          component: <Appointments globalFunc={globalFunc} />,
-        },
-        {
-          type: "collapse",
-          name: "My Availability",
-          key: "availabilty",
-          route: "/myavailability",
-          icon: <Icon fontSize="small">inventory_2</Icon>,
-          component: <Availability globalFunc={globalFunc} />,
-        },
-      ],
-    },
+    // {
+    //   type: "collapse",
+    //   name: "Scheduling",
+    //   key: "appoint",
+    //   icon: <Icon fontSize="small">calendar_month</Icon>,
+    //   collapse: [
+    //     {
+    //       type: "collapse",
+    //       name: "Appointments",
+    //       key: "appointment",
+    //       icon: <Icon fontSize="small">inventory_2</Icon>,
+    //       route: "/appointments/",
+    //       component: <Appointments globalFunc={globalFunc} />,
+    //     },
+    //     {
+    //       type: "collapse",
+    //       name: "My Availability",
+    //       key: "availabilty",
+    //       route: "/myavailability",
+    //       icon: <Icon fontSize="small">inventory_2</Icon>,
+    //       component: <Availability globalFunc={globalFunc} />,
+    //     },
+    //   ],
+    // },
 
     {
       type: "collapse",

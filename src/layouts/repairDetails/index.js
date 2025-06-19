@@ -296,28 +296,6 @@ const RepairDetails = ({ globalFunc }) => {
     }
   };
 
-  const editTime = () => {
-    return (
-      <Dialog open={confirmOpen.editTime}>
-        <DialogTitle>Enter adjusted hours</DialogTitle>
-        <DialogContent>
-          <TextField
-            value={Math.round(60 * repairTime)}
-            label="Minutes"
-            onChange={(e) => {
-              setnewMinutes(e.target.value);
-            }}
-          />
-        </DialogContent>
-        <DialogActions>
-          <MDButton onClick={closeState}>No</MDButton>
-          <MDButton onClick={() => saveTime()} autoFocus>
-            Yes
-          </MDButton>
-        </DialogActions>
-      </Dialog>
-    );
-  };
   const { showUploadFunc, AddPhotoModal, setRepairId } = AddPhotos({
     getRepair,
     globalFunc,
