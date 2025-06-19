@@ -15,11 +15,7 @@ Coded by www.creative-tim.com
 import { useState, useEffect, useMemo } from "react";
 
 // @mui material components
-import Grid from "@mui/material/Grid";
 import vars from "../../config";
-
-// Material Dashboard 2 React components
-import MDBox from "components/MDBox";
 
 // Material Dashboard 2 React example components
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
@@ -28,18 +24,10 @@ import Footer from "examples/Footer";
 import { useNavigate } from "react-router-dom";
 import { Calendar, momentLocalizer } from "react-big-calendar";
 import moment from "moment";
-import "react-big-calendar/lib/css/react-big-calendar.css";
-import { format, subHours, startOfMonth } from "date-fns";
-import {
-  MonthlyBody,
-  WeeklyDays,
-  WeeklyContainer,
-  WeeklyBody,
-  DefaultWeeklyEventItem,
-  WeeklyCalendar,
-} from "@zach.codes/react-calendar";
-import "@zach.codes/react-calendar/dist/calendar-tailwind.css";
-import { Title } from "@mui/icons-material";
+
+import "../../schedule.css";
+
+// /import "@zach.codes/react-calendar/dist/calendar-tailwind.css";
 import "@syncfusion/ej2-base/styles/material.css";
 import "@syncfusion/ej2-buttons/styles/material.css";
 import "@syncfusion/ej2-calendars/styles/material.css";
@@ -64,7 +52,7 @@ import {
 import { Internationalization } from "@syncfusion/ej2-base";
 const localizer = momentLocalizer(moment);
 // eslint-disable-next-line react/prop-types
-function Appointments({ globalFunc }) {
+function Availability({ globalFunc }) {
   const instance = new Internationalization();
   let redirect = useNavigate();
   const [appointments, setAppointments] = useState([]);
@@ -118,14 +106,14 @@ function Appointments({ globalFunc }) {
     return instance.formatDate(value, { skeleton: "hm" });
   };
   const eventTemplate = (props) => {
-    const secondaryColor = { background: props.SecondaryColor };
+    const secondaryColor = { background: props.PrimaryColor };
     const primaryColor_1 = { background: props.PrimaryColor };
     const primaryColor_2 = { background: props.PrimaryColor };
     console.log("Event Template Props: ", props);
     return (
       <div className="template-wrap" style={secondaryColor}>
         <div className="subject" style={primaryColor_1}>
-          {props.Subject}
+          {props.title}
         </div>
         <div className="time" style={primaryColor_2}>
           Time: {moment(props.start).format("hh:mm A")} - {moment(props.end).format("hh:mm A")}
@@ -184,4 +172,4 @@ function Appointments({ globalFunc }) {
   );
 }
 
-export default Appointments;
+export default Availability;
