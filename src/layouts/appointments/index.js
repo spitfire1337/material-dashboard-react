@@ -23,8 +23,8 @@ import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import Footer from "examples/Footer";
 import { useNavigate } from "react-router-dom";
 import { Calendar, momentLocalizer } from "react-big-calendar";
+import { editorTemplate, onPopupClose } from "./components/editAppt";
 import moment from "moment";
-
 import "../../schedule.css";
 
 // /import "@zach.codes/react-calendar/dist/calendar-tailwind.css";
@@ -53,6 +53,20 @@ import { Internationalization } from "@syncfusion/ej2-base";
 const localizer = momentLocalizer(moment);
 // eslint-disable-next-line react/prop-types
 function Availability({ globalFunc }) {
+  //  const [customersSelection, setCustomersSelection] = useState([]);
+  const [showCustForm, setShowCustForm] = useState(false);
+  const [apptid, setApptId] = useState(0);
+  const [startTime, setStartTime] = useState();
+  const [endTime, setEndTime] = useState();
+  const [customers, setCustomers] = useState([]);
+  const [pevSelection, setPEVSelection] = useState([]);
+  const [allowContinue, setAllowContinue] = useState(false);
+  const [pevBrand, setPEVBrand] = useState([]);
+  const [showNewPev, setShowNewPev] = useState(false);
+  const [brandDisable, setBrandDisable] = useState(true);
+  const [newPev, setNewPev] = useState({ Brand: { name: "" }, Model: "", PevType: "EUC" });
+  const [brands, setBrands] = useState([]);
+  const [models, setModels] = useState([]);
   const instance = new Internationalization();
   let redirect = useNavigate();
   const [appointments, setAppointments] = useState([]);
@@ -82,7 +96,6 @@ function Availability({ globalFunc }) {
         };
         myappts.push(appt);
       });
-      console.log("Appointments: ", res.data);
       setAppointments(res.data);
       return null;
     } else if (res.res == 401) {
@@ -93,7 +106,6 @@ function Availability({ globalFunc }) {
 
   useEffect(() => {
     getAppointments();
-    console.log("User: ", globalFunc.user);
   }, []);
   const fieldsData = {
     id: "_id",
@@ -109,7 +121,6 @@ function Availability({ globalFunc }) {
     const secondaryColor = { background: props.PrimaryColor };
     const primaryColor_1 = { background: props.PrimaryColor };
     const primaryColor_2 = { background: props.PrimaryColor };
-    console.log("Event Template Props: ", props);
     return (
       <div className="template-wrap" style={secondaryColor}>
         <div className="subject" style={primaryColor_1}>
@@ -121,43 +132,43 @@ function Availability({ globalFunc }) {
       </div>
     );
   };
+  const onPopupOpen = (args) => {
+    if (args.type === "Editor") {
+      let statusElement = args.element.querySelector("#EventType");
+      if (statusElement) {
+        statusElement.setAttribute("name", "EventType");
+      }
+    }
+  };
+
   const eventSettings = { dataSource: appointments, fields: fieldsData, template: eventTemplate };
+  const editorHeaderTemplate = (props) => {
+    return (
+      <div id="event-header">
+        {props !== undefined ? (
+          props.Subject ? (
+            <div>{props.Subject}</div>
+          ) : (
+            <div>Create Appointment</div>
+          )
+        ) : (
+          <div></div>
+        )}
+      </div>
+    );
+  };
 
   return (
     <DashboardLayout>
       <DashboardNavbar globalFunc={globalFunc} />
-      {/* <Grid container spacing={3}>
-        <Grid item xs={12}> */}
-      {/* <Calendar
-            localizer={localizer}
-            events={appointments}
-            startAccessor="start"
-            endAccessor="end"
-            defaultDate={defaultDate}
-            style={{ height: 500, margin: "50px" }}
-            onSelectEvent={(event) => {
-              console.log("Selected event: ", event);
-              //redirect(`/appointments/${event.id}`);
-            }}
-          /> */}
-      {/* <WeeklyCalendar week={new Date()}>
-            <WeeklyContainer>
-              <WeeklyDays />
-              <WeeklyBody
-                events={[{ title: "Jane doe", date: new Date() }]}
-                renderItem={({ item, showingFullWeek }) => (
-                  <DefaultWeeklyEventItem
-                    key={item.date.toISOString()}
-                    title={item.title}
-                    date={
-                      showingFullWeek ? format(item.date, "MMM do k:mm") : format(item.date, "k:mm")
-                    }
-                  />
-                )}
-              />
-            </WeeklyContainer>
-          </WeeklyCalendar> */}
-      <ScheduleComponent width="100%" height="85vh" eventSettings={eventSettings}>
+      <ScheduleComponent
+        width="100%"
+        height="85vh"
+        eventSettings={eventSettings}
+        editorTemplate={editorTemplate.bind(this)}
+        popupOpen={onPopupOpen.bind(this)}
+        popupClose={onPopupClose.bind(this)}
+      >
         <ViewsDirective>
           <ViewDirective option="Day" startHour="10:00" endHour="18:00" />
           <ViewDirective option="Week" startHour="10:00" endHour="18:00" />

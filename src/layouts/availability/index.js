@@ -23,9 +23,8 @@ import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import Footer from "examples/Footer";
 import { useNavigate } from "react-router-dom";
 import { Calendar, momentLocalizer } from "react-big-calendar";
+import { editorTemplate, onPopupClose } from "./components/editAvailability";
 import moment from "moment";
-
-import "../../schedule.css";
 
 // /import "@zach.codes/react-calendar/dist/calendar-tailwind.css";
 import "@syncfusion/ej2-base/styles/material.css";
@@ -49,6 +48,8 @@ import {
   ViewsDirective,
   ViewDirective,
 } from "@syncfusion/ej2-react-schedule";
+import { isNullOrUndefined } from "@syncfusion/ej2-base";
+
 import { Internationalization } from "@syncfusion/ej2-base";
 const localizer = momentLocalizer(moment);
 // eslint-disable-next-line react/prop-types
@@ -123,41 +124,27 @@ function Availability({ globalFunc }) {
   };
   const eventSettings = { dataSource: appointments, fields: fieldsData, template: eventTemplate };
 
+  const onClickSave = (props) => {
+    console.log("Props: ", props);
+    let Data = {
+      Id: 3,
+      Subject: "Testing-edited",
+      StartTime: new Date(2018, 1, 11, 10, 0),
+      EndTime: new Date(2018, 1, 11, 11, 0),
+      IsAllDay: false,
+    };
+    scheduleObj.current.saveEvent(Data);
+  };
   return (
     <DashboardLayout>
       <DashboardNavbar globalFunc={globalFunc} />
-      {/* <Grid container spacing={3}>
-        <Grid item xs={12}> */}
-      {/* <Calendar
-            localizer={localizer}
-            events={appointments}
-            startAccessor="start"
-            endAccessor="end"
-            defaultDate={defaultDate}
-            style={{ height: 500, margin: "50px" }}
-            onSelectEvent={(event) => {
-              console.log("Selected event: ", event);
-              //redirect(`/appointments/${event.id}`);
-            }}
-          /> */}
-      {/* <WeeklyCalendar week={new Date()}>
-            <WeeklyContainer>
-              <WeeklyDays />
-              <WeeklyBody
-                events={[{ title: "Jane doe", date: new Date() }]}
-                renderItem={({ item, showingFullWeek }) => (
-                  <DefaultWeeklyEventItem
-                    key={item.date.toISOString()}
-                    title={item.title}
-                    date={
-                      showingFullWeek ? format(item.date, "MMM do k:mm") : format(item.date, "k:mm")
-                    }
-                  />
-                )}
-              />
-            </WeeklyContainer>
-          </WeeklyCalendar> */}
-      <ScheduleComponent width="100%" height="85vh" eventSettings={eventSettings}>
+      <ScheduleComponent
+        width="100%"
+        height="85vh"
+        eventSettings={eventSettings}
+        popupClose={onPopupClose.bind(this)}
+        editorTemplate={editorTemplate.bind(this)}
+      >
         <ViewsDirective>
           <ViewDirective option="Day" startHour="10:00" endHour="18:00" />
           <ViewDirective option="Week" startHour="10:00" endHour="18:00" />

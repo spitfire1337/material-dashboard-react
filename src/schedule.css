@@ -33,3 +33,17 @@ div:has(> .template-wrap) {
     border-radius: 8px;
 
 }
+.e-schedule-dialog
+ {
+    max-height: 100vh;
+}
+.e-popup {
+    height: 100%;
+}
+.e-dlg-container {
+    height: 100vh;
+}
+.editorHolder:has(> #_dialog_wrapper) {
+    height: 100%;
+    width: 70%;
+}
