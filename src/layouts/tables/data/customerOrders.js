@@ -232,9 +232,6 @@ export default function data() {
       );
     }
   };
-  useEffect(() => {
-    console.log("Data Change:", data);
-  }, [data]);
   return {
     setOrderData: setOrderData,
     orderColumns: [

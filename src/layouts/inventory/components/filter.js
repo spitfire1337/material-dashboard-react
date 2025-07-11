@@ -67,7 +67,6 @@ function FilterDialog({ showFilter, filter, resetFilter, setShowFiler, repairs }
     const {
       target: { value },
     } = event;
-    console.log("Selected:", value);
     setrepairTypes(typeof value === "string" ? value.split(",") : value);
     setfilterData(
       // On autofill we get a stringified value.
@@ -75,7 +74,6 @@ function FilterDialog({ showFilter, filter, resetFilter, setShowFiler, repairs }
     );
   };
   useEffect(() => {
-    console.log("Selected filters:", filterData);
   }, [filterData]);
   useEffect(() => {
     var unique = repairs.filter(

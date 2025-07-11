@@ -67,16 +67,13 @@ function FilterDialog({ showFilter, filter, resetFilter, setShowFiler, repairs }
     const {
       target: { value },
     } = event;
-    console.log("Selected:", value);
     setrepairTypes(typeof value === "string" ? value.split(",") : value);
     setfilterData(
       // On autofill we get a stringified value.
       { RepairType: typeof value === "string" ? value.split(",") : value }
     );
   };
-  useEffect(() => {
-    console.log("Selected filters:", filterData);
-  }, [filterData]);
+
   useEffect(() => {
     var unique = repairs.filter(
       (item, idx) => repairs.findIndex((x) => x.pev._id == item.pev._id) == idx

@@ -98,7 +98,6 @@ function Actions({
       setTotal(mySubTotal + mytax);
     }
   }, [repairOrderReady, Labor, Taxable, TaxRate, timeUsed]);
-  console.log("actions render");
   const dialogHandleClose = () => {
     // setPartCost(0);
     // setPartQuantity(1);
@@ -201,7 +200,6 @@ function Actions({
     });
     const json = await response.json();
     if (json.res == 200) {
-      console.log("Docs:", json.data);
       setDocuments(json.data);
       toggleprintDialogOpen(true);
     } else {
@@ -370,7 +368,6 @@ function Actions({
         showSnackBar("error", "Error occured during printing");
       }
     } catch (e) {
-      console.error(e);
       showSnackBar("error", "Error occured during printing");
       // TODO: Add error notification
     }
@@ -515,7 +512,6 @@ function Actions({
                         label="Cost"
                         value={partDetails.cost}
                         onChange={(e, val) => {
-                          console.log(e);
                           setPartDetails({
                             ...partDetails,
                             cost: event.target.value,

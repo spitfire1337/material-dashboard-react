@@ -48,7 +48,6 @@ function AddPhotos({ getRepair, globalFunc, open, close }) {
   };
   const capture = useCallback(() => {
     const imgsrc = webcamRef.current.getScreenshot();
-    console.log("Captured photo: ", imgsrc);
     setFile(imgsrc);
   }, [webcamRef, setFile]);
   const showUploadFunc = () => {
@@ -87,7 +86,6 @@ function AddPhotos({ getRepair, globalFunc, open, close }) {
     }
   };
   const AddPhotoModal = () => {
-    console.log("Rerender");
     return (
       <>
         <Dialog open={showUpload}>

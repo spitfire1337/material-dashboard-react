@@ -141,7 +141,6 @@ const step2 = ({ globalFunc, repairData, updateRepairData, setrepairID, nextRepa
         globalFunc.setErrorSB(true);
       }
     } catch (e) {
-      console.error(e);
       globalFunc.setErrorSBText("Error occurred saving repair progress.");
       globalFunc.setErrorSB(true);
       // TODO: Add error notification
@@ -192,7 +191,6 @@ const step2 = ({ globalFunc, repairData, updateRepairData, setrepairID, nextRepa
           globalFunc.setErrorSB(true);
         }
       } catch (e) {
-        console.error(e);
         globalFunc.setErrorSBText("An error occured while saving data, please try again");
         globalFunc.setErrorSB(true);
       }
@@ -224,7 +222,6 @@ const step2 = ({ globalFunc, repairData, updateRepairData, setrepairID, nextRepa
     } else {
       let newRepairData = { ...repairData };
       newRepairData.pev = pevBrand;
-      console.log(newRepairData);
       createRepair(newRepairData);
     }
   };

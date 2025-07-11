@@ -86,10 +86,6 @@ export default function data(globalFunc, setShowLoad, getParts) {
     doSearch();
   }, [searchTerm, inventoryOrig]);
 
-  useEffect(() => {
-    console.log("Stock updated: ", stock);
-  }, [stock]);
-
   const doSearch = () => {
     let filterData = [...inventory];
     if (searchTerm == "" || searchTerm == null) {
@@ -128,7 +124,6 @@ export default function data(globalFunc, setShowLoad, getParts) {
 
   const UpdateStock = async () => {
     setshowModal(false);
-    console.log("Updating stock: ", stock);
     const response = await fetch(`${vars.serverUrl}/api/inmotionStoreStock`, {
       method: "POST",
       headers: {
@@ -154,7 +149,6 @@ export default function data(globalFunc, setShowLoad, getParts) {
 
   const UpdateSquareItem = async () => {
     setShowPartsModal(false);
-    console.log("Updating stock: ", stock);
     const response = await fetch(`${vars.serverUrl}/api/inmotionSquareItem`, {
       method: "POST",
       headers: {
@@ -222,7 +216,6 @@ export default function data(globalFunc, setShowLoad, getParts) {
       );
     }
   };
-  console.log("Updated:", lastUpdated);
   return {
     reRender: reRender,
     setsearchTerm: setsearchTerm,
@@ -240,7 +233,6 @@ export default function data(globalFunc, setShowLoad, getParts) {
     rows:
       inventory.length > 0
         ? inventory.map((item) => {
-            console.log(item);
             return {
               photo:
                 item.images.length > 0 ? (

@@ -103,7 +103,6 @@ const InventoryAdmin = ({ globalFunc }) => {
   };
 
   const updateLocation = (item) => {
-    console.log("Item data: ", item);
     setUpdateLoc(true);
     setUpdateItem(item._id);
     setCurrentLoc(item.storage_loc || "");

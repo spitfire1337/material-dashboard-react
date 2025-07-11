@@ -159,7 +159,6 @@ const step1 = ({ globalFunc, nextRepairStep }) => {
       } catch (e) {
         globalFunc.setErrorSBText("Error creating customer.");
         globalFunc.setErrorSB(true);
-        console.error(e);
         // TODO: Add error notification
       }
     } else {
@@ -179,7 +178,6 @@ const step1 = ({ globalFunc, nextRepairStep }) => {
         nextRepairStep(val, json.data._id);
         return null;
       } catch (e) {
-        console.error(e);
         // TODO: Add error notification
       }
     }

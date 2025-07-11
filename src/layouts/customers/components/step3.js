@@ -76,7 +76,6 @@ const step3 = ({ globalFunc, repairID, nextRepairStep }) => {
         globalFunc.setErrorSB(true);
       }
     } catch (e) {
-      console.error(e);
       globalFunc.setErrorSBText("Error occurred saving repair progress.");
       globalFunc.setErrorSB(true);
       // TODO: Add error notification
@@ -91,7 +90,6 @@ const step3 = ({ globalFunc, repairID, nextRepairStep }) => {
     };
     let oldAccessory = [...accessories];
     oldAccessory.push(details);
-    console.log(accessories);
     setAccessories(oldAccessory);
   };
   return (
@@ -224,7 +222,6 @@ const step3 = ({ globalFunc, repairID, nextRepairStep }) => {
                       fullWidth
                       value={accessorie.name}
                       onChange={(e) => {
-                        console.log(accessories);
                         let oldAccessory = [...accessories];
                         oldAccessory[i].name = e.currentTarget.value;
                         //oldAccessory.find((x) => (x.id = accessorie.id)).name = e.currentTarget.value;

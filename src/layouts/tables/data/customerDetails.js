@@ -285,9 +285,7 @@ export default function data() {
       );
     }
   };
-  useEffect(() => {
-    console.log("Data Change:", data);
-  }, [data]);
+
   return {
     setData: setData,
     repairColumns: [

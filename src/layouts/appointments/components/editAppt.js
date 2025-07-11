@@ -41,7 +41,45 @@ const onPopupClose = (args) => {
 };
 
 const filter = createFilterOptions();
-const editorTemplate = (props) => {
+const editorFooterTemplate = () => {
+  return (
+    <div id="event-footer">
+      <div id="verify">
+        <input type="checkbox" id="check-box" value="unchecked" />
+        <label htmlFor="check-box" id="text">
+          Verified
+        </label>
+      </div>
+      <div id="right-button">
+        <button id="Save" className="e-control e-btn e-primary" disabled data-ripple="true">
+          Save
+        </button>
+        <button id="Cancel" className="e-control e-btn e-primary" data-ripple="true">
+          Cancel
+        </button>
+      </div>
+    </div>
+  );
+};
+
+const onSaveButtonClick = (args) => {
+  const data = {
+    Id: args.data.Id,
+    Subject: args.element.querySelector("#Subject").value,
+    StartTime: args.element.querySelector("#StartTime").ej2_instances[0].value,
+    EndTime: args.element.querySelector("#EndTime").ej2_instances[0].value,
+    IsAllDay: args.element.querySelector("#IsAllDay").checked,
+  };
+  if (args.target.classList.contains("e-appointment")) {
+    scheduleObj.current.saveEvent(data, "Save");
+  } else {
+    data.Id = scheduleObj.current.getEventMaxID();
+    scheduleObj.current.addEvent(data);
+  }
+  scheduleObj.current.closeEditor();
+};
+const editorTemplate = (props, t) => {
+  console.log("Editor props", props);
   const [customersSelection, setCustomersSelection] = useState([]);
   const [showCustForm, setShowCustForm] = useState(false);
   const [apptid, setApptId] = useState(0);
@@ -548,4 +586,4 @@ const editorTemplate = (props) => {
   );
 };
 
-export { editorTemplate, onPopupClose };
+export { editorTemplate, onPopupClose, editorFooterTemplate };

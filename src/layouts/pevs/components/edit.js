@@ -72,7 +72,6 @@ const PEVEdit = ({ pev = undefined, open, brands, close, globalFunc, reRender })
 
   const savePevUpdate = async () => {
     close(false);
-    console.log("Saving PEV data: ", selectedPEV);
     let newPev = { ...selectedPEV };
     if (newPev.Brand._id == 0) {
       //First we must create the new brand and return the ID
@@ -114,14 +113,12 @@ const PEVEdit = ({ pev = undefined, open, brands, close, globalFunc, reRender })
           globalFunc.setErrorSB(true);
         }
       } catch (e) {
-        console.error(e);
         globalFunc.setErrorSBText("An error occured while saving data, please try again");
         globalFunc.setErrorSB(true);
       }
     } else {
       //
       let newPev = { ...selectedPEV };
-      console.log("Update data: ", newPev);
       let newpevresp = await fetch(`${vars.serverUrl}/api/updatePEV`, {
         method: "POST",
         headers: {
@@ -148,7 +145,6 @@ const PEVEdit = ({ pev = undefined, open, brands, close, globalFunc, reRender })
     setSelectedPEV(pev);
     if (pev != {}) {
       setShowNewPev(true);
-      console.log("PEV data: ", pev);
     }
   }, [pev]);
 

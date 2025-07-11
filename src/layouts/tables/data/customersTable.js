@@ -64,8 +64,6 @@ export default function data(globalFunc, contIntake, filters) {
   };
 
   const doFilter = (data = null) => {
-    console.log("Requested filter: ", myFilters);
-    console.log("Customer data: ", repairsOrig);
     let filterData = [...repairsOrig];
     if (myFilters == "" || myFilters == null) {
       setRepairs(filterData);

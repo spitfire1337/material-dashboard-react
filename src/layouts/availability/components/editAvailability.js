@@ -69,25 +69,4 @@ const editorTemplate = (props) => {
   );
 };
 
-const onPopupClose = (args) => {
-  console.log("Args:", args);
-  if (args.type === "Editor" && !isNullOrUndefined(args.data)) {
-    console.log("Editor Data: ", args.data);
-    //   let subjectElement = args.element.querySelector("#Summary");
-    //   if (subjectElement) {
-    //     args.data.Subject = subjectElement.value;
-    //   }
-    //   let statusElement = args.element.querySelector("#EventType");
-    //   if (statusElement) {
-    //     args.data.EventType = statusElement.value;
-    //   }
-    //   args.data.StartTime = startObj.current.value;
-    //   args.data.EndTime = endObj.current.value;
-    //   let descriptionElement = args.element.querySelector("#Description");
-    //   if (descriptionElement) {
-    //     args.data.Description = descriptionElement.value;
-    //   }
-  }
-};
-
-export { editorTemplate, onPopupClose };
+export { editorTemplate };

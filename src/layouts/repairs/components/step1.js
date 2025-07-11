@@ -133,7 +133,20 @@ const step1 = ({ globalFunc, nextRepairStep }) => {
     setSelectedCustomer(value);
   };
 
+  const PhoneisValid = (phone) => {
+    const regex = /^\(?([0-9]{3})\)?[-. ]?([0-9]{3})[-. ]?([0-9]{4})$/;
+    return regex.test(phone);
+  };
+
   const submitCustomer = async (val) => {
+    if (
+      !validateEmail(selectedcustomer.email_address) &&
+      !PhoneisValid(selectedcustomer.phone_number)
+    ) {
+      globalFunc.setErrorSBText("Please enter a valid email or phone number.");
+      globalFunc.setErrorSB(true);
+      return null;
+    }
     if (selectedcustomer.id == undefined || selectedcustomer.id == 0) {
       //New Customer
       try {
@@ -157,7 +170,6 @@ const step1 = ({ globalFunc, nextRepairStep }) => {
       } catch (e) {
         globalFunc.setErrorSBText("Error creating customer.");
         globalFunc.setErrorSB(true);
-        console.error(e);
         // TODO: Add error notification
       }
     } else {
@@ -177,7 +189,6 @@ const step1 = ({ globalFunc, nextRepairStep }) => {
         nextRepairStep(val, json.data._id);
         return null;
       } catch (e) {
-        console.error(e);
         // TODO: Add error notification
       }
     }

@@ -114,13 +114,11 @@ function Dashboard({ globalFunc }) {
       settopSellersAll({ labels: salesItemsAll, datasets: { data: salesItemAllVol } });
       setSalesData({ labels: saleMonths, datasets: { data: monthlySales } });
       setSalesVolume({ labels: saleMonths, datasets: { data: mysalesVolume } });
-      console.log(repairChange);
     }
   };
 
   useEffect(() => {
     getSales();
-    console.log("User: ", globalFunc.user);
   }, []);
 
   return (

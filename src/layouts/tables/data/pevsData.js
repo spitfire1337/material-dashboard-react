@@ -470,7 +470,6 @@ export default function data(globalFunc, setShowLoad, setshowModal) {
     rows:
       inventory.length > 0
         ? inventory.map((item) => {
-            console.log(item);
             return {
               brand: (
                 <MDTypography

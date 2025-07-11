@@ -183,6 +183,10 @@ const PartsAdd = ({
         createInvoice();
       }
       setnewRepairPart(false);
+      setSearchedpart();
+      setPartDetails({ cost: 0, name: "", qty: 0 });
+      setPartCost((0).toFixed(2));
+      setPartName();
       setshowPartsModal(false);
     } else {
       globalFunc.setErrorSBText("Server error occured");
@@ -269,7 +273,6 @@ const PartsAdd = ({
                       label="Cost"
                       value={partDetails.cost}
                       onChange={(e, val) => {
-                        console.log(e);
                         setPartDetails({
                           ...partDetails,
                           cost: event.target.value,

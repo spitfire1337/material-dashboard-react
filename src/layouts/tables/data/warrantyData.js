@@ -64,7 +64,6 @@ export default function data(globalFunc, contIntake, filters) {
   };
 
   const doFilter = (data = null) => {
-    console.log("Requested filter: ", filter);
     let filterData;
     if (data == null || data == "") {
       filterData = [...repairsOrig];
@@ -73,9 +72,6 @@ export default function data(globalFunc, contIntake, filters) {
     }
     let filtered = filterData.filter((item) => {
       for (var key in myFilters) {
-        console.log("Filter options:", myFilters[key]);
-        console.log("Item value", item[key].constructor.name == "Array" ? item[key][0] : item[key]);
-        console.log(myFilters[key].indexOf(item[key]));
         if (
           item[key] === undefined ||
           myFilters[key].indexOf(item[key].constructor.name == "Array" ? item[key][0] : item[key]) <

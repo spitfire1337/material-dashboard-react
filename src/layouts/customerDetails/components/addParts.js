@@ -269,7 +269,6 @@ const PartsAdd = ({
                       label="Cost"
                       value={partDetails.cost}
                       onChange={(e, val) => {
-                        console.log(e);
                         setPartDetails({
                           ...partDetails,
                           cost: event.target.value,

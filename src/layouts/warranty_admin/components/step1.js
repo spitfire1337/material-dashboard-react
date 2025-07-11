@@ -166,7 +166,6 @@ const step1 = ({ globalFunc, repairData, callback }) => {
           globalFunc.setErrorSB(true);
         }
       } catch (e) {
-        console.error(e);
         globalFunc.setErrorSBText("An error occured while saving data, please try again");
         globalFunc.setErrorSB(true);
       }

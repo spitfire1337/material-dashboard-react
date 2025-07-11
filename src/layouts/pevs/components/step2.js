@@ -54,7 +54,6 @@ const step2 = ({ globalFunc, callback }) => {
   //const [selectedcustomer, setSelectedCustomer] = useForm({});
 
   useEffect(() => {
-    console.log("New param count: ", paramCount);
     let canContinue = true;
     Object.keys(paramCount).forEach(function (key) {
       if (!paramCount[key]) canContinue = false;

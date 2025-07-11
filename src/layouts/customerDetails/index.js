@@ -96,8 +96,6 @@ const CustomerDetails = ({ globalFunc }) => {
 
   const { repairColumns, repairRows, setData } = CustomerData();
   const { orderColumns, orderRows, setOrderData } = CustomerOrders();
-  console.log("Repair columns: ", repairColumns);
-  console.log("Repair rows: ", repairRows);
   const Pev = ({ title, description, id }) => (
     <MDBox
       lineHeight={1}

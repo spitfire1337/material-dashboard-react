@@ -109,9 +109,6 @@ const WarrantyAdmin = ({ globalFunc }) => {
   };
   const [repairStep, setRepairStep] = useState(1);
 
-  useEffect(() => {
-    console.log("Warranty data: ", warrantyData);
-  }, [warrantyData]);
   const { columns, rows, reRender, setsearchTerm, searchterm } = authorsTableData(globalFunc);
 
   const nextRepairStep = async (val, data = null) => {
@@ -121,7 +118,6 @@ const WarrantyAdmin = ({ globalFunc }) => {
     }
     if (val == 3) {
       //Show step 3
-      console.log(data.serialNumber);
       let newWarrantyData = { ...warrantyData };
       newWarrantyData.serialNumber = data.serialNumber;
       newWarrantyData.warrantyStart = new Date(data.warrantyStart.$d).toLocaleDateString();

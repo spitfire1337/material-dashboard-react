@@ -138,7 +138,6 @@ const InmotionItems = ({ globalFunc }) => {
         });
       });
       setParts(itemList);
-      console.log("Parts: ", itemList);
       setShowLoad(false);
       setShowPartsModal(true);
     }

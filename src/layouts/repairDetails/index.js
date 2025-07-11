@@ -308,7 +308,6 @@ const RepairDetails = ({ globalFunc }) => {
     createInvoice();
   }, []);
 
-  console.log("Details Render");
   if (loading) {
     return (
       <DashboardLayout>
@@ -718,7 +717,6 @@ const RepairDetails = ({ globalFunc }) => {
                         <Divider fullWidth></Divider>
                       </Grid>
                       {allparts.lineItems.map((part) => {
-                        console.log("Part: ", part);
                         return (
                           <PartsItem part={part} key={part.name} status={repairDetails.status} />
                         );

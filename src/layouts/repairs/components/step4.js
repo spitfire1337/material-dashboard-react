@@ -63,7 +63,6 @@ const step4 = ({ globalFunc, repairID, nextRepairStep, reRender, setNewRepair })
         globalFunc.setErrorSB(true);
       }
     } catch (e) {
-      console.error(e);
       globalFunc.setErrorSBText("Error occurred saving repair progress.");
       globalFunc.setErrorSB(true);
       // TODO: Add error notification

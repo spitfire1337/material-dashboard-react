@@ -213,7 +213,6 @@ function Configurator({ globalFunc }) {
       updatedHours = updatedHours.filter((h) => h.day !== day);
       updatedHours.push(hours);
       setBusinessHours(updatedHours);
-      console.log("Updated business hours:", businessHours);
     } else {
       // If no hours exist for the day, create a new entry
       updatedHours.push({
@@ -225,7 +224,6 @@ function Configurator({ globalFunc }) {
         closed: closed || false,
       });
       setBusinessHours(updatedHours);
-      console.log("Updated business hours:", businessHours);
     }
   };
 
@@ -290,7 +288,6 @@ function Configurator({ globalFunc }) {
       }
     }
     setMyAvailabilty(newAvailability);
-    console.log("Updated my availability:", newAvailability);
   };
 
   // sidenav type active button styles
@@ -438,7 +435,6 @@ function Configurator({ globalFunc }) {
                     type="time"
                     label="Open"
                     onChange={(e) => {
-                      console.log("New value for Sunday start:", e.target.value);
                       updateBusinessHours(
                         "Sunday",
                         e.target.value,
@@ -455,7 +451,6 @@ function Configurator({ globalFunc }) {
                     type="time"
                     label="Open"
                     onChange={(e) => {
-                      console.log("New value for Sunday end:", e.target.value);
                       updateBusinessHours(
                         "Sunday",
                         businessHours.find((x) => x.day == "Sunday")?.hours.start,
@@ -490,7 +485,6 @@ function Configurator({ globalFunc }) {
                     type="time"
                     label="Open"
                     onChange={(e) => {
-                      console.log("New value for Monday start:", e.target.value);
                       updateBusinessHours(
                         "Monday",
                         e.target.value,
@@ -507,7 +501,6 @@ function Configurator({ globalFunc }) {
                     type="time"
                     label="Open"
                     onChange={(e) => {
-                      console.log("New value for Monday end:", e.target.value);
                       updateBusinessHours(
                         "Monday",
                         businessHours.find((x) => x.day == "Monday")?.hours.start,
@@ -542,7 +535,6 @@ function Configurator({ globalFunc }) {
                     type="time"
                     label="Open"
                     onChange={(e) => {
-                      console.log("New value for Tuesday start:", e.target.value);
                       updateBusinessHours(
                         "Tuesday",
                         e.target.value,
@@ -559,7 +551,6 @@ function Configurator({ globalFunc }) {
                     type="time"
                     label="Open"
                     onChange={(e) => {
-                      console.log("New value for Tuesday end:", e.target.value);
                       updateBusinessHours(
                         "Tuesday",
                         businessHours.find((x) => x.day == "Tuesday")?.hours.start,
@@ -594,7 +585,6 @@ function Configurator({ globalFunc }) {
                     type="time"
                     label="Open"
                     onChange={(e) => {
-                      console.log("New value for Wednesday start:", e.target.value);
                       updateBusinessHours(
                         "Wednesday",
                         e.target.value,
@@ -611,7 +601,6 @@ function Configurator({ globalFunc }) {
                     type="time"
                     label="Open"
                     onChange={(e) => {
-                      console.log("New value for Wednesday end:", e.target.value);
                       updateBusinessHours(
                         "Wednesday",
                         businessHours.find((x) => x.day == "Wednesday")?.hours.start,
@@ -646,7 +635,6 @@ function Configurator({ globalFunc }) {
                     type="time"
                     label="Open"
                     onChange={(e) => {
-                      console.log("New value for Thursday start:", e.target.value);
                       updateBusinessHours(
                         "Thursday",
                         e.target.value,
@@ -663,7 +651,6 @@ function Configurator({ globalFunc }) {
                     type="time"
                     label="Open"
                     onChange={(e) => {
-                      console.log("New value for Thursday end:", e.target.value);
                       updateBusinessHours(
                         "Thursday",
                         businessHours.find((x) => x.day == "Thursday")?.hours.start,
@@ -698,7 +685,6 @@ function Configurator({ globalFunc }) {
                     type="time"
                     label="Open"
                     onChange={(e) => {
-                      console.log("New value for Friday start:", e.target.value);
                       updateBusinessHours(
                         "Friday",
                         e.target.value,
@@ -715,7 +701,6 @@ function Configurator({ globalFunc }) {
                     type="time"
                     label="Open"
                     onChange={(e) => {
-                      console.log("New value for Friday end:", e.target.value);
                       updateBusinessHours(
                         "Friday",
                         businessHours.find((x) => x.day == "Friday")?.hours.start,
@@ -750,7 +735,6 @@ function Configurator({ globalFunc }) {
                     type="time"
                     label="Open"
                     onChange={(e) => {
-                      console.log("New value for Saturday start:", e.target.value);
                       updateBusinessHours(
                         "Saturday",
                         e.target.value,
@@ -767,7 +751,6 @@ function Configurator({ globalFunc }) {
                     type="time"
                     label="Open"
                     onChange={(e) => {
-                      console.log("New value for Saturday end:", e.target.value);
                       updateBusinessHours(
                         "Saturday",
                         businessHours.find((x) => x.day == "Saturday")?.hours.start,
