@@ -65,6 +65,7 @@ function Availability({ globalFunc }) {
   const [startTime, setStartTime] = useState();
   const [endTime, setEndTime] = useState();
   const [apptId, setApptid] = useState(null);
+  const [canDelete, setCanDelete] = useState(true);
   const instance = new Internationalization();
   let redirect = useNavigate();
   const [appointments, setAppointments] = useState([]);
@@ -96,6 +97,7 @@ function Availability({ globalFunc }) {
           techId: appointments.techid,
           techName: appointments.techName,
           available: appointments.available,
+          canDelete: appointments.canDelete,
         };
         myappts.push(appt);
       });
@@ -103,7 +105,36 @@ function Availability({ globalFunc }) {
       return null;
     } else if (res.res == 401) {
       globalFunc.setLoggedIn(false);
-      showSnackBar("error", "Unauthorized");
+      globalFunc.setErrorSBText("Unauthorized");
+      globalFunc.setErrorSB(true);
+    }
+  };
+
+  const deleteAvailability = async () => {
+    const response = await fetch(`${vars.serverUrl}/api/deleteAvailability`, {
+      method: "post",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ id: apptId }),
+      credentials: "include",
+    });
+    const res = await response.json();
+    let techs = [];
+    if (res.res == 200) {
+      globalFunc.setSuccessSBText("Availability deleted");
+      globalFunc.setSuccessSB(true);
+      scheduleObj.current.closeEditor();
+      getAppointments();
+      return null;
+    } else if (res.res == 401) {
+      globalFunc.setLoggedIn(false);
+      globalFunc.setErrorSBText("Unauthorized");
+      globalFunc.setErrorSB(true);
+    } else if (res.res == 500) {
+      globalFunc.setErrorSBText(res.message || "Error deleting availability");
+      globalFunc.setErrorSB(true);
     }
   };
 
@@ -170,6 +201,7 @@ function Availability({ globalFunc }) {
   };
   const fields = { text: "name", value: "id" };
   const editorTemplate = (props) => {
+    console.log("Props: ", props);
     return props !== undefined ? (
       <div>
         <table className="custom-event-editor">
@@ -240,7 +272,7 @@ function Availability({ globalFunc }) {
         </table>
         <Grid container spacing={1} marginTop={1}>
           <Grid item md={4}>
-            <MDButton onClick={() => onSaveButtonClick()} color="error">
+            <MDButton onClick={() => deleteAvailability()} color="error" disabled={canDelete}>
               Delete
             </MDButton>
           </Grid>
@@ -297,6 +329,7 @@ function Availability({ globalFunc }) {
       PrimaryColor: color,
       tech: selectedTech,
       techName: selectedTechText,
+      canDelete: true,
     };
     const response = await fetch(`${vars.serverUrl}/api/myavailability`, {
       method: "POST",
@@ -315,6 +348,9 @@ function Availability({ globalFunc }) {
         scheduleObj.current.saveEvent(Data);
       }
       scheduleObj.current.closeEditor();
+    } else if (json.res == 500) {
+      globalFunc.setErrorSBText(json.message || "Error saving availability");
+      globalFunc.setErrorSB(true);
     } else {
       globalFunc.setLoggedIn(false);
       globalFunc.setErrorSBText("Unauthorized, redirecting to login");
@@ -324,7 +360,8 @@ function Availability({ globalFunc }) {
 
   const onPopupOpen = (args) => {
     if (args.type === "Editor") {
-      console.log(globalFunc.user.account);
+      console.log(args);
+      setCanDelete(!args.data.canDelete);
       setApptid(args.data.id || null);
       setAvailable(args.data.available);
       setSelectedTechText(args.data.techName || globalFunc.user.account.name);
