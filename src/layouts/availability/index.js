@@ -26,7 +26,7 @@ import { Calendar, momentLocalizer } from "react-big-calendar";
 import moment from "moment";
 import { DropDownListComponent } from "@syncfusion/ej2-react-dropdowns";
 import { DateTimePickerComponent } from "@syncfusion/ej2-react-calendars";
-
+import MDTypography from "components/MDTypography";
 // /import "@zach.codes/react-calendar/dist/calendar-tailwind.css";
 import "@syncfusion/ej2-base/styles/material.css";
 import "@syncfusion/ej2-buttons/styles/material.css";
@@ -377,9 +377,12 @@ function Availability({ globalFunc }) {
   return (
     <DashboardLayout>
       <DashboardNavbar globalFunc={globalFunc} />
+      <MDTypography variant="h6" fontWeight="medium" mt={3} mb={2}>
+        NOTE: Appointment slots will generate within 15 minutes of setting availability
+      </MDTypography>
       <ScheduleComponent
         width="100%"
-        height="85vh"
+        height="75vh"
         ref={scheduleObj}
         eventSettings={eventSettings}
         popupClose={onPopupClose.bind(this)}
