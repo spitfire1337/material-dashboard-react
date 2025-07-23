@@ -692,10 +692,14 @@ function Availability({ globalFunc }) {
   return (
     <DashboardLayout>
       <DashboardNavbar globalFunc={globalFunc} />
+      <MDTypography variant="h6" fontWeight="medium" mt={3} mb={2}>
+        NOTE: Apointment scheduling is currently not functional!! Setting availability however is
+        functional
+      </MDTypography>
       <ScheduleComponent
         ref={scheduleObj}
         width="100%"
-        height="85vh"
+        height="75vh"
         eventSettings={eventSettings}
         editorTemplate={editorTemplate.bind(this)}
         editorFooterTemplate={editorFooterTemplate.bind(this)}
