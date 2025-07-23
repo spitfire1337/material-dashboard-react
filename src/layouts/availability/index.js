@@ -315,7 +315,14 @@ function Availability({ globalFunc }) {
   const onSaveButtonClick = async (props) => {
     let color = "#Ff0000";
     if (available == "Available" && globalFunc.user.account.localAccountId == selectedTech) {
-      color = "#47bb76";
+      color = "#61eb83";
+    } else if (
+      available == "Unavailable" &&
+      globalFunc.user.account.localAccountId != selectedTech
+    ) {
+      color = "#ae4949";
+    } else if (available == "Available" && globalFunc.user.account.localAccountId != selectedTech) {
+      color = "#7cae49";
     } else {
       color = "#Ff0000";
     }
@@ -327,7 +334,7 @@ function Availability({ globalFunc }) {
       end: new Date(endTime),
       IsAllDay: false,
       PrimaryColor: color,
-      tech: selectedTech,
+      techId: selectedTech,
       techName: selectedTechText,
       canDelete: true,
     };

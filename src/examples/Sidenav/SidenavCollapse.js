@@ -87,7 +87,7 @@ function SidenavCollapse({
                 noCollapse,
                 transparentSidenav,
                 whiteSidenav,
-                miniSidenav,
+                miniSidenav: false,
                 open,
                 active,
                 darkMode,
