@@ -154,7 +154,7 @@ function collapseArrow(theme, ownerState) {
       duration: transitions.duration.shorter,
     }),
 
-    [breakpoints.up("xl")]: {
+    [breakpoints.up("sm")]: {
       display:
         noCollapse || (transparentSidenav && miniSidenav) || miniSidenav
           ? "none !important"

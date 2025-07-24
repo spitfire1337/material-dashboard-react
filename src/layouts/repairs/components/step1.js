@@ -140,7 +140,7 @@ const step1 = ({ globalFunc, nextRepairStep }) => {
 
   const submitCustomer = async (val) => {
     if (
-      !validateEmail(selectedcustomer.email_address) ||
+      !validateEmail(selectedcustomer.email_address) &&
       !PhoneisValid(selectedcustomer.phone_number)
     ) {
       globalFunc.setErrorSBText("Please enter a valid email or phone number.");

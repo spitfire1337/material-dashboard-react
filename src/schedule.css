@@ -15,14 +15,15 @@
 .e-schedule .template-wrap .subject {
     font-weight: 600;
     font-size: 15px;
+    max-width: 100%;
     padding: 4px 4px 4px;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    overflow: hidden;
+    word-wrap: break-word; /* Older syntax */
+    overflow-wrap: break-word; /* Modern syntax */
+     
 }
 
 .e-schedule .template-wrap .time {
-    height: 50px;
+    height: 75px;
     font-size: 12px;
     padding: 4px 6px 4px;
     overflow: hidden;
