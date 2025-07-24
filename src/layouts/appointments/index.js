@@ -87,6 +87,7 @@ function Availability({ globalFunc }) {
   const [newPev, setNewPev] = useState({ Brand: { name: "" }, Model: "", PevType: "EUC" });
   const [brands, setBrands] = useState([]);
   const [models, setModels] = useState([]);
+  const [repairType, setRepairType] = useState([]);
   const instance = new Internationalization();
   let redirect = useNavigate();
   const [appointments, setAppointments] = useState([]);
@@ -134,7 +135,8 @@ function Availability({ globalFunc }) {
       return null;
     } else if (res.res == 401) {
       globalFunc.setLoggedIn(false);
-      showSnackBar("error", "Unauthorized");
+      globalFunc.setErrorSBText("Unauthorized, redirecting to login");
+      globalFunc.setErrorSB(true);
     }
   };
 
@@ -664,6 +666,97 @@ function Availability({ globalFunc }) {
               </Grid>
             </FormControl>
           </MDTypography>
+          <Grid container spacing={1} marginTop={1}>
+            <Grid item sm={12}>
+              <FormGroup aria-label="position" row>
+                <FormControlLabel
+                  control={<Checkbox />}
+                  label="Tire Change"
+                  onChange={(e) => {
+                    let myrepairType = "Tire Change";
+                    let newData = [...repairType];
+                    if (e.target.checked) {
+                      if (!newData.includes(myrepairType)) {
+                        newData.push(myrepairType);
+                        setRepairType(newData);
+                      }
+                    } else {
+                      let newArray = newData.filter((item) => item !== myrepairType);
+                      setRepairType(newArray);
+                    }
+                  }}
+                />
+                <FormControlLabel
+                  control={<Checkbox />}
+                  label="Tube Change"
+                  onChange={(e) => {
+                    let myrepairType = "Tube Change";
+                    let newData = [...repairType];
+                    if (e.target.checked) {
+                      if (!newData.includes(myrepairType)) {
+                        newData.push(myrepairType);
+                        setRepairType(newData);
+                      }
+                    } else {
+                      let newArray = newData.filter((item) => item !== myrepairType);
+                      setRepairType(newArray);
+                    }
+                  }}
+                />
+                <FormControlLabel
+                  control={<Checkbox />}
+                  label="Power issue"
+                  onChange={(e) => {
+                    let myrepairType = "Power issue";
+                    let newData = [...repairType];
+                    if (e.target.checked) {
+                      if (!newData.includes(myrepairType)) {
+                        newData.push(myrepairType);
+                        setRepairType(newData);
+                      }
+                    } else {
+                      let newArray = newData.filter((item) => item !== myrepairType);
+                      setRepairType(newArray);
+                    }
+                  }}
+                />
+                <FormControlLabel
+                  control={<Checkbox />}
+                  label="Mechanical Repair"
+                  onChange={(e) => {
+                    let myrepairType = "Mechanical Repair";
+                    let newData = [...repairType];
+                    if (e.target.checked) {
+                      if (!newData.includes(myrepairType)) {
+                        newData.push(myrepairType);
+                        setRepairType(newData);
+                      }
+                    } else {
+                      let newArray = newData.filter((item) => item !== myrepairType);
+                      setRepairType(newArray);
+                    }
+                  }}
+                />
+                <FormControlLabel
+                  control={<Checkbox />}
+                  label="Other"
+                  onChange={(e) => {
+                    let myrepairType = "Other";
+                    let newData = [...repairType];
+                    if (e.target.checked) {
+                      if (!newData.includes(myrepairType)) {
+                        newData.push(myrepairType);
+                        setRepairType(newData);
+                      }
+                    } else {
+                      let newArray = newData.filter((item) => item !== myrepairType);
+                      setRepairType(newArray);
+                    }
+                  }}
+                />
+              </FormGroup>
+            </Grid>
+          </Grid>
         </MDTypography>
         <Grid container spacing={1} marginTop={1}>
           <Grid item md={6}>
