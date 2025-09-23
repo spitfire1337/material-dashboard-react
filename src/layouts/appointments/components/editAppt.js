@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from "react";
 import Autocomplete, { createFilterOptions } from "@mui/material/Autocomplete";
 import MDTypography from "components/MDTypography";
 import { isNullOrUndefined } from "@syncfusion/ej2-base";
-
+import MDButton from "components/MDButton";
 import {
   Modal,
   FormControl,
@@ -20,67 +20,11 @@ import {
   NativeSelect,
 } from "@mui/material";
 import vars from "../../../config";
-const onPopupClose = (args) => {
-  if (args.type === "Editor" && !isNullOrUndefined(args.data)) {
-    console.log("Editor Data: ", args.data);
-    //   let subjectElement = args.element.querySelector("#Summary");
-    //   if (subjectElement) {
-    //     args.data.Subject = subjectElement.value;
-    //   }
-    //   let statusElement = args.element.querySelector("#EventType");
-    //   if (statusElement) {
-    //     args.data.EventType = statusElement.value;
-    //   }
-    //   args.data.StartTime = startObj.current.value;
-    //   args.data.EndTime = endObj.current.value;
-    //   let descriptionElement = args.element.querySelector("#Description");
-    //   if (descriptionElement) {
-    //     args.data.Description = descriptionElement.value;
-    //   }
-  }
-};
-
-const filter = createFilterOptions();
-const editorFooterTemplate = () => {
-  return (
-    <div id="event-footer">
-      <div id="verify">
-        <input type="checkbox" id="check-box" value="unchecked" />
-        <label htmlFor="check-box" id="text">
-          Verified
-        </label>
-      </div>
-      <div id="right-button">
-        <button id="Save" className="e-control e-btn e-primary" disabled data-ripple="true">
-          Save
-        </button>
-        <button id="Cancel" className="e-control e-btn e-primary" data-ripple="true">
-          Cancel
-        </button>
-      </div>
-    </div>
-  );
-};
-
-const onSaveButtonClick = (args) => {
-  const data = {
-    Id: args.data.Id,
-    Subject: args.element.querySelector("#Subject").value,
-    StartTime: args.element.querySelector("#StartTime").ej2_instances[0].value,
-    EndTime: args.element.querySelector("#EndTime").ej2_instances[0].value,
-    IsAllDay: args.element.querySelector("#IsAllDay").checked,
-  };
-  if (args.target.classList.contains("e-appointment")) {
-    scheduleObj.current.saveEvent(data, "Save");
-  } else {
-    data.Id = scheduleObj.current.getEventMaxID();
-    scheduleObj.current.addEvent(data);
-  }
-  scheduleObj.current.closeEditor();
-};
-const editorTemplate = (props, t) => {
-  console.log("Editor props", props);
+import MDSnackbar from "components/MDSnackbar";
+const Editor = ({ props, scheduleObj, globalFunc }) => {
+  const filter = createFilterOptions();
   const [customersSelection, setCustomersSelection] = useState([]);
+  const [customerId, setCustomerID] = useState(0);
   const [showCustForm, setShowCustForm] = useState(false);
   const [apptid, setApptId] = useState(0);
   const [startTime, setStartTime] = useState();
@@ -88,12 +32,20 @@ const editorTemplate = (props, t) => {
   const [customers, setCustomers] = useState([]);
   const [pevSelection, setPEVSelection] = useState([]);
   const [allowContinue, setAllowContinue] = useState(false);
-  const [pevBrand, setPEVBrand] = useState([]);
+  const [pevBrand, setPEVBrand] = useState(null);
   const [showNewPev, setShowNewPev] = useState(false);
   const [brandDisable, setBrandDisable] = useState(true);
   const [newPev, setNewPev] = useState({ Brand: { name: "" }, Model: "", PevType: "EUC" });
   const [brands, setBrands] = useState([]);
   const [models, setModels] = useState([]);
+  const [repairType, setRepairType] = useState([]);
+  const [repairDetails, setRepairDetails] = useState("");
+  const [appointments, setAppointments] = useState([]);
+  const [sbText, setSbtext] = useState("");
+  const [showErSB, setShowErSB] = useState(false);
+  const [showSB, setShowSB] = useState(false);
+  const closeSuccessSB = () => setShowSB(false);
+  const closeErrorSB = () => setShowErSB(false);
   const useForm = (initialValues) => {
     const [values, setValues] = useState(initialValues);
     return [
@@ -107,7 +59,93 @@ const editorTemplate = (props, t) => {
       () => setValues({}),
     ];
   };
+
+  useEffect(() => {
+    const fetchData = async () => {
+      let response = await fetch(`${vars.serverUrl}/square/getMyData?action=getCustomers`, {
+        credentials: "include",
+      });
+      if (response.status == 200) {
+        let res = await response.json();
+        if (res.res === 200) {
+          const useableCustomers = res.data.filter(
+            (cust) => cust.email_address != undefined || cust.phone_number != undefined
+          );
+          setCustomers(useableCustomers);
+          let custList = [];
+          useableCustomers.map((cust) => {
+            custList.push({
+              label: `${cust.given_name != undefined ? `${cust.given_name} ` : ""}
+                    ${cust.family_name != undefined ? `${cust.family_name}` : ""}
+                 ${cust.email_address != undefined ? ` | ${cust.email_address}` : ""} ${
+                cust.phone_number != undefined ? ` | ${cust.phone_number}` : ""
+              }`,
+              id: cust.id,
+            });
+          });
+          setCustomersSelection(custList);
+          emptyCustomer();
+          //setShowCustForm(false);
+        } else if (res.res == 401) {
+          globalFunc.setLoggedIn(false);
+          setSbtext("Unauthorized");
+          setShowErSB(true);
+        }
+      }
+
+      response = await fetch(`${vars.serverUrl}/square/getMyData?action=getPEVS`, {
+        credentials: "include",
+      });
+      if (response.status == 200) {
+        let res = await response.json();
+        if (res.res === 200) {
+          setModels(res.data);
+          function onlyUnique(value, index, array) {
+            return array.indexOf(value) === index;
+          }
+          var unique = res.data.filter(
+            (item, idx) => res.data.findIndex((x) => x.Brand._id == item.Brand._id) == idx
+          );
+          let brands = [{ id: 0, label: "Other" }];
+          unique.map((brand) => {
+            brands.push({ id: brand.Brand._id, label: brand.Brand.name });
+          });
+          setBrands(brands);
+          let custList = [{ label: "New PEV", id: 0 }];
+          res.data.map((pev) => {
+            custList.push({
+              label: `${pev.Brand.name} ${pev.Model}`,
+              id: pev._id,
+            });
+          });
+          setPEVSelection(custList);
+        } else if (res.res == 401) {
+          globalFunc.setLoggedIn(false);
+          setSbtext("Unauthorized");
+          setShowErSB(true);
+        }
+      }
+    };
+    fetchData();
+    if (props !== undefined) {
+      if (props.start != undefined) {
+        setStartTime(new Date(props.start));
+      }
+      if (props.end != undefined) {
+        setEndTime(new Date(props.end));
+      }
+      if (props._id != undefined) {
+        setApptId(props._id);
+      }
+    }
+  }, [props]);
+
   let [selectedcustomer, setSelectedCustomer, emptyCustomer] = useForm({});
+
+  const updateRepairDetails = (value) => {
+    setRepairDetails(value);
+  };
+
   const chooseCustomer = (cust) => {
     selectedcustomer = {};
     if (cust == null) {
@@ -148,82 +186,9 @@ const editorTemplate = (props, t) => {
     );
   };
 
-  useEffect(() => {
-    if (props !== undefined) {
-      if (props.start != undefined) {
-        setStartTime(new Date(props.start));
-      }
-      if (props.end != undefined) {
-        setEndTime(new Date(props.end));
-      }
-      if (props._id != undefined) {
-        setApptId(props._id);
-      }
-    }
-
-    const fetchData = async () => {
-      let response = await fetch(`${vars.serverUrl}/square/getMyData?action=getCustomers`, {
-        credentials: "include",
-      });
-      if (response.status == 200) {
-        let res = await response.json();
-        if (res.res === 200) {
-          const useableCustomers = res.data.filter(
-            (cust) => cust.email_address != undefined || cust.phone_number != undefined
-          );
-          setCustomers(useableCustomers);
-          let custList = [];
-          useableCustomers.map((cust) => {
-            custList.push({
-              label: `${cust.given_name != undefined ? `${cust.given_name} ` : ""}
-                    ${cust.family_name != undefined ? `${cust.family_name}` : ""}
-                 ${cust.email_address != undefined ? ` | ${cust.email_address}` : ""} ${
-                cust.phone_number != undefined ? ` | ${cust.phone_number}` : ""
-              }`,
-              id: cust.id,
-            });
-          });
-          setCustomersSelection(custList);
-          emptyCustomer();
-          //setShowCustForm(false);
-        }
-      }
-
-      response = await fetch(`${vars.serverUrl}/square/getMyData?action=getPEVS`, {
-        credentials: "include",
-      });
-      if (response.status == 200) {
-        let res = await response.json();
-        if (res.res === 200) {
-          setModels(res.data);
-          function onlyUnique(value, index, array) {
-            return array.indexOf(value) === index;
-          }
-          var unique = res.data.filter(
-            (item, idx) => res.data.findIndex((x) => x.Brand._id == item.Brand._id) == idx
-          );
-          let brands = [{ id: 0, label: "Other" }];
-          unique.map((brand) => {
-            brands.push({ id: brand.Brand._id, label: brand.Brand.name });
-          });
-          setBrands(brands);
-          let custList = [{ label: "New PEV", id: 0 }];
-          res.data.map((pev) => {
-            custList.push({
-              label: `${pev.Brand.name} ${pev.Model}`,
-              id: pev._id,
-            });
-          });
-          setPEVSelection(custList);
-        }
-      }
-    };
-    fetchData();
-  }, []);
-
   const choosePevBrand = (pev) => {
     if (pev == null) {
-      setPEVBrand(0);
+      setPEVBrand(null);
       setShowNewPev(false);
     } else if (pev.id == 0) {
       //NEW PEV
@@ -236,6 +201,178 @@ const editorTemplate = (props, t) => {
       setPEVBrand(pev.id);
       //setShowCustForm(true);
     }
+  };
+  const onSaveButtonClick = () => {
+    console.log("Save button clicked");
+    scheduleObj.current.closeEditor();
+  };
+
+  const bookAppt = () => {
+    if (selectedcustomer.id == undefined) {
+      setSbtext("Please select a customer.");
+      setShowErSB(true);
+      return;
+    }
+    if (pevBrand == null) {
+      setSbtext("Please select a PEV.");
+      setShowErSB(true);
+      return;
+    }
+    if (repairType.length == 0) {
+      setSbtext("Please select a repair type.");
+      setShowErSB(true);
+      return;
+    }
+    if (repairDetails == "") {
+      setSbtext("Please enter repair details.");
+      setShowErSB(true);
+      return;
+    }
+
+    //First check if customer is new or existing
+    submitCustomer(scheduleObj, submitPEV);
+  };
+
+  const submitCustomer = async (scheduleObj, callback) => {
+    if (
+      !validateEmail(selectedcustomer.email_address) &&
+      !PhoneisValid(selectedcustomer.phone_number)
+    ) {
+      setSbtext("Please enter a valid email or phone number.");
+      setShowErSB(true);
+      return null;
+    }
+    if (selectedcustomer.id == undefined || selectedcustomer.id == 0) {
+      //New Customer
+      try {
+        const response = await fetch(`${vars.serverUrl}/square/createCustomer`, {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(selectedcustomer),
+          credentials: "include",
+        });
+        const json = await response.json();
+        //setCustomerID(json.data.customer.id);
+        if (json.res == 200) {
+          //Customer submitted
+          setCustomerID(json.data._id);
+          callback(scheduleObj, logData);
+          return null;
+        } else if (json.res == 401) {
+          globalFunc.setLoggedIn(false);
+        }
+      } catch (e) {
+        setSbtext("Error creating customer.");
+        setShowErSB(true);
+      }
+    } else {
+      //Existing customer, let's update square of any changes
+      try {
+        const response = await fetch(`${vars.serverUrl}/square/updateCustomer`, {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(selectedcustomer),
+          credentials: "include",
+        });
+        const json = await response.json();
+        setCustomerID(selectedcustomer.id);
+        callback(scheduleObj, logData);
+        return null;
+      } catch (e) {
+        // TODO: Add error notification
+        setSbtext("Error updating customer.");
+        setShowErSB(true);
+      }
+    }
+  };
+
+  const submitPEV = async (scheduleObj, callback) => {
+    if (newPev.Brand._id == 0) {
+      //First we must create the new brand and return the ID
+      try {
+        const response = await fetch(`${vars.serverUrl}/repairs/createBrand`, {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ name: newPev.Brand.name }),
+          credentials: "include",
+        });
+        const json = await response.json();
+        if (json.res == 200) {
+          //We can now save PEV details with the new brand id
+          let newData = { ...newPev };
+          newData.Brand._id = json.data;
+          setNewPev(newData);
+          let newpevresp = await fetch(`${vars.serverUrl}/repairs/createPEV`, {
+            method: "POST",
+            headers: {
+              Accept: "application/json",
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(newData),
+            credentials: "include",
+          });
+          let pevjson = await newpevresp.json();
+          if (pevjson.res == 200) {
+            setPEVBrand(pevjson.data._id);
+            callback(scheduleObj);
+          } else {
+            setSbtext("An error occured while saving data, please try again");
+            setShowErSB(true);
+          }
+        } else {
+          setSbtext("An error occured while saving data, please try again");
+          setShowErSB(true);
+        }
+      } catch (e) {
+        setSbtext("An error occured while saving data, please try again");
+        setShowErSB(true);
+      }
+    } else if (pevBrand == 1) {
+      //
+      let newData = { ...newPev };
+      newData.Brand._id = newPev.Brand._id;
+      let newpevresp = await fetch(`${vars.serverUrl}/repairs/createPEV`, {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(newData),
+        credentials: "include",
+      });
+      let pevjson = await newpevresp.json();
+      if (pevjson.res == 200) {
+        setPEVBrand(pevjson.data._id);
+        callback(scheduleObj);
+      } else {
+        setSbtext("An error occured while saving data, please try again");
+        setShowErSB(true);
+      }
+    } else {
+      callback(scheduleObj);
+    }
+  };
+
+  const logData = (scheduleObj) => {
+    let apptdata = {
+      id: apptid,
+      booked: true,
+      customer: customerId,
+      pev: pevBrand,
+      details: repairDetails,
+      repairType: repairType,
+    };
+    console.log("APPT data:", apptdata);
+    scheduleObj.current.closeEditor();
   };
 
   const newPevData = (value) => {
@@ -579,11 +716,147 @@ const editorTemplate = (props, t) => {
             </Grid>
           </FormControl>
         </MDTypography>
+        <MDTypography id="modal-modal-title" variant="h6" component="h2">
+          Repair information
+        </MDTypography>
+        <Grid container spacing={1}>
+          <Grid item sm={12}>
+            <FormGroup aria-label="position" row>
+              <FormControlLabel
+                control={<Checkbox />}
+                label="Tire Change"
+                onChange={(e) => {
+                  let myrepairType = "Tire Change";
+                  let newData = [...repairType];
+                  if (e.target.checked) {
+                    if (!newData.includes(myrepairType)) {
+                      newData.push(myrepairType);
+                      setRepairType(newData);
+                    }
+                  } else {
+                    let newArray = newData.filter((item) => item !== myrepairType);
+                    setRepairType(newArray);
+                  }
+                }}
+              />
+              <FormControlLabel
+                control={<Checkbox />}
+                label="Tube Change"
+                onChange={(e) => {
+                  let myrepairType = "Tube Change";
+                  let newData = [...repairType];
+                  if (e.target.checked) {
+                    if (!newData.includes(myrepairType)) {
+                      newData.push(myrepairType);
+                      setRepairType(newData);
+                    }
+                  } else {
+                    let newArray = newData.filter((item) => item !== myrepairType);
+                    setRepairType(newArray);
+                  }
+                }}
+              />
+              <FormControlLabel
+                control={<Checkbox />}
+                label="Power issue"
+                onChange={(e) => {
+                  let myrepairType = "Power issue";
+                  let newData = [...repairType];
+                  if (e.target.checked) {
+                    if (!newData.includes(myrepairType)) {
+                      newData.push(myrepairType);
+                      setRepairType(newData);
+                    }
+                  } else {
+                    let newArray = newData.filter((item) => item !== myrepairType);
+                    setRepairType(newArray);
+                  }
+                }}
+              />
+              <FormControlLabel
+                control={<Checkbox />}
+                label="Mechanical Repair"
+                onChange={(e) => {
+                  let myrepairType = "Mechanical Repair";
+                  let newData = [...repairType];
+                  if (e.target.checked) {
+                    if (!newData.includes(myrepairType)) {
+                      newData.push(myrepairType);
+                      setRepairType(newData);
+                    }
+                  } else {
+                    let newArray = newData.filter((item) => item !== myrepairType);
+                    setRepairType(newArray);
+                  }
+                }}
+              />
+              <FormControlLabel
+                control={<Checkbox />}
+                label="Other"
+                onChange={(e) => {
+                  let myrepairType = "Other";
+                  let newData = [...repairType];
+                  if (e.target.checked) {
+                    if (!newData.includes(myrepairType)) {
+                      newData.push(myrepairType);
+                      setRepairType(newData);
+                    }
+                  } else {
+                    let newArray = newData.filter((item) => item !== myrepairType);
+                    setRepairType(newArray);
+                  }
+                }}
+              />
+            </FormGroup>
+          </Grid>
+          <Grid item sm={12}>
+            <TextField
+              id="outlined-multiline-static"
+              label="Repair Details"
+              multiline
+              rows={4}
+              fullWidth
+              value={repairDetails}
+              onChange={(e) => {
+                updateRepairDetails(e.target.value);
+              }}
+            />
+          </Grid>
+        </Grid>
       </MDTypography>
+      <Grid container spacing={1} marginTop={1}>
+        <Grid item md={6}>
+          {!props.booked ? (
+            <MDButton color="success" onClick={() => bookAppt()}>
+              Book Appointment
+            </MDButton>
+          ) : null}
+        </Grid>
+      </Grid>
+      <MDSnackbar
+        color="error"
+        icon="warning"
+        title="Error"
+        content={sbText}
+        open={showErSB}
+        onClose={closeErrorSB}
+        close={closeErrorSB}
+        bgWhite
+      />
+      <MDSnackbar
+        color="success"
+        icon="check"
+        title="Success"
+        content={sbText}
+        open={showSB}
+        onClose={closeSuccessSB}
+        close={closeSuccessSB}
+        bgWhite
+      />
     </div>
   ) : (
     <div></div>
   );
 };
 
-export { editorTemplate, onPopupClose, editorFooterTemplate };
+export default Editor;
