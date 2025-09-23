@@ -375,6 +375,7 @@ function Availability({ globalFunc }) {
       setSelectedTech(args.data.techId || globalFunc.user.account.localAccountId);
       setStartTime(args.data.start);
       setEndTime(args.data.end);
+      console.log("Tech id", args.data.techId || globalFunc.user.account.localAccountId);
     }
   };
   const editorFooterTemplate = () => {
