@@ -38,6 +38,7 @@ import {
   Select,
   TextField,
 } from "@mui/material";
+import { Update } from "@mui/icons-material";
 
 export default function data(globalFunc, setShowLoad, getParts) {
   let redirect = useNavigate();
@@ -97,16 +98,6 @@ export default function data(globalFunc, setShowLoad, getParts) {
       if (searchTerm == "" || searchTerm == null) {
         return true;
       }
-      // eslint-disable-next-line prettier/prettier
-      // if (
-      //   item.variant.item_variation_data.name
-      //     .toString()
-      //     .toLowerCase()
-      //     .includes(searchTerm.toLowerCase())
-      // )
-      //   return true;
-      // if (item.item_data.item_data.name.toLowerCase().includes(searchTerm.toLowerCase()))
-      //   return true;
       return false;
     });
     setInventory(filtered);
@@ -147,7 +138,7 @@ export default function data(globalFunc, setShowLoad, getParts) {
     }
   };
 
-  const UpdateResolution = async (height, width) => {
+  const UpdateResolution = async (screenSize) => {
     setShowResModal(false);
     const response = await fetch(`${vars.serverUrl}/api/etagResolution`, {
       method: "POST",
@@ -158,8 +149,7 @@ export default function data(globalFunc, setShowLoad, getParts) {
       credentials: "include",
       body: JSON.stringify({
         id: itemid,
-        h: height,
-        w: width,
+        screenSize: screenSize,
       }),
     });
     const json = await response.json();
@@ -173,10 +163,10 @@ export default function data(globalFunc, setShowLoad, getParts) {
     }
   };
 
-  const ResolutionBadge = ({ resH, resW, id }) => {
+  const ResolutionBadge = ({ screenSize, resW, id }) => {
     return (
       <div>
-        {resH} * {resW}
+        {screenSize} in
         <Button
           onClick={() => {
             setShowResModal(id);
@@ -246,6 +236,8 @@ export default function data(globalFunc, setShowLoad, getParts) {
       { Header: "Resolution", accessor: "resolution", align: "left" },
       { Header: "Battery", accessor: "battery", align: "left" },
       { Header: "Associated Square item", accessor: "squareitem", align: "left" },
+      { Header: "Pending update", accessor: "update", align: "left" },
+      { Header: "Update ready", accessor: "updateReady", align: "left" },
       { Header: "Enabled", accessor: "enabled", align: "left" },
     ],
 
@@ -260,8 +252,16 @@ export default function data(globalFunc, setShowLoad, getParts) {
                 ((700 - (3300 - item.batteryMv)) / 700) *
                 100
               ).toFixed(2)}%)`,
-              resolution: (
-                <ResolutionBadge resH={item.resolutionH} resW={item.resolutionW} id={item._id} />
+              resolution: <ResolutionBadge screenSize={item.screenSize} id={item._id} />,
+              update: item.needsUpdate ? (
+                <MDBadge badgeContent="Yes" color="warning" variant="gradient" size="sm" />
+              ) : (
+                <MDBadge badgeContent="No" color="success" variant="gradient" size="sm" />
+              ),
+              updateReady: item.updateReady ? (
+                <MDBadge badgeContent="Yes" color="success" variant="gradient" size="sm" />
+              ) : (
+                <MDBadge badgeContent="No" color="warning" variant="gradient" size="sm" />
               ),
               squareitem: (
                 <MDTypography

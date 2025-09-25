@@ -96,7 +96,7 @@ const ETags = ({ globalFunc }) => {
   const [part, setPart] = useState();
   const [searchedpart, setSearchedpart] = useState();
   const [PartDetail, setPartDetail] = useState();
-  const [resolution, setResolution] = useState({ h: 0, w: 0 });
+  const [screenSize, setscreenSize] = useState("");
 
   const useForm = (initialValues) => {
     const [values, setValues] = useState(initialValues);
@@ -265,29 +265,24 @@ const ETags = ({ globalFunc }) => {
         </MDBox>
       </Modal>
       <Dialog open={showResModal}>
-        <DialogTitle>Set Resolution</DialogTitle>
+        <DialogTitle>Set Screen Size</DialogTitle>
         <DialogContent sx={{ paddingTop: "2px" }}>
           <FormControl fullWidth sx={{ paddingTop: "5px" }}>
             <Grid container spacing={1} mb={1}>
               <Grid item xs={12} md={6}>
-                <TextField
-                  type="number"
-                  label="Height"
-                  value={resolution.h}
-                  onChange={(e) => {
-                    setResolution({ ...resolution, h: e.target.value });
-                  }}
-                />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <TextField
-                  type="number"
-                  label="Width"
-                  value={resolution.w}
-                  onChange={(e) => {
-                    setResolution({ ...resolution, w: e.target.value });
-                  }}
-                />
+                <FormControl fullWidth>
+                  <InputLabel id="demo-simple-select-label">Size</InputLabel>
+                  <Select
+                    labelId="demo-simple-select-label"
+                    id="demo-simple-select"
+                    value={screenSize}
+                    label="Size"
+                    onChange={(e) => setscreenSize(e.target.value)}
+                  >
+                    <MenuItem value=""></MenuItem>
+                    <MenuItem value={2.9}>2.9</MenuItem>
+                  </Select>
+                </FormControl>
               </Grid>
             </Grid>
           </FormControl>
@@ -296,11 +291,7 @@ const ETags = ({ globalFunc }) => {
           <MDButton color="error" onClick={() => setShowResModal(false)}>
             Cancel
           </MDButton>
-          <MDButton
-            color="success"
-            onClick={() => UpdateResolution(resolution.h, resolution.w)}
-            autoFocus
-          >
+          <MDButton color="success" onClick={() => UpdateResolution(screenSize)} autoFocus>
             Save
           </MDButton>
         </DialogActions>
