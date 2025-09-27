@@ -238,7 +238,6 @@ export default function data(globalFunc, setShowLoad, getParts) {
       { Header: "Associated Square item", accessor: "squareitem", align: "left" },
       { Header: "Pending update", accessor: "update", align: "left" },
       { Header: "Update ready", accessor: "updateReady", align: "left" },
-      { Header: "Enabled", accessor: "enabled", align: "left" },
     ],
 
     rows:
@@ -272,16 +271,13 @@ export default function data(globalFunc, setShowLoad, getParts) {
                   fontWeight="medium"
                 >
                   {item.squareItem.length > 0
-                    ? `${item.squareItem[0].item_data.name} - ${
-                        item.squareItem[0].item_data.variations.filter(
+                    ? `${item.squareItem[0].itemData.name} - ${
+                        item.squareItem[0].itemData.variations.filter(
                           (x) => x.id == item.squareId
-                        )[0].item_variation_data.name
+                        )[0].itemVariationData.name
                       }`
                     : ""}{" "}
-                  <Button
-                    onClick={() => showSquareUpdate(item._id)}
-                    disabled={!item.resolutionH || !item.resolutionW}
-                  >
+                  <Button onClick={() => showSquareUpdate(item._id)} disabled={!item.screenSize}>
                     Edit
                   </Button>
                 </MDTypography>

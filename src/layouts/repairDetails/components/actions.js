@@ -119,34 +119,28 @@ function Actions({
       setPartDetail(true);
     } else {
       let selectedpart = allparts.filter((x) =>
-        x.item_data.variations.filter((y) => y.id == value.id)
+        x.itemData.variations.filter((y) => y.id == value.id)
       );
       const filteredArray = allparts.filter((part) => {
         // Use Array.prototype.some() to check if any rating has the desired category
-        return part.item_data.variations.some((item) => {
+        return part.itemData.variations.some((item) => {
           return item.id === value.id;
         });
       })[0];
-      let variant = filteredArray.item_data.variations.filter((x) => x.id == value.id);
+      let variant = filteredArray.itemData.variations.filter((x) => x.id == value.id);
       let cost =
-        variant[0].item_variation_data.price_money != undefined
-          ? variant[0].item_variation_data.price_money
+        variant[0].itemVariationData.priceMoney != undefined
+          ? variant[0].itemVariationData.priceMoney
           : 0;
       setPartDetails({
         ...partDetails,
         qty: 1,
         cost:
-          variant[0].item_variation_data.price_money != undefined
-            ? (variant[0].item_variation_data.price_money.amount / 100).toFixed(2)
+          variant[0].itemVariationData.priceMoney != undefined
+            ? (variant[0].itemVariationData.priceMoney.amount / 100).toFixed(2)
             : (0).toFixed(2),
-        name: filteredArray.item_data.name + " - " + variant[0].item_variation_data.name,
+        name: filteredArray.itemData.name + " - " + variant[0].itemVariationData.name,
       });
-      // setPartName(filteredArray.item_data.name + " - " + variant[0].item_variation_data.name);
-      // setPartCost(
-      //   variant[0].item_variation_data.price_money != undefined
-      //     ? (variant[0].item_variation_data.price_money.amount / 100).toFixed(2)
-      //     : (0).toFixed(2)
-      // );
       setPart(value.id);
       setPartDetail(true);
     }
@@ -167,12 +161,12 @@ function Actions({
       let itemList = [];
       setAllParts(json.data);
       json.data.map((item) => {
-        item.item_data.variations.map((variant) => {
+        item.itemData.variations.map((variant) => {
           itemList.push({
-            label: `${item.item_data.name} - ${variant.item_variation_data.name} ${
-              variant.item_variation_data != undefined &&
-              variant.item_variation_data.price_money != undefined
-                ? `- $${(variant.item_variation_data.price_money.amount / 100).toFixed(2)}`
+            label: `${item.itemData.name} - ${variant.itemVariationData.name} ${
+              variant.itemVariationData != undefined &&
+              variant.itemVariationData.priceMoney != undefined
+                ? `- $${(Number(variant.itemVariationData.priceMoney.amount) / 100).toFixed(2)}`
                 : ""
             }`,
             id: variant.id,
@@ -283,7 +277,16 @@ function Actions({
     setShowLoad(true);
     let dueTaxes;
     if (Taxable) {
-      dueTaxes = { taxes: [{ percentage: TaxRate.toString(), name: "FL Sales Tax" }] };
+      dueTaxes = {
+        taxes: [
+          {
+            type: "ADDITIVE",
+            name: "FL Sales Tax",
+            percentage: TaxRate.toString(),
+            scope: "ORDER",
+          },
+        ],
+      };
     }
     const response = await fetch(`${vars.serverUrl}/repairs/createInvoice`, {
       method: "POST",
