@@ -286,9 +286,11 @@ export default function data(globalFunc, setShowLoad, getParts) {
                 >
                   {item.squareItem.length > 0
                     ? `${item.squareItem[0].itemData.name} - ${
-                        item.squareItem[0].itemData.variations.filter(
-                          (x) => x.id == item.squareId
-                        )[0].itemVariationData.name
+                        item.squareItem[0].itemData.variations != undefined
+                          ? item.squareItem[0].itemData.variations.find(
+                              (x) => x.id == item.squareId
+                            ).itemVariationData.name
+                          : ""
                       }`
                     : ""}{" "}
                   <Button onClick={() => showSquareUpdate(item._id)}>Edit</Button>
