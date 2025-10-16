@@ -78,6 +78,7 @@ export default function data(globalFunc, updateLocation, setShowLoad) {
       // eslint-disable-next-line prettier/prettier
       if (
         item.variant.itemVariationData.name
+        item.variant.itemVariationData.name
           .toString()
           .toLowerCase()
           .includes(searchTerm.toLowerCase())

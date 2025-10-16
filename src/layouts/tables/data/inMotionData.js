@@ -98,14 +98,13 @@ export default function data(globalFunc, setShowLoad, getParts) {
       }
       // eslint-disable-next-line prettier/prettier
       if (
-        item.variant.item_variation_data.name
+        item.variant.itemVariationData.name
           .toString()
           .toLowerCase()
           .includes(searchTerm.toLowerCase())
       )
         return true;
-      if (item.item_data.item_data.name.toLowerCase().includes(searchTerm.toLowerCase()))
-        return true;
+      if (item.itemData.name.toLowerCase().includes(searchTerm.toLowerCase())) return true;
       return false;
     });
     setInventory(filtered);
@@ -286,10 +285,12 @@ export default function data(globalFunc, setShowLoad, getParts) {
                   fontWeight="medium"
                 >
                   {item.squareItem.length > 0
-                    ? `${item.squareItem[0].item_data.name} - ${
-                        item.squareItem[0].item_data.variations.filter(
-                          (x) => x.id == item.squareId
-                        )[0].item_variation_data.name
+                    ? `${item.squareItem[0].itemData.name} - ${
+                        item.squareItem[0].itemData.variations != undefined
+                          ? item.squareItem[0].itemData.variations.find(
+                              (x) => x.id == item.squareId
+                            ).itemVariationData.name
+                          : ""
                       }`
                     : ""}{" "}
                   <Button onClick={() => showSquareUpdate(item._id)}>Edit</Button>

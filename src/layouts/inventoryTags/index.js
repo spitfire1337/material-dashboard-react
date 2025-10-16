@@ -127,12 +127,12 @@ const ETags = ({ globalFunc }) => {
       let itemList = [];
       setAllParts(json.data);
       json.data.map((item) => {
-        item.item_data.variations.map((variant) => {
+        item.itemData.variations.map((variant) => {
           itemList.push({
-            label: `${item.item_data.name} - ${variant.item_variation_data.name} ${
-              variant.item_variation_data != undefined &&
-              variant.item_variation_data.price_money != undefined
-                ? `- $${(variant.item_variation_data.price_money.amount / 100).toFixed(2)}`
+            label: `${item.itemData.name} - ${variant.itemVariationData.name} ${
+              variant.itemVariationData != undefined &&
+              variant.itemVariationData.priceMoney != undefined
+                ? `- $${(variant.itemVariationData.priceMoney.amount / 100).toFixed(2)}`
                 : ""
             }`,
             id: variant.id,

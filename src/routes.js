@@ -128,14 +128,6 @@ const adminRoutes = (globalFunc) => {
         },
         {
           type: "collapse",
-          name: "InMotion Dropship",
-          key: "imdrops",
-          route: "/inmotionDropShipping",
-          icon: <Icon fontSize="small">inventory_2</Icon>,
-          component: <InmotionItems globalFunc={globalFunc} />,
-        },
-        {
-          type: "collapse",
           name: "eTags",
           key: "eTags",
           icon: <Icon fontSize="small">inventory_2</Icon>,
