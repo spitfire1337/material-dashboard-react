@@ -52,7 +52,7 @@ export default function data(globalFunc, setShowLoad, getParts) {
   const [showResModal, setShowResModal] = useState(false);
   const [squareItem, setsquareItem] = useState(0);
   const [showPartsModal, setShowPartsModal] = useState(false);
-
+  const [showColorModal, setShowColorModal] = useState(false);
   const fetchData = async (globalFunc) => {
     const response = await fetch(`${vars.serverUrl}/api/tags`, {
       credentials: "include",
@@ -98,6 +98,13 @@ export default function data(globalFunc, setShowLoad, getParts) {
       if (searchTerm == "" || searchTerm == null) {
         return true;
       }
+      if (item.alias.toString().toLowerCase().includes(searchTerm.toLowerCase())) return true;
+      if (item.mac.toString().toLowerCase().includes(searchTerm.toLowerCase())) return true;
+      if (
+        item.squareItem.length > 0 &&
+        item.squareItem[0].itemData.name.toString().toLowerCase().includes(searchTerm.toLowerCase())
+      )
+        return true;
       return false;
     });
     setInventory(filtered);
@@ -163,6 +170,31 @@ export default function data(globalFunc, setShowLoad, getParts) {
     }
   };
 
+  const UpdateColor = async (color) => {
+    setShowColorModal(false);
+    const response = await fetch(`${vars.serverUrl}/api/etagColor`, {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify({
+        id: itemid,
+        color: color,
+      }),
+    });
+    const json = await response.json();
+    if (json.res == 200) {
+      globalFunc.setSuccessSBText("Color profile updated");
+      globalFunc.setSuccessSB(true);
+      reRender();
+    } else {
+      globalFunc.setErrorSBText("Server error occured");
+      globalFunc.setErrorSB(true);
+    }
+  };
+
   const ResolutionBadge = ({ screenSize, resW, id }) => {
     return (
       <div>
@@ -170,6 +202,22 @@ export default function data(globalFunc, setShowLoad, getParts) {
         <Button
           onClick={() => {
             setShowResModal(id);
+            setItemId(id);
+          }}
+        >
+          Edit
+        </Button>
+      </div>
+    );
+  };
+
+  const ColorBadge = ({ color, id }) => {
+    return (
+      <div>
+        {color}
+        <Button
+          onClick={() => {
+            setShowColorModal(id);
             setItemId(id);
           }}
         >
@@ -230,15 +278,19 @@ export default function data(globalFunc, setShowLoad, getParts) {
     showResModal: showResModal,
     setShowResModal: setShowResModal,
     UpdateResolution: UpdateResolution,
+    setShowColorModal: setShowColorModal,
+    showColorModal: showColorModal,
+    UpdateColor: UpdateColor,
     columns: [
       { Header: "Tag Alias", accessor: "alias", align: "left" },
       { Header: "Tag Mac", accessor: "mac", align: "left" },
+      { Header: "Last seen", accessor: "lastseen", align: "left" },
+
       { Header: "Resolution", accessor: "resolution", align: "left" },
+      { Header: "Color Profile", accessor: "colorProfile", align: "left" },
       { Header: "Battery", accessor: "battery", align: "left" },
       { Header: "Associated Square item", accessor: "squareitem", align: "left" },
       { Header: "Pending update", accessor: "update", align: "left" },
-      { Header: "Update ready", accessor: "updateReady", align: "left" },
-      { Header: "Enabled", accessor: "enabled", align: "left" },
     ],
 
     rows:
@@ -253,6 +305,7 @@ export default function data(globalFunc, setShowLoad, getParts) {
                 100
               ).toFixed(2)}%)`,
               resolution: <ResolutionBadge screenSize={item.screenSize} id={item._id} />,
+              colorProfile: <ColorBadge color={item.colorProfile} id={item._id} />,
               update: item.needsUpdate ? (
                 <MDBadge badgeContent="Yes" color="warning" variant="gradient" size="sm" />
               ) : (
@@ -263,6 +316,9 @@ export default function data(globalFunc, setShowLoad, getParts) {
               ) : (
                 <MDBadge badgeContent="No" color="warning" variant="gradient" size="sm" />
               ),
+              lastseen: item.lastseen
+                ? moment(item.lastseen * 1000).format("YYYY-MM-DD HH:mm:ss")
+                : "Never",
               squareitem: (
                 <MDTypography
                   component="a"
@@ -272,15 +328,15 @@ export default function data(globalFunc, setShowLoad, getParts) {
                   fontWeight="medium"
                 >
                   {item.squareItem.length > 0
-                    ? `${item.squareItem[0].item_data.name} - ${
-                        item.squareItem[0].item_data.variations.filter(
+                    ? `${item.squareItem[0].itemData.name} - ${
+                        item.squareItem[0].itemData.variations.filter(
                           (x) => x.id == item.squareId
-                        )[0].item_variation_data.name
+                        )[0].itemVariationData.name
                       }`
                     : ""}{" "}
                   <Button
                     onClick={() => showSquareUpdate(item._id)}
-                    disabled={!item.resolutionH || !item.resolutionW}
+                    disabled={!item.screenSize || !item.colorProfile}
                   >
                     Edit
                   </Button>
