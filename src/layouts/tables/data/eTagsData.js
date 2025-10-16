@@ -283,11 +283,13 @@ export default function data(globalFunc, setShowLoad, getParts) {
     columns: [
       { Header: "Tag Alias", accessor: "alias", align: "left" },
       { Header: "Tag Mac", accessor: "mac", align: "left" },
+      { Header: "Last seen", accessor: "lastseen", align: "left" },
+
       { Header: "Resolution", accessor: "resolution", align: "left" },
+      { Header: "Color Profile", accessor: "colorProfile", align: "left" },
       { Header: "Battery", accessor: "battery", align: "left" },
       { Header: "Associated Square item", accessor: "squareitem", align: "left" },
       { Header: "Pending update", accessor: "update", align: "left" },
-      { Header: "Update ready", accessor: "updateReady", align: "left" },
     ],
 
     rows:
@@ -302,6 +304,7 @@ export default function data(globalFunc, setShowLoad, getParts) {
                 100
               ).toFixed(2)}%)`,
               resolution: <ResolutionBadge screenSize={item.screenSize} id={item._id} />,
+              colorProfile: <ColorBadge color={item.colorProfile} id={item._id} />,
               update: item.needsUpdate ? (
                 <MDBadge badgeContent="Yes" color="warning" variant="gradient" size="sm" />
               ) : (
@@ -313,6 +316,9 @@ export default function data(globalFunc, setShowLoad, getParts) {
               ) : (
                 <MDBadge badgeContent="No" color="warning" variant="gradient" size="sm" />
               ),
+              lastseen: item.lastseen
+                ? moment(item.lastseen * 1000).format("YYYY-MM-DD HH:mm:ss")
+                : "Never",
               squareitem: (
                 <MDTypography
                   component="a"
@@ -330,7 +336,10 @@ export default function data(globalFunc, setShowLoad, getParts) {
                           : ""
                       }`
                     : ""}{" "}
-                  <Button onClick={() => showSquareUpdate(item._id)} disabled={!item.screenSize}>
+                  <Button
+                    onClick={() => showSquareUpdate(item._id)}
+                    disabled={!item.screenSize || !item.colorProfile}
+                  >
                     Edit
                   </Button>
                 </MDTypography>

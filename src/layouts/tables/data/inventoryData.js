@@ -78,12 +78,13 @@ export default function data(globalFunc, updateLocation, setShowLoad) {
       // eslint-disable-next-line prettier/prettier
       if (
         item.variant.itemVariationData.name
+        item.variant.itemVariationData.name
           .toString()
           .toLowerCase()
           .includes(searchTerm.toLowerCase())
       )
         return true;
-      if (item.itemData.name.toLowerCase().includes(searchTerm.toLowerCase())) return true;
+      if (item.itemData.itemData.name.toLowerCase().includes(searchTerm.toLowerCase())) return true;
       return false;
     });
     setInventory(filtered);
@@ -129,7 +130,7 @@ export default function data(globalFunc, updateLocation, setShowLoad) {
                   color="text"
                   fontWeight="medium"
                 >
-                  {item.itemData.name} - {item.variant.itemVariationData.name}
+                  {item.itemData.itemData.name} - {item.variant.itemVariationData.name}
                 </MDTypography>
               ),
               quantity: (
