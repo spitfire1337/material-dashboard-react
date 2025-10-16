@@ -97,6 +97,7 @@ const ETags = ({ globalFunc }) => {
   const [searchedpart, setSearchedpart] = useState();
   const [PartDetail, setPartDetail] = useState();
   const [screenSize, setscreenSize] = useState("");
+  const [colorProfile, setColorProfile] = useState("");
 
   const useForm = (initialValues) => {
     const [values, setValues] = useState(initialValues);
@@ -160,6 +161,9 @@ const ETags = ({ globalFunc }) => {
     setShowResModal,
     UpdateSquareItem,
     UpdateResolution,
+    setShowColorModal,
+    UpdateColor,
+    showColorModal,
   } = authorsTableData(globalFunc, setShowLoad, getParts);
 
   const choosePart = (value) => {
@@ -292,6 +296,40 @@ const ETags = ({ globalFunc }) => {
             Cancel
           </MDButton>
           <MDButton color="success" onClick={() => UpdateResolution(screenSize)} autoFocus>
+            Save
+          </MDButton>
+        </DialogActions>
+      </Dialog>
+      <Dialog open={showColorModal}>
+        <DialogTitle>Set Color Profile</DialogTitle>
+        <DialogContent sx={{ paddingTop: "2px" }}>
+          <FormControl fullWidth sx={{ paddingTop: "5px" }}>
+            <Grid container spacing={1} mb={1}>
+              <Grid item xs={12} md={6}>
+                <FormControl fullWidth>
+                  <InputLabel id="demo-simple-select-label">Color Profile</InputLabel>
+                  <Select
+                    labelId="demo-simple-select-label"
+                    id="demo-simple-select"
+                    value={colorProfile}
+                    label="Color Profile"
+                    onChange={(e) => setColorProfile(e.target.value)}
+                  >
+                    <MenuItem value=""></MenuItem>
+                    <MenuItem value="BW">Black/White</MenuItem>
+                    <MenuItem value="BWR">Black/White/Red</MenuItem>
+                    <MenuItem value="BWY">Black/White/Yellow</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+            </Grid>
+          </FormControl>
+        </DialogContent>
+        <DialogActions>
+          <MDButton color="error" onClick={() => setShowColorModal(false)}>
+            Cancel
+          </MDButton>
+          <MDButton color="success" onClick={() => UpdateColor(colorProfile)} autoFocus>
             Save
           </MDButton>
         </DialogActions>

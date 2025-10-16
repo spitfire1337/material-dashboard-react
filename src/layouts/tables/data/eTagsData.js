@@ -52,6 +52,7 @@ export default function data(globalFunc, setShowLoad, getParts) {
   const [showResModal, setShowResModal] = useState(false);
   const [squareItem, setsquareItem] = useState(0);
   const [showPartsModal, setShowPartsModal] = useState(false);
+  const [showColorModal, setShowColorModal] = useState(false);
 
   const fetchData = async (globalFunc) => {
     const response = await fetch(`${vars.serverUrl}/api/tags`, {
@@ -98,6 +99,13 @@ export default function data(globalFunc, setShowLoad, getParts) {
       if (searchTerm == "" || searchTerm == null) {
         return true;
       }
+      if (item.alias.toString().toLowerCase().includes(searchTerm.toLowerCase())) return true;
+      if (item.mac.toString().toLowerCase().includes(searchTerm.toLowerCase())) return true;
+      if (
+        item.squareItem.length > 0 &&
+        item.squareItem[0].itemData.name.toString().toLowerCase().includes(searchTerm.toLowerCase())
+      )
+        return true;
       return false;
     });
     setInventory(filtered);
@@ -163,6 +171,31 @@ export default function data(globalFunc, setShowLoad, getParts) {
     }
   };
 
+  const UpdateColor = async (color) => {
+    setShowColorModal(false);
+    const response = await fetch(`${vars.serverUrl}/api/etagColor`, {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify({
+        id: itemid,
+        color: color,
+      }),
+    });
+    const json = await response.json();
+    if (json.res == 200) {
+      globalFunc.setSuccessSBText("Color profile updated");
+      globalFunc.setSuccessSB(true);
+      reRender();
+    } else {
+      globalFunc.setErrorSBText("Server error occured");
+      globalFunc.setErrorSB(true);
+    }
+  };
+
   const ResolutionBadge = ({ screenSize, resW, id }) => {
     return (
       <div>
@@ -178,7 +211,21 @@ export default function data(globalFunc, setShowLoad, getParts) {
       </div>
     );
   };
-
+  const ColorBadge = ({ color, id }) => {
+    return (
+      <div>
+        {color}
+        <Button
+          onClick={() => {
+            setShowColorModal(id);
+            setItemId(id);
+          }}
+        >
+          Edit
+        </Button>
+      </div>
+    );
+  };
   const enableFunc = async (status, id) => {
     const response = await fetch(`${vars.serverUrl}/api/etagEnable`, {
       method: "POST",
@@ -230,6 +277,9 @@ export default function data(globalFunc, setShowLoad, getParts) {
     showResModal: showResModal,
     setShowResModal: setShowResModal,
     UpdateResolution: UpdateResolution,
+    setShowColorModal: setShowColorModal,
+    showColorModal: showColorModal,
+    UpdateColor: UpdateColor,
     columns: [
       { Header: "Tag Alias", accessor: "alias", align: "left" },
       { Header: "Tag Mac", accessor: "mac", align: "left" },
@@ -257,6 +307,7 @@ export default function data(globalFunc, setShowLoad, getParts) {
               ) : (
                 <MDBadge badgeContent="No" color="success" variant="gradient" size="sm" />
               ),
+              colorProfile: <ColorBadge color={item.colorProfile} id={item._id} />,
               updateReady: item.updateReady ? (
                 <MDBadge badgeContent="Yes" color="success" variant="gradient" size="sm" />
               ) : (
