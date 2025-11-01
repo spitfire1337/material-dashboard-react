@@ -23,6 +23,7 @@ import Grid from "@mui/material/Grid";
 import Card from "@mui/material/Card";
 import {
   FormControl,
+  FormControlLabel,
   InputLabel,
   MenuItem,
   Dialog,
@@ -30,6 +31,7 @@ import {
   DialogContent,
   DialogActions,
   TextField,
+  Checkbox,
 } from "@mui/material";
 import { makeStyles } from "@mui/styles";
 import { Modal, Select, IconButton, Icon } from "@mui/material";
@@ -49,6 +51,8 @@ const filter = createFilterOptions();
 
 // Data
 import authorsTableData from "layouts/tables/data/eTagsData";
+import { CheckBox } from "@mui/icons-material";
+import { use } from "react";
 
 const style = {
   position: "absolute",
@@ -98,6 +102,13 @@ const ETags = ({ globalFunc }) => {
   const [PartDetail, setPartDetail] = useState();
   const [screenSize, setscreenSize] = useState("");
   const [colorProfile, setColorProfile] = useState("");
+  const [customDataEnabled, setUseCustomData] = useState(false);
+  const [customDataFields, setCustomDataFields] = useState({
+    title: "",
+    description: "",
+    price: "",
+    sku: "",
+  });
 
   const useForm = (initialValues) => {
     const [values, setValues] = useState(initialValues);
@@ -164,6 +175,7 @@ const ETags = ({ globalFunc }) => {
     setShowColorModal,
     UpdateColor,
     showColorModal,
+    setCustomData,
   } = authorsTableData(globalFunc, setShowLoad, getParts);
 
   const choosePart = (value) => {
@@ -181,6 +193,9 @@ const ETags = ({ globalFunc }) => {
     }
   }, [showPartsModal]);
 
+  useEffect(() => {
+    console.log("customDataEnabled changed", customDataEnabled);
+  }, []);
   return (
     <DashboardLayout>
       <DashboardNavbar globalFunc={globalFunc} />
@@ -236,34 +251,129 @@ const ETags = ({ globalFunc }) => {
             Add Parts
           </MDTypography>
           <MDTypography id="modal-modal-description" sx={{ mt: 2 }}>
-            <FormControl fullWidth>
-              <Autocomplete
-                pb={1}
-                value={searchedpart}
-                onChange={(event, newValue) => {
-                  setSearchedpart(newValue);
-                  if (newValue == null) {
-                    return null;
-                  } else {
-                    choosePart(newValue);
-                  }
-                }}
-                filterOptions={(options, params) => {
-                  const filtered = filter(options, params);
+            <Grid container spacing={1} mb={1}>
+              <Grid item xs={12}>
+                <FormControl fullWidth>
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        label="Use Custom Data"
+                        checked={customDataEnabled}
+                        defaultChecked={false}
+                        onChange={(e) => {
+                          setUseCustomData(e.target.checked);
+                          setSearchedpart(null);
+                          choosePart(null);
+                        }}
+                      />
+                    }
+                    label="Use Custom Data"
+                  />
+                </FormControl>
+              </Grid>
+              {!customDataEnabled ? (
+                <Grid item xs={12}>
+                  <FormControl fullWidth>
+                    <Autocomplete
+                      pb={1}
+                      value={searchedpart}
+                      disabled={customDataEnabled}
+                      onChange={(event, newValue) => {
+                        setSearchedpart(newValue);
+                        if (newValue == null) {
+                          return null;
+                        } else {
+                          choosePart(newValue);
+                        }
+                      }}
+                      filterOptions={(options, params) => {
+                        const filtered = filter(options, params);
 
-                  return filtered;
-                }}
-                disablePortal
-                options={parts}
-                fullWidth
-                renderInput={(params) => <TextField {...params} label="Part" />}
-              />
-            </FormControl>
+                        return filtered;
+                      }}
+                      disablePortal
+                      options={parts}
+                      fullWidth
+                      renderInput={(params) => <TextField {...params} label="Part" />}
+                    />
+                  </FormControl>
+                </Grid>
+              ) : (
+                <Grid container spacing={2}>
+                  <Grid item xs={12}>
+                    <FormControl fullWidth>
+                      <TextField
+                        className={classes.input}
+                        label="Title"
+                        fullWidth
+                        disabled={!customDataEnabled}
+                        value={customDataFields.title}
+                        onChange={(e) =>
+                          setCustomDataFields({ ...customDataFields, title: e.target.value })
+                        }
+                      />
+                    </FormControl>
+                  </Grid>
+                  <Grid item xs={12}>
+                    <FormControl fullWidth>
+                      <TextField
+                        className={classes.input}
+                        label="Description"
+                        fullWidth
+                        value={customDataFields.description}
+                        onChange={(e) =>
+                          setCustomDataFields({ ...customDataFields, description: e.target.value })
+                        }
+                        disabled={!customDataEnabled}
+                      />
+                    </FormControl>
+                  </Grid>
+                  <Grid item xs={12}>
+                    <FormControl fullWidth>
+                      <TextField
+                        className={classes.input}
+                        label="Price"
+                        fullWidth
+                        disabled={!customDataEnabled}
+                        value={customDataFields.price}
+                        onChange={(e) =>
+                          setCustomDataFields({ ...customDataFields, price: e.target.value })
+                        }
+                      />
+                    </FormControl>
+                  </Grid>
+                  <Grid item xs={12}>
+                    <FormControl fullWidth>
+                      <TextField
+                        className={classes.input}
+                        label="SKU"
+                        fullWidth
+                        disabled={!customDataEnabled}
+                        value={customDataFields.sku}
+                        onChange={(e) =>
+                          setCustomDataFields({ ...customDataFields, sku: e.target.value })
+                        }
+                      />
+                    </FormControl>
+                  </Grid>
+                </Grid>
+              )}
+            </Grid>
           </MDTypography>
           <MDButton color="error" onClick={() => setShowPartsModal(false)}>
             Cancel
           </MDButton>
-          <MDButton color="success" onClick={() => UpdateSquareItem()} autoFocus>
+          <MDButton
+            color="success"
+            onClick={() => {
+              if (customDataEnabled) {
+                setCustomData(customDataFields);
+              } else {
+                UpdateSquareItem();
+              }
+            }}
+            autoFocus
+          >
             Save
           </MDButton>
         </MDBox>
@@ -277,6 +387,7 @@ const ETags = ({ globalFunc }) => {
                 <FormControl fullWidth>
                   <InputLabel id="demo-simple-select-label">Size</InputLabel>
                   <Select
+                    fullWidth
                     labelId="demo-simple-select-label"
                     id="demo-simple-select"
                     value={screenSize}
@@ -309,6 +420,7 @@ const ETags = ({ globalFunc }) => {
                 <FormControl fullWidth>
                   <InputLabel id="demo-simple-select-label">Color Profile</InputLabel>
                   <Select
+                    fullWidth
                     labelId="demo-simple-select-label"
                     id="demo-simple-select"
                     value={colorProfile}

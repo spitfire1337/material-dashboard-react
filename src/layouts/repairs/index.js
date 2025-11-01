@@ -45,7 +45,7 @@ import Footer from "examples/Footer";
 import DataTable from "examples/Tables/DataTable";
 
 import Step1 from "./components/step1";
-import Step2 from "./components/step2";
+import Step2 from "./components/step2_new";
 import Step3 from "./components/step3";
 import Step4 from "./components/step4";
 

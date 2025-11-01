@@ -146,6 +146,32 @@ export default function data(globalFunc, setShowLoad, getParts) {
     }
   };
 
+  const setCustomData = async (data) => {
+    setShowPartsModal(false);
+    const response = await fetch(`${vars.serverUrl}/api/etagCustomData`, {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify({
+        id: itemid,
+        data: data,
+        needsUpdate: true,
+      }),
+    });
+    const json = await response.json();
+    if (json.res == 200) {
+      globalFunc.setSuccessSBText("Custom data sent to tag");
+      globalFunc.setSuccessSB(true);
+      reRender();
+    } else {
+      globalFunc.setErrorSBText("Server error occured");
+      globalFunc.setErrorSB(true);
+    }
+  };
+
   const UpdateResolution = async (screenSize) => {
     setShowResModal(false);
     const response = await fetch(`${vars.serverUrl}/api/etagResolution`, {
@@ -280,6 +306,7 @@ export default function data(globalFunc, setShowLoad, getParts) {
     setShowColorModal: setShowColorModal,
     showColorModal: showColorModal,
     UpdateColor: UpdateColor,
+    setCustomData: setCustomData,
     columns: [
       { Header: "Tag Alias", accessor: "alias", align: "left" },
       { Header: "Tag Mac", accessor: "mac", align: "left" },
