@@ -176,6 +176,8 @@ const ETags = ({ globalFunc }) => {
     UpdateColor,
     showColorModal,
     setCustomData,
+    customData,
+    itemid,
   } = authorsTableData(globalFunc, setShowLoad, getParts);
 
   const choosePart = (value) => {
@@ -192,6 +194,17 @@ const ETags = ({ globalFunc }) => {
       getParts();
     }
   }, [showPartsModal]);
+
+  useEffect(() => {
+    console.log("itemid changed", customData.squareId);
+    if (customData.squareId == "custom") {
+      setUseCustomData(true);
+      setCustomDataFields(customData);
+    } else {
+      setSearchedpart(parts.find((part) => part.id == customData.squareId));
+      setUseCustomData(false);
+    }
+  }, [customData]);
 
   useEffect(() => {
     console.log("customDataEnabled changed", customDataEnabled);

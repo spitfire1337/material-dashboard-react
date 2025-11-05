@@ -90,9 +90,13 @@ const step1 = ({ globalFunc, nextRepairStep }) => {
   }, []);
 
   const validateEmail = (email) => {
-    return email.match(
-      /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
-    );
+    try {
+      return email.match(
+        /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+      );
+    } catch {
+      return false;
+    }
   };
 
   const chooseCustomer = (cust) => {
@@ -135,10 +139,17 @@ const step1 = ({ globalFunc, nextRepairStep }) => {
 
   const PhoneisValid = (phone) => {
     const regex = /^\(?([0-9]{3})\)?[-. ]?([0-9]{3})[-. ]?([0-9]{4})$/;
-    return regex.test(phone);
+    try {
+      return regex.test(phone);
+    } catch {
+      return false;
+    }
   };
 
   const submitCustomer = async (val) => {
+    console.log("Customer", selectedcustomer);
+    console.log("Valid email", validateEmail(selectedcustomer.email_address || ""));
+    console.log("Valid Phone", PhoneisValid(selectedcustomer.phone_number));
     if (
       !validateEmail(selectedcustomer.email_address) &&
       !PhoneisValid(selectedcustomer.phone_number)
@@ -276,6 +287,23 @@ const step1 = ({ globalFunc, nextRepairStep }) => {
                   onChange={(e) => {
                     selectedcustomer.phone_number = e.target.value;
                     updateCustomer(selectedcustomer);
+                  }}
+                  type="tel"
+                  onInput={(e) => {
+                    e.target.value = e.target.value.slice(0, 14);
+                    let digits = e.target.value.replace(/\D/g, "").substring(0, 10);
+                    let formatted = e.target.value;
+                    if (digits.length > 6) {
+                      formatted = `(${digits.substring(0, 3)}) ${digits.substring(
+                        3,
+                        6
+                      )}-${digits.substring(6)}`;
+                    } else if (digits.length > 3) {
+                      formatted = `(${digits.substring(0, 3)}) ${digits.substring(3)}`;
+                    } else if (digits.length > 0) {
+                      formatted = `(${digits}`;
+                    }
+                    e.target.value = formatted;
                   }}
                 />
               </Grid>

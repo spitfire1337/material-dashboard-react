@@ -53,7 +53,13 @@ export default function data(globalFunc, setShowLoad, getParts) {
   const [squareItem, setsquareItem] = useState(0);
   const [showPartsModal, setShowPartsModal] = useState(false);
   const [showColorModal, setShowColorModal] = useState(false);
-
+  const [customData, setMyCustomData] = useState({
+    title: "",
+    price: "",
+    description: "",
+    sku: "",
+    squareId: "",
+  });
   const fetchData = async (globalFunc) => {
     const response = await fetch(`${vars.serverUrl}/api/tags`, {
       credentials: "include",
@@ -111,7 +117,14 @@ export default function data(globalFunc, setShowLoad, getParts) {
     setInventory(filtered);
   };
 
-  const showSquareUpdate = (id) => {
+  const showSquareUpdate = (id, title, price, description, sku, squareId) => {
+    setMyCustomData({
+      title: title,
+      price: price,
+      description: description,
+      sku: sku,
+      squareId: squareId,
+    });
     getParts();
     setItemId(id);
   };
@@ -307,6 +320,8 @@ export default function data(globalFunc, setShowLoad, getParts) {
     showColorModal: showColorModal,
     UpdateColor: UpdateColor,
     setCustomData: setCustomData,
+    customData: customData,
+    itemid: itemid,
     columns: [
       { Header: "Tag Alias", accessor: "alias", align: "left" },
       { Header: "Tag Mac", accessor: "mac", align: "left" },
@@ -354,7 +369,9 @@ export default function data(globalFunc, setShowLoad, getParts) {
                   color="text"
                   fontWeight="medium"
                 >
-                  {item.squareItem.length > 0
+                  {item.squareId == "custom"
+                    ? `Custom data: ${item.title}`
+                    : item.squareItem.length > 0
                     ? `${item.squareItem[0].itemData.name} - ${
                         item.squareItem[0].itemData.variations != undefined
                           ? item.squareItem[0].itemData.variations.find(
@@ -364,7 +381,16 @@ export default function data(globalFunc, setShowLoad, getParts) {
                       }`
                     : ""}{" "}
                   <Button
-                    onClick={() => showSquareUpdate(item._id)}
+                    onClick={() =>
+                      showSquareUpdate(
+                        item._id,
+                        item.title,
+                        item.price,
+                        item.description,
+                        item.sku,
+                        item.squareId
+                      )
+                    }
                     disabled={!item.screenSize || !item.colorProfile}
                   >
                     Edit
