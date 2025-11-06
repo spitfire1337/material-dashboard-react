@@ -19,7 +19,7 @@ import "material-icons/iconfont/material-icons.css";
 import vars from "./config";
 // react-router components
 import { Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom";
-
+import parse from "html-react-parser";
 // @mui material components
 import { ThemeProvider } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
@@ -61,12 +61,13 @@ import brandDark from "assets/images/logos/Logo-Light.png";
 import { MyLocation } from "@mui/icons-material";
 import MDSnackbar from "components/MDSnackbar";
 import { Scanner } from "@yudiel/react-qr-scanner";
-import { Modal } from "@mui/material";
+import { Modal, Dialog, DialogActions, DialogContent, DialogTitle } from "@mui/material";
 import "react-barcode-scanner/polyfill";
 import MDButton from "components/MDButton";
 import Loading from "components/loading";
 import "./scanner.css";
 import "./assets/style.css";
+import MDTypography from "components/MDTypography";
 const style = {
   position: "absolute",
   top: "50%",
@@ -137,6 +138,8 @@ export default function App() {
   const [errorSB, setErrorSB] = useState(false);
   const [errorSBText, setErrorSBText] = useState("");
   const [user, setUser] = useState({});
+  const [showWhatsNew, setShowWhatsNew] = useState(false);
+  const [whatsNew, setWhatsNew] = useState("");
   const closeSuccessSB = () => setSuccessSB(false);
   const closeErrorSB = () => setErrorSB(false);
   let redirect = useNavigate();
@@ -206,6 +209,21 @@ export default function App() {
     />
   );
 
+  const renderWhatsNew = (
+    <Dialog open={showWhatsNew}>
+      <DialogTitle>Whats New!</DialogTitle>
+      <DialogContent sx={{ paddingTop: "2px" }}>
+        <MDTypography variant="body2" color="text">
+          {parse(whatsNew)}
+        </MDTypography>
+      </DialogContent>
+      <DialogActions>
+        <MDButton color="success" onClick={() => setShowWhatsNew(false)} autoFocus>
+          Close
+        </MDButton>
+      </DialogActions>
+    </Dialog>
+  );
   let globalFunc = {
     setLoggedIn: setLoggedIn,
     setSuccessSB: setSuccessSB,
@@ -228,6 +246,21 @@ export default function App() {
       } else {
         setLoading(false);
         setSquare(true);
+      }
+    }
+  };
+
+  const getWhatsnew = async () => {
+    if (isLoggedin) {
+      const response = await fetch(`${vars.serverUrl}/api/whatsNew`, {
+        credentials: "include",
+      });
+      const res = await response.json();
+      if (res.res === 200) {
+        if (res.new) {
+          setWhatsNew(res.data);
+          setShowWhatsNew(true);
+        }
       }
     }
   };
@@ -281,12 +314,15 @@ export default function App() {
       checkSquare();
     } else {
       setLocation(cookies.get("mylocation"));
+      getWhatsnew();
       getInitData();
     }
   }, [isLoggedin, isSquare, location]);
 
   // Setting page scroll to 0 when changing the route
   useEffect(() => {
+    checkLogin();
+    getWhatsnew();
     document.documentElement.scrollTop = 0;
     document.scrollingElement.scrollTop = 0;
   }, [pathname]);
@@ -442,6 +478,7 @@ export default function App() {
           </Routes>
           {renderSuccessSB}
           {renderErrorSB}
+          {renderWhatsNew}
         </ThemeProvider>
       </CacheProvider>
     ) : (
@@ -466,6 +503,7 @@ export default function App() {
             />
             {renderSuccessSB}
             {renderErrorSB}
+            {renderWhatsNew}
             {configsButton}
           </>
         )}

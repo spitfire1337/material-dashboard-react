@@ -88,6 +88,12 @@ const step2 = ({ globalFunc, repairData, updateRepairData, setrepairID, nextRepa
   }, []);
 
   const choosePevBrand = (pev) => {
+    let newData = { ...newPev };
+    newData.Brand == undefined ? (newPev.Brand = {}) : null;
+    newData.Brand._id = pev != null ? pev.id : "";
+    newData.Brand.name = pev != null ? (pev.id == 0 ? pev.inputValue : pev.label) : "";
+    pev != "" && pev != undefined && pev.id != undefined && pev != "" ? newPevData(newData) : null;
+    console.log("PEV SELECTED", newPev);
     if (pev == null) {
       setPEVBrand(0);
       setAllowContinue(false);
@@ -96,6 +102,8 @@ const step2 = ({ globalFunc, repairData, updateRepairData, setrepairID, nextRepa
       //NEW PEV
       setPEVBrand(1);
       setAllowContinue(false);
+      let models = [];
+      setModels(models);
       //setSelectedCustomer({});
       setShowNewPev(true);
     } else {
@@ -108,6 +116,7 @@ const step2 = ({ globalFunc, repairData, updateRepairData, setrepairID, nextRepa
       });
       setModels(models);
       setShowNewPev(true);
+      console.log("Brand ID", pev.id);
       setPEVBrand(pev.id);
       setAllowContinue(true);
       //setShowCustForm(true);
@@ -242,15 +251,20 @@ const step2 = ({ globalFunc, repairData, updateRepairData, setrepairID, nextRepa
         <FormControl fullWidth>
           <Autocomplete
             onChange={(event, newValue) => {
-              //choosePevBrand(newValue);
+              choosePevBrand(newValue);
             }}
             filterOptions={(options, params) => {
               const filtered = filter(options, params);
               if (params.inputValue !== "") {
+                let finder = mybrands.find(
+                  (element) => element.label.toLowerCase() === params.inputValue.toLowerCase()
+                );
                 if (
-                  params.inputValue.toLowerCase() !== "generic" ||
-                  params.inputValue.toLowerCase() !== "custom"
+                  (params.inputValue.toLowerCase() !== "generic" ||
+                    params.inputValue.toLowerCase() !== "custom") &&
+                  finder == undefined
                 ) {
+                  console.log("FINDER", finder);
                   filtered.unshift({
                     inputValue: params.inputValue,
                     label: `Add "${params.inputValue}"`,
@@ -276,12 +290,22 @@ const step2 = ({ globalFunc, repairData, updateRepairData, setrepairID, nextRepa
           <Grid container spacing={1} marginTop={1}>
             {showNewPev == true ? (
               <>
-                <Grid item sm={12}>
+                {/* <Grid item sm={12}>
                   <MDTypography>Please provide as many fields as possible.</MDTypography>
-                </Grid>
-                <Grid item md={6} sm={12}>
+                </Grid> */}
+                <Grid item sm={12}>
                   <Autocomplete
                     onChange={(event, newValue) => {
+                      let newData = { ...newPev };
+                      newValue.id != 0 ? setPEVBrand(newValue.id) : setPEVBrand(1);
+                      newData.Model = newValue.id == 0 ? newValue.inputValue : newValue.label;
+                      newValue != "" &&
+                      newValue != undefined &&
+                      newValue.id != undefined &&
+                      newValue != ""
+                        ? newPevData(newData)
+                        : null;
+                      console.log("PEV SELECTED", newData);
                       // let newData = { ...newPev };
                       // newData.Brand == undefined ? (newPev.Brand = {}) : null;
                       // newData.Brand._id = newValue != null ? newValue.id : "";
@@ -324,7 +348,7 @@ const step2 = ({ globalFunc, repairData, updateRepairData, setrepairID, nextRepa
                     }}
                   />
                 </Grid> */}
-                <Grid item md={6} sm={12}>
+                <Grid item sm={12}>
                   <FormControl fullWidth size="small">
                     <InputLabel variant="standard" htmlFor="uncontrolled-native">
                       PEV Type
