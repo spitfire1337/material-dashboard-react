@@ -123,7 +123,9 @@ const PartsAdd = ({
       json.data.map((item) => {
         item.itemData.variations.map((variant) => {
           itemList.push({
-            label: `${item.itemData.name} - ${variant.itemVariationData.name} ${
+            label: `${variant.itemVariationData.sku} | ${item.itemData.name} - ${
+              variant.itemVariationData.name
+            } ${
               variant.itemVariationData != undefined &&
               variant.itemVariationData.priceMoney != undefined
                 ? `- $${(Number(variant.itemVariationData.priceMoney.amount) / 100).toFixed(2)}`
