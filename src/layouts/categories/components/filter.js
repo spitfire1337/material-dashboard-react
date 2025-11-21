@@ -36,7 +36,7 @@ function FilterDialog({ showFilter, filter, resetFilter, setShowFiler, repairs }
   const [filterVal, setfilterVal] = useState([]);
   const [filteKey, setfilterKey] = useState();
   const [pevBrands, setPevBrands] = useState([]);
-  const [statuses, setstatuses] = useState([0, 1, 2, 3, 4, 5, 11, 997]);
+  const [statuses, setstatuses] = useState([0, 1, 2, 3, 4, 5]);
   const [repairTypes, setrepairTypes] = useState([
     "Tire Change",
     "Tube Change",
@@ -73,7 +73,8 @@ function FilterDialog({ showFilter, filter, resetFilter, setShowFiler, repairs }
       { RepairType: typeof value === "string" ? value.split(",") : value }
     );
   };
-
+  useEffect(() => {
+  }, [filterData]);
   useEffect(() => {
     var unique = repairs.filter(
       (item, idx) => repairs.findIndex((x) => x.pev._id == item.pev._id) == idx
@@ -109,12 +110,9 @@ function FilterDialog({ showFilter, filter, resetFilter, setShowFiler, repairs }
             <MenuItem value={1}>Not started</MenuItem>
             <MenuItem value={2}>In Progress</MenuItem>
             <MenuItem value={3}>Paused</MenuItem>
-            <MenuItem value={11}>Paused - Awaiting parts</MenuItem>
             <MenuItem value={4}>Repair Complete</MenuItem>
             <MenuItem value={5}>Invoice Created</MenuItem>
             <MenuItem value={6}>Complete</MenuItem>
-            <MenuItem value={997}>Cancelled - Return to customer</MenuItem>
-            <MenuItem value={995}>Cancelled</MenuItem>
           </Select>
           <Select
             labelId="demo-simple-select-label"

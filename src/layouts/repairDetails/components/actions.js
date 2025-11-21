@@ -648,6 +648,31 @@ function Actions({
             </MDButton>
           </Grid>
           <ReprintButton />
+          <Grid item xs={12} md={6}>
+            <MDButton
+              fullwidth
+              color="primary"
+              variant="contained"
+              p={3}
+              onClick={() =>
+                repairAction(997, "Return to customer", "event_busy", "primary", globalFunc)
+              }
+            >
+              Cancel Repair - Return to Customer
+            </MDButton>
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <MDButton
+              fullwidth
+              color="primary"
+              variant="contained"
+              onClick={() =>
+                repairAction(998, "Repair cancelled", "event_busy", "primary", globalFunc)
+              }
+            >
+              Cancel Repair
+            </MDButton>
+          </Grid>
         </Grid>
         <LoadBox />
         <RenderSnackbar />
@@ -669,6 +694,18 @@ function Actions({
             </MDButton>
           </Grid>
           <Grid item xs={12} md={6}>
+            <MDButton
+              fullwidth
+              color="info"
+              variant="contained"
+              onClick={() =>
+                repairAction(11, "Repair paused - Awaiting parts", "pause", "info", globalFunc)
+              }
+            >
+              Pause Repair - Awaiting parts
+            </MDButton>
+          </Grid>
+          <Grid item xs={12} md={6}>
             <MDButton fullwidth color="dark" variant="contained" onClick={() => getParts()}>
               Add parts
             </MDButton>
@@ -683,6 +720,19 @@ function Actions({
               }
             >
               Complete Repair
+            </MDButton>
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <MDButton
+              fullwidth
+              color="primary"
+              variant="contained"
+              p={3}
+              onClick={() =>
+                repairAction(997, "Return to customer", "event_busy", "primary", globalFunc)
+              }
+            >
+              Cancel Repair - Return to Customer
             </MDButton>
           </Grid>
           <Grid item xs={12} md={6}>
@@ -716,7 +766,7 @@ function Actions({
       </>
     );
   }
-  if (status == 3) {
+  if (status == 3 || status == 11) {
     return (
       <>
         <Grid container spacing={1} mb={3}>
@@ -731,6 +781,19 @@ function Actions({
               }
             >
               Resume Repair
+            </MDButton>
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <MDButton
+              fullwidth
+              color="primary"
+              variant="contained"
+              p={3}
+              onClick={() =>
+                repairAction(997, "Return to customer", "event_busy", "primary", globalFunc)
+              }
+            >
+              Cancel Repair - Return to Customer
             </MDButton>
           </Grid>
           <Grid item xs={12} md={6}>
@@ -765,6 +828,44 @@ function Actions({
       </>
     );
   }
+  if (status == 997) {
+    return (
+      <>
+        <Grid container spacing={1} mb={3}>
+          <Grid item xs={12} md={6}>
+            <MDButton
+              fullwidth
+              color="success"
+              variant="contained"
+              p={3}
+              onClick={() =>
+                repairAction(2, "Repair resumed", "construction", "success", globalFunc)
+              }
+            >
+              Resume Repair
+            </MDButton>
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <MDButton
+              fullwidth
+              color="primary"
+              variant="contained"
+              p={3}
+              onClick={() =>
+                repairAction(998, "Repair Archived", "event_busy", "primary", globalFunc)
+              }
+            >
+              Archive Repair - Customer picked up
+            </MDButton>
+          </Grid>
+          <ReprintButton />
+        </Grid>
+        <setShowLoad />
+        <RenderSnackbar />
+      </>
+    );
+  }
+
   if (status == 4) {
     return (
       <>

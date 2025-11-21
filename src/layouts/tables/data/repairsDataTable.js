@@ -31,7 +31,7 @@ export default function data(globalFunc, contIntake, filters) {
   const [repairs, setRepairs] = useState([]);
   const [searchTerm, setsearchTerm] = useState(null);
   const [myFilters, setmyFilters] = useState({
-    status: [0, 1, 2, 3, 4, 5],
+    status: [0, 1, 2, 3, 4, 5, 11, 997],
     RepairType: [
       "Tire Change",
       "Tube Change",
@@ -355,6 +355,50 @@ export default function data(globalFunc, contIntake, filters) {
                 color: "#000",
                 backgroundColor: "green",
                 background: "linear-gradient(195deg, #329858, #00FF60)",
+              },
+            }}
+            size="sm"
+            bg=""
+          />
+        </MDBox>
+      );
+    }
+    if (repairStatus == 11) {
+      return (
+        <MDBox
+          ml={-1}
+          sx={{ cursor: "pointer" }}
+          onClick={() => redirect(`/repairs/${id}`, { replace: false })}
+        >
+          <MDBadge
+            badgeContent="Paused - Awaiting parts"
+            sx={{
+              "& .MuiBadge-badge": {
+                color: "#000",
+                backgroundColor: "green",
+                background: "linear-gradient(195deg, #3D8E8C, #00FFF9)",
+              },
+            }}
+            size="sm"
+            bg=""
+          />
+        </MDBox>
+      );
+    }
+    if (repairStatus == 997) {
+      return (
+        <MDBox
+          ml={-1}
+          sx={{ cursor: "pointer" }}
+          onClick={() => redirect(`/repairs/${id}`, { replace: false })}
+        >
+          <MDBadge
+            badgeContent="Cancelled - Return to customer"
+            sx={{
+              "& .MuiBadge-badge": {
+                color: "#fff",
+                backgroundColor: "green",
+                background: "linear-gradient(195deg, #984742, #FB0F00)",
               },
             }}
             size="sm"

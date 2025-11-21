@@ -51,6 +51,7 @@ import SignUp from "layouts/authentication/sign-up";
 import GroupRides from "layouts/grouprides";
 import WarrantyAdmin from "layouts/warranty_admin";
 import Inventory from "layouts/inventory";
+import Categories from "layouts/categories";
 import InmotionItems from "layouts/inmotionItems";
 import PEVDatabase from "layouts/pevs";
 import ETags from "layouts/inventoryTags";
@@ -76,30 +77,30 @@ const adminRoutes = (globalFunc) => {
       route: "/repairs",
       component: <Repairs globalFunc={globalFunc} />,
     },
-    {
-      type: "collapse",
-      name: "Scheduling",
-      key: "appoint",
-      icon: <Icon fontSize="small">calendar_month</Icon>,
-      collapse: [
-        {
-          type: "collapse",
-          name: "Appointments",
-          key: "appointment",
-          icon: <Icon fontSize="small">inventory_2</Icon>,
-          route: "/appointments/",
-          component: <Appointments globalFunc={globalFunc} />,
-        },
-        {
-          type: "collapse",
-          name: "My Availability",
-          key: "availabilty",
-          route: "/myavailability",
-          icon: <Icon fontSize="small">inventory_2</Icon>,
-          component: <Availability globalFunc={globalFunc} />,
-        },
-      ],
-    },
+    // {
+    //   type: "collapse",
+    //   name: "Scheduling",
+    //   key: "appoint",
+    //   icon: <Icon fontSize="small">calendar_month</Icon>,
+    //   collapse: [
+    //     {
+    //       type: "collapse",
+    //       name: "Appointments",
+    //       key: "appointment",
+    //       icon: <Icon fontSize="small">inventory_2</Icon>,
+    //       route: "/appointments/",
+    //       component: <Appointments globalFunc={globalFunc} />,
+    //     },
+    //     {
+    //       type: "collapse",
+    //       name: "My Availability",
+    //       key: "availabilty",
+    //       route: "/myavailability",
+    //       icon: <Icon fontSize="small">inventory_2</Icon>,
+    //       component: <Availability globalFunc={globalFunc} />,
+    //     },
+    //   ],
+    // },
 
     {
       type: "collapse",
@@ -125,6 +126,14 @@ const adminRoutes = (globalFunc) => {
           icon: <Icon fontSize="small">inventory_2</Icon>,
           route: "/inventory/",
           component: <Inventory globalFunc={globalFunc} />,
+        },
+        {
+          type: "collapse",
+          name: "Categories",
+          key: "categories",
+          icon: <Icon fontSize="small">inventory_2</Icon>,
+          route: "/categories/",
+          component: <Categories globalFunc={globalFunc} />,
         },
         {
           type: "collapse",
