@@ -35,6 +35,7 @@ export default function data(globalFunc, updateLocation, setShowLoad) {
     status: [0, 1, 2, 3, 4, 5],
   };
   const fetchData = async (globalFunc) => {
+    setShowLoad(true);
     const response = await fetch(`${vars.serverUrl}/api/categories`, {
       credentials: "include",
     });
@@ -44,15 +45,18 @@ export default function data(globalFunc, updateLocation, setShowLoad) {
       if (res.res === 200) {
         setrepairsOrig(res.data);
         setRepairs(res.data);
+        setShowLoad(false);
       } else if (res.res === 401) {
         globalFunc.setLoggedIn(false);
         globalFunc.setErrorSBText("Unauthorized, redirecting to login");
         globalFunc.setErrorSB(true);
+        setShowLoad(false);
       }
     } else if (response.status == 401) {
       globalFunc.setLoggedIn(false);
       globalFunc.setErrorSBText("Unauthorized, redirecting to login");
       globalFunc.setErrorSB(true);
+      setShowLoad(false);
     }
   };
   useEffect(() => {

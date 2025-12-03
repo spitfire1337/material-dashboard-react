@@ -44,9 +44,10 @@ import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import Footer from "examples/Footer";
 import DataTable from "examples/Tables/DataTable";
-
+import NewItem from "./components/newItem";
 // Data
 import authorsTableData from "layouts/tables/data/inventoryData";
+import Autocomplete, { createFilterOptions } from "@mui/material/Autocomplete";
 
 const style = {
   position: "absolute",
@@ -64,6 +65,21 @@ const style = {
   borderRadius: "25px",
 };
 
+const itemstyle = {
+  position: "absolute",
+  top: "50%",
+  left: "50%",
+  transform: "translate(-50%, -50%)",
+  width: "98%",
+  minHeight: "95vh",
+  maxHeight: "98vh",
+  overflowY: "scroll",
+  bgcolor: "background.paper",
+  border: "2px solid #000",
+  boxShadow: 24,
+  p: 4,
+  borderRadius: "25px",
+};
 const useStyles = makeStyles((theme) => ({
   input: {
     background: "rgb(232, 241, 250)",
@@ -81,6 +97,7 @@ const iconsStyle = ({ palette: { dark, white, text }, functions: { rgba } }) => 
     return colorValue;
   },
 });
+const filter = createFilterOptions();
 // eslint-disable-next-line react/prop-types
 const InventoryAdmin = ({ globalFunc }) => {
   const classes = useStyles();
@@ -88,6 +105,9 @@ const InventoryAdmin = ({ globalFunc }) => {
   const [updateItem, setUpdateItem] = useState();
   const [currentLoc, setCurrentLoc] = useState("");
   const { setShowLoad, LoadBox } = Loading();
+  const [showNewItem, setShowNewItem] = useState(false);
+  const [catList, setCatList] = useState([]);
+  const [locations, setLocations] = useState([]);
 
   const useForm = (initialValues) => {
     const [values, setValues] = useState(initialValues);
@@ -100,6 +120,45 @@ const InventoryAdmin = ({ globalFunc }) => {
         });
       },
     ];
+  };
+  const fetchCategories = async (globalFunc) => {
+    const response = await fetch(`${vars.serverUrl}/api/newItemInfo`, {
+      credentials: "include",
+    });
+    if (response.status == 200) {
+      const res = await response.json();
+
+      if (res.res === 200) {
+        let cats = [];
+        res.categories.map((item) => {
+          cats.push({
+            label: `${
+              item.categoryData.pathToRoot.length > 0
+                ? `${item.categoryData.pathToRoot
+                    .map((cat) => cat.categoryName)
+                    .reverse()
+                    .join(" -> ")} -> `
+                : ""
+            } ${item.categoryData.name}`,
+            id: item.id,
+          });
+        });
+        setLocations(res.locations);
+        setCatList(cats);
+        setShowNewItem(true);
+      } else if (res.res === 401) {
+        globalFunc.setLoggedIn(false);
+        globalFunc.setErrorSBText("Unauthorized, redirecting to login");
+        globalFunc.setErrorSB(true);
+      }
+    } else if (response.status == 401) {
+      globalFunc.setLoggedIn(false);
+      globalFunc.setErrorSBText("Unauthorized, redirecting to login");
+      globalFunc.setErrorSB(true);
+    }
+  };
+  const showNewItemModal = () => {
+    fetchCategories(globalFunc);
   };
 
   const updateLocation = (item) => {
@@ -159,6 +218,17 @@ const InventoryAdmin = ({ globalFunc }) => {
                 coloredShadow="info"
               >
                 <Grid container>
+                  <Grid item xs={12} md={2} alignItems="center">
+                    <MDButton
+                      variant="contained"
+                      color="success"
+                      onClick={() => {
+                        showNewItemModal();
+                      }}
+                    >
+                      New Category
+                    </MDButton>
+                  </Grid>
                   <Grid item xs={11} md={7}>
                     <TextField
                       label="Search"
@@ -203,6 +273,102 @@ const InventoryAdmin = ({ globalFunc }) => {
           </MDButton>
         </DialogActions>
       </Dialog>
+      <NewItem
+        globalFunc={globalFunc}
+        showNewItem={showNewItem}
+        setShowNewItem={setShowNewItem}
+        setShowLoad={setShowLoad}
+      />
+      {/* <Modal
+        open={showNewItem}
+        onClose={() => null}
+        // onClose={() => {
+        //   setNewRepair(false);
+        // }}
+        aria-labelledby="modal-modal-title"
+        aria-describedby="modal-modal-description"
+      >
+        <MDBox sx={itemstyle}>
+          <Grid container spacing={3}>
+            <Grid item xs={12} md={8}>
+              <Grid item xs={12} sx={{ marginTop: "15px" }}>
+                <FormControl fullWidth>
+                  <TextField label="Name (Required)" />
+                </FormControl>
+              </Grid>
+              <Grid item xs={12} sx={{ marginTop: "15px" }}>
+                <FormControl fullWidth>
+                  <TextField label="Price (Required)" type="number" />
+                </FormControl>
+              </Grid>
+              <Grid item xs={12} sx={{ marginTop: "15px" }}>
+                <FormControl fullWidth>
+                  <TextField label="Description" rows="5" />
+                </FormControl>
+              </Grid>
+            </Grid>
+            <Grid item xs={12} md={4} sx={{ marginTop: "15px" }}>
+              <MDTypography variant="h6">Category</MDTypography>
+              <MDTypography variant="caption" color="text">
+                For online ordering, POS, and sales reporting.
+              </MDTypography>
+              <FormControl fullWidth>
+                <Autocomplete
+                  onChange={(event, newValue) => {
+                    if (newValue.id !== 0) {
+                      let catdata = { ...newCategoryData };
+                      catdata.parentCategory = { id: newValue.id };
+                      setNewCategoryData(catdata);
+                    } else {
+                      let catdata = { ...newCategoryData };
+                      delete catdata.parentCategory;
+                      setNewCategoryData(catdata);
+                    }
+                  }}
+                  disablePortal
+                  options={catList}
+                  filterOptions={(options, params) => {
+                    const filtered = filter(options, params);
+                    return filtered;
+                  }}
+                  fullWidth
+                  renderInput={(params) => <TextField {...params} label="Parent category" />}
+                />
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <MDButton
+                sx={{ marginTop: "2px" }}
+                fullWidth
+                color="success"
+                onClick={() => {
+                  submitCategory();
+                }}
+              >
+                Submit
+              </MDButton>
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <MDButton
+                sx={{ marginTop: "2px" }}
+                fullWidth
+                color="secondary"
+                onClick={() => {
+                  setShowNewItem(false);
+                  // setNewCategoryData({
+                  //   categoryType: "REGULAR_CATEGORY",
+                  //   onlineVisibility: true,
+                  //   name: "",
+                  // });
+                  // reRender();
+                }}
+              >
+                Cancel
+              </MDButton>
+            </Grid>
+          </Grid>
+        </MDBox>
+      </Modal> */}
       <LoadBox />
       <Footer />
     </DashboardLayout>

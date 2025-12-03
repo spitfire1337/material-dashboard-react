@@ -82,7 +82,7 @@ const iconsStyle = ({ palette: { dark, white, text }, functions: { rgba } }) => 
   },
 });
 // eslint-disable-next-line react/prop-types
-const InventoryAdmin = ({ globalFunc }) => {
+const CategoryAdmin = ({ globalFunc }) => {
   const classes = useStyles();
   const [updateLoc, setUpdateLoc] = useState(false);
   const [updateItem, setUpdateItem] = useState();
@@ -90,6 +90,12 @@ const InventoryAdmin = ({ globalFunc }) => {
   const { setShowLoad, LoadBox } = Loading();
   const [newCategory, setNewCategory] = useState(false);
   const [catList, setCatList] = useState([]);
+  const [newCategoryData, setNewCategoryData] = useState({
+    categoryType: "REGULAR_CATEGORY",
+    onlineVisibility: true,
+    name: "",
+  });
+  const [newCategorySku, setNewCategorySku] = useState(undefined);
   const useForm = (initialValues) => {
     const [values, setValues] = useState(initialValues);
     return [
@@ -151,6 +157,39 @@ const InventoryAdmin = ({ globalFunc }) => {
     }
   };
 
+  const submitCategory = async () => {
+    try {
+      setNewCategory(false);
+      const response = await fetch(`${vars.serverUrl}/square/createCategory`, {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ categoryData: newCategoryData, sku: newCategorySku }),
+        credentials: "include",
+      });
+      const json = await response.json();
+      //setCustomerID(json.data.customer.id);
+      if (json.res == 200) {
+        reRender();
+        setNewCategoryData({
+          categoryType: "REGULAR_CATEGORY",
+          onlineVisibility: true,
+          name: "",
+        });
+        globalFunc.setSuccessSBText("Category created");
+        globalFunc.setSuccessSB(true);
+      } else {
+        globalFunc.setErrorSBText("Error occurred creating category.");
+        globalFunc.setErrorSB(true);
+      }
+    } catch (e) {
+      globalFunc.setErrorSBText("Error occurred creating category.");
+      globalFunc.setErrorSB(true);
+      // TODO: Add error notification
+    }
+  };
   const showNewCategory = async () => {
     fetchCategories(globalFunc);
   };
@@ -269,11 +308,19 @@ const InventoryAdmin = ({ globalFunc }) => {
       >
         <MDBox sx={style}>
           <Grid container spacing={3}>
-            <Grid item xs={12} md={6}>
+            <Grid item xs={12}>
               <FormControl fullWidth>
                 <Autocomplete
                   onChange={(event, newValue) => {
-                    //chooseCustomer(newValue);
+                    if (newValue.id !== 0) {
+                      let catdata = { ...newCategoryData };
+                      catdata.parentCategory = { id: newValue.id };
+                      setNewCategoryData(catdata);
+                    } else {
+                      let catdata = { ...newCategoryData };
+                      delete catdata.parentCategory;
+                      setNewCategoryData(catdata);
+                    }
                   }}
                   disablePortal
                   options={catList}
@@ -288,21 +335,58 @@ const InventoryAdmin = ({ globalFunc }) => {
             </Grid>
             <Grid item xs={12} md={6}>
               <FormControl fullWidth>
-                <TextField label="Category Name" />
+                <TextField
+                  label="Category Name"
+                  value={newCategoryData.name || ""}
+                  onChange={(e) => {
+                    let catdata = { ...newCategoryData };
+                    catdata.name = e.currentTarget.value;
+                    setNewCategoryData(catdata);
+                  }}
+                />
               </FormControl>
             </Grid>
+            <Grid item xs={12} md={6}>
+              <FormControl fullWidth>
+                <TextField
+                  label="Sku Code"
+                  type="number"
+                  value={newCategorySku || ""}
+                  onChange={(e) => setNewCategorySku(e.currentTarget.value)}
+                />
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <MDButton
+                sx={{ marginTop: "2px" }}
+                fullWidth
+                color="success"
+                onClick={() => {
+                  submitCategory();
+                }}
+              >
+                Submit
+              </MDButton>
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <MDButton
+                sx={{ marginTop: "2px" }}
+                fullWidth
+                color="secondary"
+                onClick={() => {
+                  setNewCategory(false);
+                  setNewCategoryData({
+                    categoryType: "REGULAR_CATEGORY",
+                    onlineVisibility: true,
+                    name: "",
+                  });
+                  reRender();
+                }}
+              >
+                Cancel
+              </MDButton>
+            </Grid>
           </Grid>
-          <MDButton
-            sx={{ marginTop: "2px" }}
-            fullWidth
-            color="secondary"
-            onClick={() => {
-              setNewCategory(false);
-              reRender();
-            }}
-          >
-            Cancel
-          </MDButton>
         </MDBox>
       </Modal>
       <LoadBox />
@@ -311,4 +395,4 @@ const InventoryAdmin = ({ globalFunc }) => {
   );
 };
 
-export default InventoryAdmin;
+export default CategoryAdmin;
