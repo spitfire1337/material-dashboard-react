@@ -14,6 +14,8 @@ import {
   Checkbox,
   TextField,
   Divider,
+  Tooltip,
+  Icon,
 } from "@mui/material";
 import Autocomplete, { createFilterOptions } from "@mui/material/Autocomplete";
 import Dialog from "@mui/material/Dialog";
@@ -25,6 +27,7 @@ import Notification from "components/Notifications";
 
 import PartsAdd from "../components/addParts";
 import Loading from "../../../components/Loading_Dialog";
+import { Add } from "@mui/icons-material";
 
 const style = {
   position: "absolute",
@@ -448,233 +451,176 @@ function Actions({
   };
   const PartsModal = () => {
     return (
-      <>
-        <Modal
-          open={newRepairPart}
-          onClose={() => null}
-          aria-labelledby="modal-modal-title"
-          aria-describedby="modal-modal-description"
-        >
-          <MDBox sx={style}>
-            <MDTypography id="modal-modal-title" variant="h6" component="h2">
-              Add Parts
-            </MDTypography>
-            <MDTypography id="modal-modal-description" sx={{ mt: 2 }}>
-              <FormControl fullWidth>
-                <Autocomplete
-                  pb={1}
-                  value={searchedpart}
-                  onChange={(event, newValue) => {
-                    setSearchedpart(newValue);
-                    if (newValue && newValue.inputValue) {
-                      toggleDialogOpen(true);
-                      // setPartCost(0);
-                      // setPartQuantity(1);
-                      // setPartName(newValue.inputValue);
-                      setPartDetails({
-                        qty: 1,
-                        cost: 0,
-                        name: newValue.inputValue,
-                      });
-                    } else {
-                      choosePart(newValue);
-                    }
-                  }}
-                  filterOptions={(options, params) => {
-                    const filtered = filter(options, params);
-                    if (params.inputValue !== "") {
-                      filtered.unshift({
-                        inputValue: params.inputValue,
-                        label: `Add "${params.inputValue}"`,
-                        id: 0,
-                      });
-                    }
-                    return filtered;
-                  }}
-                  disablePortal
-                  options={parts}
-                  fullWidth
-                  renderInput={(params) => <TextField {...params} label="Part" />}
-                />
-                {PartDetail ? (
-                  <Grid container spacing={1} pt={1} pb={1}>
-                    <Grid item xs={12} md={6}>
-                      <TextField
-                        fullWidth
-                        label="Quantity"
-                        value={partDetails.qty}
-                        onChange={(e, val) => {
-                          setPartDetails({
-                            ...partDetails,
-                            qty: event.target.value,
-                          });
-                        }}
-                        type="number"
-                      ></TextField>
-                    </Grid>
-                    <Grid item xs={12} md={6}>
-                      <TextField
-                        fullWidth
-                        label="Cost"
-                        value={partDetails.cost}
-                        onChange={(e, val) => {
-                          setPartDetails({
-                            ...partDetails,
-                            cost: event.target.value,
-                          });
-                        }}
-                        type="number"
-                      ></TextField>
-                    </Grid>
-                  </Grid>
-                ) : (
-                  ""
-                )}
-              </FormControl>
-            </MDTypography>
-            <MDButton
-              sx={{ marginTop: "2px" }}
-              fullWidth
-              color="success"
-              onClick={() => {
-                addParts();
-              }}
-            >
-              Save
-            </MDButton>
-            <MDButton
-              sx={{ marginTop: "2px" }}
-              fullWidth
-              color="secondary"
-              onClick={() => {
-                setnewRepairPart(false);
-              }}
-            >
-              Cancel
-            </MDButton>
-          </MDBox>
-        </Modal>
-        <Dialog open={dialogOpen} onClose={dialogHandleClose}>
-          <form onSubmit={addParts}>
-            <DialogTitle>Add a new item</DialogTitle>
-            <DialogContent>
-              <DialogContentText>
-                Item not listed? Add it here for single use. To store item in inventory, add item
-                through square.
-              </DialogContentText>
-              <TextField
-                autoFocus
-                margin="dense"
-                id="name"
-                value={partDetails.name}
-                onChange={(event) => {
-                  //setPartName(event.target.value)
-                  setPartDetails({
-                    ...partDetails,
-                    name: event.target.value,
-                  });
-                }}
-                label="Name"
-                type="text"
-                variant="standard"
-              />
-              <TextField
-                margin="dense"
-                id="name"
-                value={partDetails.qty}
-                onChange={(event) => {
-                  setPartDetails({
-                    ...partDetails,
-                    qty: event.target.value,
-                  });
-                  //setPartQuantity(event.target.value)
-                }}
-                label="Qty"
-                type="number"
-                variant="standard"
-              />
-              <TextField
-                margin="dense"
-                id="name"
-                value={partDetails.cost}
-                onChange={(event) => {
-                  //setPartCost(event.target.value)
-                  setPartDetails({
-                    ...partDetails,
-                    cost: event.target.value,
-                  });
-                }}
-                label="Cost"
-                type="number"
-                variant="standard"
-              />
-            </DialogContent>
-            <DialogActions>
-              <MDButton onClick={dialogHandleClose}>Cancel</MDButton>
-              <MDButton type="submit">Add</MDButton>
-            </DialogActions>
-          </form>
-        </Dialog>
-      </>
+      <PartsAdd
+        globalFunc={globalFunc}
+        showPartsModal={newRepairPart}
+        setshowPartsModal={setnewRepairPart}
+        toggleloadingOpen={setShowLoad}
+        createInvoice={createInvoice}
+        dialogOpen={dialogOpen}
+        toggleDialogOpen={toggleDialogOpen}
+        repairID={repairID}
+        getRepair={getRepair}
+        status={status}
+      />
     );
   };
 
   const ReprintButton = () => {
     return (
-      <Grid item xs={12} md={6}>
+      <Tooltip title="Reprint Paperwork">
         <MDButton fullwidth color="dark" variant="contained" onClick={() => getDocuments()}>
-          Reprint paperwork
+          <Icon>print</Icon>
         </MDButton>
         <PrintDocsDialog />
-      </Grid>
+      </Tooltip>
     );
   };
 
+  const StartRepairButton = () => {
+    return (
+      <Tooltip title="Start Repair">
+        <MDButton
+          fullwidth
+          color="success"
+          variant="contained"
+          pb={3}
+          onClick={() => repairAction(2, "Repair started", "construction", "success", globalFunc)}
+        >
+          <Icon>play_circle</Icon>
+        </MDButton>
+      </Tooltip>
+    );
+  };
+
+  const ReturnToCustomerButton = () => {
+    return (
+      <Tooltip title="Return to Customer">
+        <MDButton
+          fullwidth
+          color="primary"
+          variant="contained"
+          p={3}
+          onClick={() =>
+            repairAction(997, "Return to customer", "event_busy", "primary", globalFunc)
+          }
+        >
+          <Icon>exit_to_app</Icon>
+        </MDButton>
+      </Tooltip>
+    );
+  };
+
+  const CancelRepairButton = () => {
+    return (
+      <Tooltip title="Cancel Repair">
+        <MDButton
+          fullwidth
+          color="primary"
+          variant="contained"
+          onClick={() => repairAction(998, "Repair cancelled", "event_busy", "primary", globalFunc)}
+        >
+          <Icon>cancel</Icon>
+        </MDButton>
+      </Tooltip>
+    );
+  };
+
+  const PauseRepairButton = () => {
+    return (
+      <Tooltip title="Pause Repair">
+        <MDButton
+          fullwidth
+          color="info"
+          variant="contained"
+          onClick={() => repairAction(3, "Repair paused", "pause", "info", globalFunc)}
+        >
+          <Icon>pause_circle</Icon>
+        </MDButton>
+      </Tooltip>
+    );
+  };
+
+  const PauseRepairPartsButton = () => {
+    return (
+      <Tooltip title="Pause Repair - Awaiting parts">
+        <MDButton
+          fullwidth
+          color="info"
+          variant="contained"
+          onClick={() =>
+            repairAction(11, "Repair paused - Awaiting parts", "pause", "info", globalFunc)
+          }
+        >
+          <Icon>alarm_pause</Icon>
+        </MDButton>
+      </Tooltip>
+    );
+  };
+
+  const AddPartsButton = () => {
+    return (
+      <Tooltip title="Add Parts">
+        <MDButton fullwidth color="dark" variant="contained" onClick={() => getParts()}>
+          <Icon>add_shopping_cart</Icon>
+        </MDButton>
+      </Tooltip>
+    );
+  };
+
+  const CompleteRepairButton = () => {
+    return (
+      <Tooltip title="Complete Repair">
+        <MDButton
+          fullwidth
+          color="success"
+          variant="contained"
+          onClick={() => repairAction(4, "Repair completed", "build_circle", "success", globalFunc)}
+        >
+          <Icon>check_circle</Icon>
+        </MDButton>
+      </Tooltip>
+    );
+  };
+
+  const RestartRepairButton = () => {
+    return (
+      <MDButton
+        fullwidth
+        color="success"
+        variant="contained"
+        p={3}
+        onClick={() => repairAction(2, "Repair resumed", "construction", "success", globalFunc)}
+      >
+        Resume Repair
+      </MDButton>
+    );
+  };
   if (status == 1) {
     return (
       <>
-        <Grid container spacing={1} mb={3}>
-          <Grid item xs={12} md={6}>
-            <MDButton
-              fullwidth
-              color="success"
-              variant="contained"
-              pb={3}
-              onClick={() =>
-                repairAction(2, "Repair started", "construction", "success", globalFunc)
-              }
-            >
-              Start Repair
-            </MDButton>
+        <Grid container spacing={2} mb={3}>
+          <Grid item xs={4} md={2}>
+            <StartRepairButton />
           </Grid>
-          <ReprintButton />
-          <Grid item xs={12} md={6}>
-            <MDButton
-              fullwidth
-              color="primary"
-              variant="contained"
-              p={3}
-              onClick={() =>
-                repairAction(997, "Return to customer", "event_busy", "primary", globalFunc)
-              }
-            >
-              Cancel Repair - Return to Customer
-            </MDButton>
+          <Grid item xs={4} md={2}>
+            <PauseRepairPartsButton />
           </Grid>
-          <Grid item xs={12} md={6}>
-            <MDButton
-              fullwidth
-              color="primary"
-              variant="contained"
-              onClick={() =>
-                repairAction(998, "Repair cancelled", "event_busy", "primary", globalFunc)
-              }
-            >
-              Cancel Repair
-            </MDButton>
+          <Grid item xs={4} md={2}>
+            <AddPartsButton />
+          </Grid>
+          <Grid item xs={4} md={2}>
+            <ReturnToCustomerButton />
+          </Grid>
+          <Grid item xs={4} md={2}>
+            <CancelRepairButton />
+          </Grid>
+          <Grid item xs={4} md={2}>
+            <ReprintButton />
           </Grid>
         </Grid>
         <LoadBox />
+        <PartsModal />
         <RenderSnackbar />
       </>
     );
@@ -683,84 +629,29 @@ function Actions({
     return (
       <>
         <Grid container spacing={1} mb={3}>
-          <Grid item xs={12} md={6}>
-            <MDButton
-              fullwidth
-              color="info"
-              variant="contained"
-              onClick={() => repairAction(3, "Repair paused", "pause", "info", globalFunc)}
-            >
-              Pause Repair
-            </MDButton>
+          <Grid item xs={4} md={2}>
+            <PauseRepairButton />
           </Grid>
-          <Grid item xs={12} md={6}>
-            <MDButton
-              fullwidth
-              color="info"
-              variant="contained"
-              onClick={() =>
-                repairAction(11, "Repair paused - Awaiting parts", "pause", "info", globalFunc)
-              }
-            >
-              Pause Repair - Awaiting parts
-            </MDButton>
+          <Grid item xs={4} md={2}>
+            <PauseRepairPartsButton />
           </Grid>
-          <Grid item xs={12} md={6}>
-            <MDButton fullwidth color="dark" variant="contained" onClick={() => getParts()}>
-              Add parts
-            </MDButton>
+          <Grid item xs={4} md={2}>
+            <AddPartsButton />
           </Grid>
-          <Grid item xs={12} md={6}>
-            <MDButton
-              fullwidth
-              color="success"
-              variant="contained"
-              onClick={() =>
-                repairAction(4, "Repair completed", "build_circle", "success", globalFunc)
-              }
-            >
-              Complete Repair
-            </MDButton>
+          <Grid item xs={4} md={2}>
+            <CompleteRepairButton />
           </Grid>
-          <Grid item xs={12} md={6}>
-            <MDButton
-              fullwidth
-              color="primary"
-              variant="contained"
-              p={3}
-              onClick={() =>
-                repairAction(997, "Return to customer", "event_busy", "primary", globalFunc)
-              }
-            >
-              Cancel Repair - Return to Customer
-            </MDButton>
+          <Grid item xs={4} md={2}>
+            <ReturnToCustomerButton />
           </Grid>
-          <Grid item xs={12} md={6}>
-            <MDButton
-              fullwidth
-              color="primary"
-              variant="contained"
-              onClick={() =>
-                repairAction(998, "Repair cancelled", "event_busy", "primary", globalFunc)
-              }
-            >
-              Cancel Repair
-            </MDButton>
+          <Grid item xs={4} md={2}>
+            <CancelRepairButton />
           </Grid>
-          <ReprintButton />
+          <Grid item xs={4} md={2}>
+            <ReprintButton />
+          </Grid>
         </Grid>
-        <PartsAdd
-          globalFunc={globalFunc}
-          showPartsModal={newRepairPart}
-          setshowPartsModal={setnewRepairPart}
-          toggleloadingOpen={setShowLoad}
-          createInvoice={createInvoice}
-          dialogOpen={dialogOpen}
-          toggleDialogOpen={toggleDialogOpen}
-          repairID={repairID}
-          getRepair={getRepair}
-          status={status}
-        />
+        <PartsModal />
         <LoadBox />
         <RenderSnackbar />
       </>
@@ -770,46 +661,11 @@ function Actions({
     return (
       <>
         <Grid container spacing={1} mb={3}>
-          <Grid item xs={12} md={6}>
-            <MDButton
-              fullwidth
-              color="success"
-              variant="contained"
-              p={3}
-              onClick={() =>
-                repairAction(2, "Repair resumed", "construction", "success", globalFunc)
-              }
-            >
-              Resume Repair
-            </MDButton>
+          <Grid item xs={4} md={2}>
+            <RestartRepairButton />
           </Grid>
-          <Grid item xs={12} md={6}>
-            <MDButton
-              fullwidth
-              color="primary"
-              variant="contained"
-              p={3}
-              onClick={() =>
-                repairAction(997, "Return to customer", "event_busy", "primary", globalFunc)
-              }
-            >
-              Cancel Repair - Return to Customer
-            </MDButton>
-          </Grid>
-          <Grid item xs={12} md={6}>
-            <MDButton
-              fullwidth
-              color="primary"
-              variant="contained"
-              p={3}
-              onClick={() =>
-                repairAction(998, "Repair cancelled", "event_busy", "primary", globalFunc)
-              }
-            >
-              Cancel Repair
-            </MDButton>
-          </Grid>
-          <Grid item xs={12} md={6}>
+
+          <Grid item xs={4} md={2}>
             <MDButton
               fullwidth
               color="success"
@@ -821,7 +677,15 @@ function Actions({
               Complete Repair
             </MDButton>
           </Grid>
-          <ReprintButton />
+          <Grid item xs={4} md={2}>
+            <ReturnToCustomerButton />
+          </Grid>
+          <Grid item xs={4} md={2}>
+            <CancelRepairButton />
+          </Grid>
+          <Grid item xs={4} md={2}>
+            <ReprintButton />
+          </Grid>
         </Grid>
         <setShowLoad />
         <RenderSnackbar />

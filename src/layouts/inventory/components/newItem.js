@@ -19,6 +19,7 @@ import {
   Grid,
   TextField,
   Modal,
+  Tooltip,
 } from "@mui/material";
 import MDBox from "../../../components/MDBox";
 import MDTypography from "../../../components/MDTypography";
@@ -61,6 +62,8 @@ const NewItem = ({ globalFunc, showNewItem, setShowNewItem, setShowLoad }) => {
   const [newItemData, setNewItemData] = useState({
     type: "ITEM",
     itemData: {
+      name: "",
+      descriptionHtml: "",
       variations: [
         {
           itemVariationData: {
@@ -115,16 +118,16 @@ const NewItem = ({ globalFunc, showNewItem, setShowNewItem, setShowLoad }) => {
                 : ""
             } ${item.categoryData.name}`,
             id: item.id,
-            sku:
-              item.categoryData.pathToRoot
-                .map((cat) => {
-                  return res.categories.find((cats) => cats.id == cat.categoryId)
-                    ? res.categories.find((cats) => cats.id == cat.categoryId).categoryData?.sku
-                    : "";
-                })
-                .reverse()
-                .join("")
-                .toString() && item.categoryData.sku,
+            sku: item.categoryData.pathToRoot
+              .map((cat) => {
+                return res.categories.find((cats) => cats.id == cat.categoryId)
+                  ? res.categories.find((cats) => cats.id == cat.categoryId).categoryData?.sku
+                  : "";
+              })
+              .reverse()
+              .join("")
+              .toString()
+              .concat(item.categoryData.sku),
           });
         });
         setLocations(res.locations);
@@ -170,13 +173,17 @@ const NewItem = ({ globalFunc, showNewItem, setShowNewItem, setShowLoad }) => {
     );
   });
 
-  const GenerateSku = async () => {
-    if (catsSku == null) {
+  const GenerateSku = async (index) => {
+    if (catSku == null) {
       globalFunc.setErrorSBText("Please select a category");
       globalFunc.setErrorSB(true);
       return;
     } else if (nextSku != null) {
       setNextSku(nextSku + 1);
+      let updatedFields = { ...newItemData };
+      updatedFields["itemData"]["variations"][index]["itemVariationData"]["sku"] =
+        Number(nextSku) + 1;
+      setNewItemData(updatedFields);
     } else {
       if (catSku.length < 4) {
         setCatSku(catSku & "99");
@@ -193,7 +200,11 @@ const NewItem = ({ globalFunc, showNewItem, setShowNewItem, setShowLoad }) => {
       const json = await response.json();
       //setCustomerID(json.data.customer.id);
       if (json.res == 200) {
-        setCatSku(json.data);
+        setNextSku(Number(json.data) + 1);
+        let updatedFields = { ...newItemData };
+        updatedFields["itemData"]["variations"][index]["itemVariationData"]["sku"] =
+          Number(json.data) + 1;
+        setNewItemData(updatedFields);
         console.log("Next Sku:", json.data);
       } else {
         globalFunc.setErrorSBText("Error generating SKU");
@@ -202,9 +213,11 @@ const NewItem = ({ globalFunc, showNewItem, setShowNewItem, setShowLoad }) => {
     }
   };
 
-  const handleChange = (index, event, pricing = false) => {
+  const handleChange = (index, event, pricing = false, root = false) => {
     let updatedFields = { ...newItemData };
-    if (pricing) {
+    if (root) {
+      updatedFields["itemData"][event.target.name] = event.target.value;
+    } else if (pricing) {
       updatedFields["itemData"]["variations"][index]["itemVariationData"]["priceMoney"]["amount"] =
         event.target.value;
     } else {
@@ -271,15 +284,9 @@ const NewItem = ({ globalFunc, showNewItem, setShowNewItem, setShowLoad }) => {
                 <FormControl fullWidth>
                   <TextField
                     label="Name (Required)"
-                    sx={{ border: "1px solid #989898ff", borderRadius: "10px" }}
-                  />
-                </FormControl>
-              </Grid>
-              <Grid item xs={12} sx={{ marginTop: "15px" }}>
-                <FormControl fullWidth>
-                  <TextField
-                    label="Price (Required)"
-                    type="number"
+                    name="name"
+                    value={newItemData.itemData.name}
+                    onChange={(e) => handleChange(0, e, false, true)}
                     sx={{ border: "1px solid #989898ff", borderRadius: "10px" }}
                   />
                 </FormControl>
@@ -290,6 +297,9 @@ const NewItem = ({ globalFunc, showNewItem, setShowNewItem, setShowLoad }) => {
                     label="Description"
                     rows="5"
                     multiline
+                    name="descriptionHtml"
+                    value={newItemData.itemData.descriptionHtml}
+                    onChange={(e) => handleChange(0, e, false, true)}
                     sx={{ border: "1px solid #989898ff", borderRadius: "10px" }}
                   />
                 </FormControl>
@@ -379,15 +389,19 @@ const NewItem = ({ globalFunc, showNewItem, setShowNewItem, setShowLoad }) => {
                       </FormControl>
                     </Grid>
                     <Grid item xs={12} md={1}>
-                      <MDButton type="button" color="success" onClick={() => addVarination()}>
-                        Duplicate
-                      </MDButton>
+                      <Tooltip title="Generate SKU">
+                        <MDButton type="button" color="success" onClick={() => GenerateSku(index)}>
+                          <Icon>autorenew</Icon>
+                        </MDButton>
+                      </Tooltip>
                     </Grid>
                     <Grid item xs={12} md={1}>
                       {index != 0 ? (
-                        <MDButton type="button" color="error" onClick={() => removeField(index)}>
-                          Remove
-                        </MDButton>
+                        <Tooltip title="Remove variation">
+                          <MDButton type="button" color="error" onClick={() => removeField(index)}>
+                            <Icon>delete</Icon>
+                          </MDButton>
+                        </Tooltip>
                       ) : (
                         <></>
                       )}
@@ -414,6 +428,8 @@ const NewItem = ({ globalFunc, showNewItem, setShowNewItem, setShowLoad }) => {
                         //let catdata = { ...newCategoryData };
                         //catdata.parentCategory = { id: newValue.id };
                         //setNewCategoryData(catdata);
+                        setNextSku(null);
+                        setCatSku(newValue.sku);
                         console.log("Selected category sku:", newValue.sku);
                       } else {
                         //let catdata = { ...newCategoryData };
