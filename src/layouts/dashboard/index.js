@@ -37,11 +37,15 @@ import reportsLineChartData from "layouts/dashboard/data/reportsLineChartData";
 import Projects from "layouts/dashboard/components/Projects";
 import OrdersOverview from "layouts/dashboard/components/OrdersOverview";
 import { useNavigate } from "react-router-dom";
+import { set } from "draft-js/lib/DefaultDraftBlockRenderMap";
 
 // eslint-disable-next-line react/prop-types
 function Dashboard({ globalFunc }) {
   const [mysales, setSales] = useState({ lastweek: 0, thisweek: 0 });
   const [myRepairs, setRepairs] = useState(0);
+  const [myRepairsPickup, setRepairsPickup] = useState(0);
+  const [myRepairsPaused, setRepairsPaused] = useState(0);
+  const [myRepairsParts, setRepairsParts] = useState(0);
   const [repairChange, setRepairChange] = useState(0);
   const [salesChange, setSalesChange] = useState(0);
   const [sales, setSalesData] = useState({
@@ -79,7 +83,10 @@ function Dashboard({ globalFunc }) {
             )
           : -(res.sales.find((x) => x._id == -14).sum / 100)
       );
-      setRepairs(res.repairs.find((x) => x._id == -30).count);
+      setRepairs(res.repairsTotal);
+      setRepairsPickup(res.repairsPickup);
+      setRepairsPaused(res.repairsPaused);
+      setRepairsParts(res.repairsParts);
       setRepairChange(
         ((res.repairs.find((x) => x._id == -30).count -
           res.repairs.find((x) => x._id == -60).count) /
@@ -114,6 +121,9 @@ function Dashboard({ globalFunc }) {
       settopSellersAll({ labels: salesItemsAll, datasets: { data: salesItemAllVol } });
       setSalesData({ labels: saleMonths, datasets: { data: monthlySales } });
       setSalesVolume({ labels: saleMonths, datasets: { data: mysalesVolume } });
+    } else if (res.res === 401) {
+      globalFunc.logoutUser();
+      globalFunc.showAlert("Session expired. Please log in again.", "error");
     }
   };
 
@@ -176,21 +186,60 @@ function Dashboard({ globalFunc }) {
         />
       </MDBox>
     </Grid> */}
-
           {globalFunc.user.isAdmin || globalFunc.user.isTech ? (
             <Grid item xs={12} md={6} lg={3}>
               <MDBox mb={1.5}>
                 <ComplexStatisticsCard
                   color="primary"
                   icon="handyman"
-                  title="Repairs"
+                  title="Current Repairs"
                   onClick={() => redirect(`/repairs`, { replace: false })}
                   count={myRepairs}
-                  percentage={{
-                    color: repairChange < 0 ? "error" : "success",
-                    amount: `${repairChange.toFixed(2)}%`,
-                    label: "vs last 30 days",
-                  }}
+                />
+              </MDBox>
+            </Grid>
+          ) : (
+            ""
+          )}
+          {globalFunc.user.isAdmin || globalFunc.user.isTech ? (
+            <Grid item xs={12} md={6} lg={3}>
+              <MDBox mb={1.5}>
+                <ComplexStatisticsCard
+                  color="success"
+                  icon="check_box"
+                  title="Repairs Ready for Pickup"
+                  onClick={() => redirect(`/repairs/5`, { replace: false })}
+                  count={myRepairsPickup}
+                />
+              </MDBox>
+            </Grid>
+          ) : (
+            ""
+          )}
+          {globalFunc.user.isAdmin || globalFunc.user.isTech ? (
+            <Grid item xs={12} md={6} lg={3}>
+              <MDBox mb={1.5}>
+                <ComplexStatisticsCard
+                  color="primary"
+                  icon="pause_circle"
+                  title="Repairs paused"
+                  onClick={() => redirect(`/repairs/3`, { replace: false })}
+                  count={myRepairsPaused}
+                />
+              </MDBox>
+            </Grid>
+          ) : (
+            ""
+          )}
+          {globalFunc.user.isAdmin || globalFunc.user.isTech ? (
+            <Grid item xs={12} md={6} lg={3}>
+              <MDBox mb={1.5}>
+                <ComplexStatisticsCard
+                  color="secondary"
+                  icon="alarm_pause"
+                  title="Repairs awaiting parts"
+                  onClick={() => redirect(`/repairs/11`, { replace: false })}
+                  count={myRepairsParts}
                 />
               </MDBox>
             </Grid>

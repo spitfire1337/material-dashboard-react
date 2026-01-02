@@ -17,9 +17,11 @@ import { useState, React, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import RepairHistory from "./components/history";
 import Actions from "./components/actions";
-import moment from "moment";
 import NotesItem from "examples/Timeline/NotesItem";
 import RepairImages from "./components/images";
+import AddNotes from "layouts/repairs/components/addnotes";
+import parse from "html-react-parser";
+
 // Vars
 import vars from "../../config";
 
@@ -520,8 +522,9 @@ const RepairDetails = ({ globalFunc }) => {
                         ? [
                             <br key="" />,
                             repairDetails.Customer.address.locality || "",
-                            ",",
+                            ", ",
                             repairDetails.Customer.address.administrative_district_level_1 || "",
+                            " ",
                             repairDetails.Customer.address.postal_code || "",
                           ]
                         : ""}
@@ -571,7 +574,7 @@ const RepairDetails = ({ globalFunc }) => {
                       })}
                     </MDTypography>
                     <MDTypography variant="body1">Details:</MDTypography>
-                    <MDTypography variant="body2">{repairDetails.Details}</MDTypography>
+                    <MDTypography variant="body2">{parse(repairDetails.Details)}</MDTypography>
                   </MDBox>
                 </Card>
               </Grid>
@@ -762,6 +765,7 @@ const RepairDetails = ({ globalFunc }) => {
                       setRepairOrderReady={setRepairOrderReady}
                       createInvoice={createInvoice}
                       showUploadFunc={showUploadFunc}
+                      setnewRepairNotes={setnewRepairNotes}
                     />
                   </MDBox>
                 </Card>
@@ -800,7 +804,7 @@ const RepairDetails = ({ globalFunc }) => {
           </Grid>
         </Grid>
       </MDBox>
-      <Modal
+      {/* <Modal
         open={newRepairNotes}
         onClose={() => null}
         // onClose={() => {
@@ -848,7 +852,19 @@ const RepairDetails = ({ globalFunc }) => {
             Cancel
           </MDButton>
         </MDBox>
-      </Modal>
+      </Modal> */}
+      <AddNotes
+        RepairNotes={RepairNotes}
+        setRepairNotes={setRepairNotes}
+        newRepairNotes={newRepairNotes}
+        setnewRepairNotes={setnewRepairNotes}
+        saveNotes={saveNotes}
+        globalFunc={globalFunc}
+        getRepair={getRepair}
+        showSnackBar={showSnackBar}
+        setShowLoad={setShowLoad}
+        repairId={repairID}
+      />
       <PartsAdd
         status={repairDetails.status}
         globalFunc={globalFunc}

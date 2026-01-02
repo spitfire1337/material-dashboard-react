@@ -6,5 +6,9 @@ if (!process.env.NODE_ENV || process.env.NODE_ENV === "development") {
   server = "https://crm.pevconnection.com";
   redirecturl = "https://crm.pevconnection.com";
 }
-let vars = { serverUrl: server, redirect: redirecturl };
+let publicKey = `-----BEGIN PUBLIC KEY-----
+MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAIiOElb8xQ6xXRmBTdVETZBJwjhvFh1D
+hZ518mT2i/nB1Urth46bIa2NeAu5evptH6lU15SqoJfWy8BHEZA2pjkCAwEAAQ==
+-----END PUBLIC KEY-----`;
+let vars = { serverUrl: server, redirect: redirecturl, publicKey: publicKey };
 export default vars;

@@ -3,6 +3,11 @@ import { useState, useEffect, useMemo } from "react";
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 import MDButton from "components/MDButton";
+import { EditorState, convertToRaw } from "draft-js";
+import { Editor } from "react-draft-wysiwyg";
+import draftToHtml from "draftjs-to-html";
+import htmlToDraft from "html-to-draftjs";
+import "../../../../node_modules/react-draft-wysiwyg/dist/react-draft-wysiwyg.css";
 import {
   Modal,
   FormControl,
@@ -37,6 +42,12 @@ const step3 = ({ globalFunc, repairID, nextRepairStep }) => {
   const [warranty, setWarranty] = useState(false);
   const [accessories, setAccessories] = useState([]);
   const [accessoryCount, setAccessoryCount] = useState(0);
+  const [value, setValue] = useState({ editorState: EditorState.createEmpty() });
+
+  const onEditorStateChange = (editorState) => {
+    setValue({ editorState });
+  };
+
   const useForm = (initialValues) => {
     const [values, setValues] = useState(initialValues);
     return [
@@ -53,7 +64,7 @@ const step3 = ({ globalFunc, repairID, nextRepairStep }) => {
     try {
       let postData = {
         _id: repairID,
-        Details: repairDetails,
+        Details: draftToHtml(convertToRaw(value.editorState.getCurrentContent())),
         RepairType: repairType,
         warranty: warranty,
         accessories: accessories,
@@ -191,7 +202,7 @@ const step3 = ({ globalFunc, repairID, nextRepairStep }) => {
               </FormGroup>
             </Grid>
             <Grid item sm={12}>
-              <TextField
+              {/* <TextField
                 id="outlined-multiline-static"
                 label="Repair Details"
                 multiline
@@ -199,6 +210,20 @@ const step3 = ({ globalFunc, repairID, nextRepairStep }) => {
                 fullWidth
                 onChange={(e) => {
                   setRepairDetails(e.target.value);
+                }}
+              /> */}
+              <Editor
+                editorState={value.editorState}
+                wrapperClassName="demo-wrapper"
+                editorClassName="demo-editor"
+                toolbarClassName="toolbar-class"
+                onEditorStateChange={onEditorStateChange}
+                toolbar={{
+                  inline: { inDropdown: true },
+                  list: { inDropdown: true },
+                  textAlign: { inDropdown: true },
+                  link: { inDropdown: true },
+                  history: { inDropdown: true },
                 }}
               />
             </Grid>

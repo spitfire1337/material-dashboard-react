@@ -44,7 +44,7 @@ import RepairDetails from "layouts/repairDetails";
 import CustomerDetails from "layouts/customerDetails";
 import Appointments from "layouts/appointments";
 import Availability from "layouts/availability";
-import Notifications from "layouts/notifications";
+import WhatsNew from "layouts/whatsnew";
 import Profile from "layouts/profile";
 import SignIn from "layouts/authentication/sign-in";
 import SignUp from "layouts/authentication/sign-up";
@@ -52,11 +52,143 @@ import GroupRides from "layouts/grouprides";
 import WarrantyAdmin from "layouts/warranty_admin";
 import Inventory from "layouts/inventory";
 import Categories from "layouts/categories";
-import InmotionItems from "layouts/inmotionItems";
+import Consignments from "layouts/consignments";
 import PEVDatabase from "layouts/pevs";
 import ETags from "layouts/inventoryTags";
 // @mui icons
 import Icon from "@mui/material/Icon";
+const devRoutes = (globalFunc) => {
+  return [
+    {
+      name: "Repairs",
+      key: "repairs2",
+      route: "/repairdetails/:id",
+      component: <RepairDetails globalFunc={globalFunc} />,
+    },
+    {
+      name: "Repairs",
+      key: "repairs3",
+      route: "/repairs/:repairstatus",
+      component: <Repairs globalFunc={globalFunc} />,
+    },
+    {
+      type: "collapse",
+      noCollapse: true,
+      name: "Dashboard",
+      key: "dashboard",
+      icon: <Icon fontSize="small">dashboard</Icon>,
+      route: "/dashboard",
+      component: <Dashboard globalFunc={globalFunc} />,
+    },
+    {
+      type: "collapse",
+      name: "Repairs",
+      noCollapse: true,
+      key: "repairs",
+      icon: <Icon fontSize="small">assignment</Icon>,
+      route: "/repairs/",
+      component: <Repairs globalFunc={globalFunc} />,
+    },
+    {
+      type: "collapse",
+      name: "Customers",
+      noCollapse: true,
+      key: "customers",
+      icon: <Icon fontSize="small">group</Icon>,
+      route: "/Customers",
+      component: <Customers />,
+    },
+    {
+      type: "collapse",
+      name: "Inventory",
+      key: "Inventory",
+      icon: <Icon fontSize="small">inventory_2</Icon>,
+      route: "/inventory/",
+      component: <Inventory globalFunc={globalFunc} />,
+      collapse: [
+        {
+          type: "collapse",
+          name: "Inventory",
+          key: "Inventory",
+          icon: <Icon fontSize="small">inventory_2</Icon>,
+          route: "/inventory/",
+          component: <Inventory globalFunc={globalFunc} />,
+        },
+        {
+          type: "collapse",
+          name: "Categories",
+          key: "categories",
+          icon: <Icon fontSize="small">inventory_2</Icon>,
+          route: "/categories/",
+          component: <Categories globalFunc={globalFunc} />,
+        },
+        {
+          type: "collapse",
+          name: "eTags",
+          key: "eTags",
+          icon: <Icon fontSize="small">inventory_2</Icon>,
+          route: "/etags/",
+          component: <ETags globalFunc={globalFunc} />,
+        },
+      ],
+    },
+    {
+      name: "Customers",
+      key: "customers2",
+      route: "/customer/:id",
+      component: <CustomerDetails globalFunc={globalFunc} />,
+    },
+    {
+      type: "collapse",
+      name: "PEV Database",
+      key: "pevs",
+      route: "/pevDB",
+      icon: <Icon fontSize="small">electric_scooter</Icon>,
+      component: <PEVDatabase globalFunc={globalFunc} />,
+      collapse: [
+        {
+          name: "PEV Database",
+          key: "pevs",
+          route: "/pevDB",
+          component: <PEVDatabase globalFunc={globalFunc} />,
+        },
+        {
+          type: "collapse",
+          name: "Warranty Admin",
+          icon: <Icon fontSize="small">app_registration</Icon>,
+          key: "Admin",
+          route: "/warranty_admin",
+          component: <WarrantyAdmin globalFunc={globalFunc} />,
+        },
+      ],
+    },
+    {
+      name: "Group Rides",
+      key: "grouprides",
+      route: "/grouprides",
+      component: <GroupRides />,
+    },
+    {
+      type: "collapse",
+      noCollapse: true,
+      name: "Consignments",
+      key: "consignments",
+      icon: <Icon fontSize="small">note_add</Icon>,
+      route: "/consignments",
+      component: <Consignments globalFunc={globalFunc} />,
+    },
+    {
+      type: "collapse",
+      noCollapse: true,
+      name: "Update whats new",
+      key: "whatsnew",
+      icon: <Icon fontSize="small">note_add</Icon>,
+      route: "/WhatsNew",
+      component: <WhatsNew globalFunc={globalFunc} />,
+    },
+  ];
+};
+
 const adminRoutes = (globalFunc) => {
   return [
     {
@@ -258,6 +390,7 @@ const publicRoutes = () => {
   ];
 };
 const routes = (globalFunc) => {
+  if (globalFunc.user.isDev) return devRoutes(globalFunc);
   if (globalFunc.user.isAdmin) return adminRoutes(globalFunc);
   if (globalFunc.user.isTech) return techRoutes(globalFunc);
   return publicRoutes;

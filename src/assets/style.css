@@ -14,3 +14,26 @@
     height:100%;
     width: 100%;
 }
+
+.demo-wrapper {
+    border: 1px solid #c4c4c4 !important;
+    border-radius: 10px;
+    min-height: 25vh;
+    max-height: 40vh;
+}
+
+.demo-editor {
+    padding-top: 0px !important;
+    margin-top: 0px !important;
+    height: 100% !important;
+}
+.toolbar-class {
+    border-bottom: 1px solid #c4c4c4 !important;
+    border-radius: 10px 10px 0px 0px;
+}
+
+.signature-canvas {
+    border: 1px solid #c4c4c4;
+    border-radius: 10px;
+    width: 95vw;
+}

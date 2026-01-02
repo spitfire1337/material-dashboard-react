@@ -53,6 +53,7 @@ function Actions({
   repairOrderReady,
   setRepairOrderReady,
   createInvoice,
+  setnewRepairNotes,
 }) {
   const [Labor, setLabor] = useState(100);
   const [Tax, setTax] = useState(0);
@@ -398,6 +399,21 @@ function Actions({
     );
   };
 
+  const NotesButton = () => {
+    return (
+      <Tooltip title="Add Notes">
+        <MDButton
+          fullwidth
+          color="dark"
+          variant="contained"
+          onClick={() => setnewRepairNotes(true)}
+        >
+          <Icon>note_add</Icon>
+        </MDButton>
+      </Tooltip>
+    );
+  };
+
   const ConfirmActionDialog = ({ title, content, action, openState, closeState }) => {
     return (
       <Dialog open={openState}>
@@ -585,17 +601,69 @@ function Actions({
 
   const RestartRepairButton = () => {
     return (
-      <MDButton
-        fullwidth
-        color="success"
-        variant="contained"
-        p={3}
-        onClick={() => repairAction(2, "Repair resumed", "construction", "success", globalFunc)}
-      >
-        Resume Repair
-      </MDButton>
+      <Tooltip title="Restart Repair">
+        <MDButton
+          fullwidth
+          color="success"
+          variant="contained"
+          p={3}
+          onClick={() => repairAction(2, "Repair resumed", "construction", "success", globalFunc)}
+        >
+          <Icon>restart_alt</Icon>
+        </MDButton>
+      </Tooltip>
     );
   };
+
+  const CreateInvoiceButton = () => {
+    return (
+      <Tooltip title="Create Invoice">
+        <MDButton
+          fullwidth
+          color="success"
+          variant="contained"
+          p={3}
+          disabled={!repairOrderReady}
+          onClick={() => setShowInvoice(true)}
+        >
+          <Icon>receipt</Icon>
+        </MDButton>
+      </Tooltip>
+    );
+  };
+
+  const CancelInvoiceButton = () => {
+    return (
+      <Tooltip title="Cancel Invoice">
+        <MDButton
+          fullwidth
+          color="success"
+          variant="contained"
+          p={3}
+          onClick={() => toggleconfirmOpen({ cancelInvoice: true })}
+        >
+          <Icon>credit_card_off</Icon>
+        </MDButton>
+      </Tooltip>
+    );
+  };
+
+  const ArchiveRepairButton = () => {
+    return (
+      <Tooltip title="Archive Repair - Customer picked up">
+        <MDButton
+          fullwidth
+          color="primary"
+          variant="contained"
+          p={3}
+          onClick={() => repairAction(998, "Repair Archived", "event_busy", "primary", globalFunc)}
+        >
+          <Icon>archive</Icon>
+        </MDButton>
+      </Tooltip>
+    );
+  };
+
   if (status == 1) {
     return (
       <>
@@ -616,6 +684,9 @@ function Actions({
             <CancelRepairButton />
           </Grid>
           <Grid item xs={4} md={2}>
+            <NotesButton />
+          </Grid>
+          <Grid item xs={4} md={2}>
             <ReprintButton />
           </Grid>
         </Grid>
@@ -628,7 +699,7 @@ function Actions({
   if (status == 2) {
     return (
       <>
-        <Grid container spacing={1} mb={3}>
+        <Grid container spacing={2} mb={3}>
           <Grid item xs={4} md={2}>
             <PauseRepairButton />
           </Grid>
@@ -648,6 +719,9 @@ function Actions({
             <CancelRepairButton />
           </Grid>
           <Grid item xs={4} md={2}>
+            <NotesButton />
+          </Grid>
+          <Grid item xs={4} md={2}>
             <ReprintButton />
           </Grid>
         </Grid>
@@ -660,28 +734,22 @@ function Actions({
   if (status == 3 || status == 11) {
     return (
       <>
-        <Grid container spacing={1} mb={3}>
+        <Grid container spacing={2} mb={3}>
           <Grid item xs={4} md={2}>
             <RestartRepairButton />
           </Grid>
 
           <Grid item xs={4} md={2}>
-            <MDButton
-              fullwidth
-              color="success"
-              variant="contained"
-              onClick={() =>
-                repairAction(4, "Repair completed", "build_circle", "success", globalFunc)
-              }
-            >
-              Complete Repair
-            </MDButton>
+            <CompleteRepairButton />
           </Grid>
           <Grid item xs={4} md={2}>
             <ReturnToCustomerButton />
           </Grid>
           <Grid item xs={4} md={2}>
             <CancelRepairButton />
+          </Grid>
+          <Grid item xs={4} md={2}>
+            <NotesButton />
           </Grid>
           <Grid item xs={4} md={2}>
             <ReprintButton />
@@ -695,34 +763,19 @@ function Actions({
   if (status == 997) {
     return (
       <>
-        <Grid container spacing={1} mb={3}>
-          <Grid item xs={12} md={6}>
-            <MDButton
-              fullwidth
-              color="success"
-              variant="contained"
-              p={3}
-              onClick={() =>
-                repairAction(2, "Repair resumed", "construction", "success", globalFunc)
-              }
-            >
-              Resume Repair
-            </MDButton>
+        <Grid container spacing={2} mb={3}>
+          <Grid item xs={4} md={2}>
+            <RestartRepairButton />
           </Grid>
-          <Grid item xs={12} md={6}>
-            <MDButton
-              fullwidth
-              color="primary"
-              variant="contained"
-              p={3}
-              onClick={() =>
-                repairAction(998, "Repair Archived", "event_busy", "primary", globalFunc)
-              }
-            >
-              Archive Repair - Customer picked up
-            </MDButton>
+          <Grid item xs={4} md={2}>
+            <ArchiveRepairButton />
           </Grid>
-          <ReprintButton />
+          <Grid item xs={4} md={2}>
+            <NotesButton />
+          </Grid>
+          <Grid item xs={4} md={2}>
+            <ReprintButton />
+          </Grid>
         </Grid>
         <setShowLoad />
         <RenderSnackbar />
@@ -733,36 +786,25 @@ function Actions({
   if (status == 4) {
     return (
       <>
-        <Grid container spacing={1} mb={3}>
-          <Grid item xs={12} md={6}>
-            <MDButton fullwidth color="dark" variant="contained" onClick={() => getParts()}>
-              Add parts
-            </MDButton>
+        <Grid container spacing={2} mb={3}>
+          <Grid item xs={4} md={2}>
+            <AddPartsButton />
           </Grid>
-          <Grid item xs={12} md={6}>
-            <MDButton
-              fullwidth
-              color="success"
-              variant="contained"
-              p={3}
-              disabled={!repairOrderReady}
-              onClick={() => setShowInvoice(true)}
-            >
-              Create Invoice
-            </MDButton>
+          <Grid item xs={4} md={2}>
+            <CreateInvoiceButton />
           </Grid>
-          <Grid item xs={12} md={6}>
-            <MDButton
-              fullwidth
-              color="success"
-              variant="contained"
-              p={3}
-              onClick={() => repairAction(2, "Repair restarted", "info", "secondary", globalFunc)}
-            >
-              Restart Repair
-            </MDButton>
+          <Grid item xs={4} md={2}>
+            <RestartRepairButton />
           </Grid>
-          <ReprintButton />
+          <Grid item xs={4} md={2}>
+            <CancelRepairButton />
+          </Grid>
+          <Grid item xs={4} md={2}>
+            <NotesButton />
+          </Grid>
+          <Grid item xs={4} md={2}>
+            <ReprintButton />
+          </Grid>
         </Grid>
         <LoadBox />
         {repairOrderReady ? (
@@ -940,17 +982,7 @@ function Actions({
             </MDBox>
           </Modal>
         ) : null}
-        <PartsAdd
-          showPartsModal={newRepairPart}
-          setshowPartsModal={setnewRepairPart}
-          toggleloadingOpen={setShowLoad}
-          createInvoice={createInvoice}
-          dialogOpen={dialogOpen}
-          toggleDialogOpen={toggleDialogOpen}
-          repairID={repairID}
-          getRepair={getRepair}
-          status={status}
-        />
+        <PartsModal />
         <RenderSnackbar />
       </>
     );
@@ -958,19 +990,16 @@ function Actions({
   if (status == 5) {
     return (
       <>
-        <Grid container spacing={1} mb={3}>
-          <Grid item xs={12} md={6}>
-            <MDButton
-              fullwidth
-              color="success"
-              variant="contained"
-              p={3}
-              onClick={() => toggleconfirmOpen({ cancelInvoice: true })}
-            >
-              Cancel Invoice
-            </MDButton>
+        <Grid container spacing={2} mb={3}>
+          <Grid item xs={4} md={2}>
+            <CancelInvoiceButton />
           </Grid>
-          <ReprintButton />
+          <Grid item xs={4} md={2}>
+            <NotesButton />
+          </Grid>
+          <Grid item xs={4} md={2}>
+            <ReprintButton />
+          </Grid>
         </Grid>
         <LoadBox />
         <ConfirmActionDialog
@@ -987,7 +1016,7 @@ function Actions({
   if (status == 6) {
     return (
       <>
-        <Grid container spacing={1} mb={3}>
+        <Grid container spacing={2} mb={3}>
           <ReprintButton />
         </Grid>
         <setShowLoad />

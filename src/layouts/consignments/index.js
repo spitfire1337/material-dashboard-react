@@ -46,9 +46,10 @@ import Footer from "examples/Footer";
 import DataTable from "examples/Tables/DataTable";
 
 import Step1 from "./components/step1";
-import Step2 from "./components/step2_new";
+import Step2 from "./components/step2";
 import Step3 from "./components/step3";
 import Step4 from "./components/step4";
+import Step5 from "./components/step5";
 
 // Data
 import authorsTableData from "layouts/tables/data/repairsDataTable";
@@ -71,6 +72,21 @@ const style = {
   borderRadius: "25px",
 };
 
+const styleCustomerInput = {
+  position: "absolute",
+  top: "50%",
+  left: "50%",
+  transform: "translate(-50%, -50%)",
+  width: "98vw",
+  minHeight: "98vh",
+  maxHeight: "98vh",
+  overflowY: "scroll",
+  bgcolor: "background.paper",
+  border: "2px solid #000",
+  boxShadow: 24,
+  p: 4,
+  borderRadius: "25px",
+};
 const useStyles = makeStyles((theme) => ({
   input: {
     background: "rgb(232, 241, 250)",
@@ -89,60 +105,74 @@ const iconsStyle = ({ palette: { dark, white, text }, functions: { rgba } }) => 
   },
 });
 // eslint-disable-next-line react/prop-types
-const Repairs = ({ globalFunc }) => {
+const Consignments = ({ globalFunc }) => {
   const { repairstatus } = useParams();
   const classes = useStyles();
   const { columns: pColumns, rows: pRows } = projectsTableData();
-  const [newRepair, setNewRepair] = useState(false);
+  const [newConsigment, setshowNewConsignment] = useState(false);
   const [repairData, setRepairData] = useState({});
   const [repairID, setrepairID] = useState(null);
   const [showFilter, setShowFiler] = useState(false);
   const [filterVal, setfilterVal] = useState();
   const [filteKey, setfilterKey] = useState();
+  const [newConsignmentData, setNewConsignmentData] = useState({
+    Customer: "",
+    customerID: {
+      type: "",
+      id: "",
+      issuer: "",
+      expiration: "",
+    },
+    PEVSerialNumber: "",
+    type: "ITEM",
+    presentAtAllLocations: true,
+    id: "123",
+    isDeleted: false,
+    itemData: {
+      variations: [
+        {
+          type: "ITEM_VARIATION",
+          id: "#1234",
+          itemVariationData: {
+            name: "abc",
+            priceMoney: {
+              amount: BigInt("1119"),
+              currency: "USD",
+            },
+            pricingType: "FIXED_PRICING",
+            sku: "ffff",
+            stockable: true,
+            sellable: true,
+            trackInventory: true,
+            imageIds: ["74MOH4HQWPKFDDR3LDUNGJS7"],
+          },
+          presentAtAllLocations: true,
+        },
+      ],
+      name: "aaaa",
+      descriptionHtml: "asdsads",
+    },
+  });
 
-  const useForm = (initialValues) => {
-    const [values, setValues] = useState(initialValues);
-    return [
-      values,
-      (newValue) => {
-        setValues({
-          ...values,
-          ...newValue,
-        });
-      },
-    ];
-  };
   const [repairStep, setRepairStep] = useState(1);
 
-  const updateRepairData = (val) => {
-    setRepairData({ ...val });
+  const updateConsignmentData = (val) => {
+    setNewConsignmentData({ ...val });
+    console.log("Next repair step called with val: ", val);
+    console.log("New consignment data: ", newConsignmentData);
   };
 
-  const contIntake = (repair) => {
-    setrepairID(repair._id);
-    updateRepairData({ customer: repair.Customer._id, pev: repair.pev._id });
-    setNewRepair(true);
-    setRepairStep(3);
-  };
-  console.log("Repair status param:", repairstatus);
-  let statusfilter;
-  if (repairstatus) {
-    if (repairstatus.indexOf("|") > -1) {
-      const statusParts = repairstatus.split("|");
-      statusfilter = statusParts.map((s) => parseInt(s));
-    } else {
-      statusfilter = [parseInt(repairstatus)];
-    }
-  } else {
-    statusfilter = [0, 1, 2, 3, 4, 5, 11, 997];
-  }
+  useEffect(() => {
+    console.log("New consignment data: ", newConsignmentData);
+  }, [newConsignmentData]);
+
   const { columns, rows, reRender, filter, resetFilter, repairs, setsearchTerm, searchterm } =
-    authorsTableData(globalFunc, contIntake, statusfilter);
+    authorsTableData(globalFunc);
 
   const nextRepairStep = async (val, customer = null) => {
     if (val == 2) {
       setRepairStep(2);
-      setRepairData({ Customer: customer });
+      setNewConsignmentData({ ...newConsignmentData, Customer: customer });
     }
     if (val == 3) {
       //Show step 3
@@ -153,14 +183,16 @@ const Repairs = ({ globalFunc }) => {
       setRepairStep(4);
     }
     if (val == 5) {
+      setRepairStep(5);
+    }
+    if (val == 7) {
       reRender();
-      setNewRepair(false);
-      setRepairStep(0);
+      setshowNewConsignment(false);
     }
   };
 
-  const showNewRepair = async () => {
-    setNewRepair(true);
+  const showNewConsignment = async () => {
+    setshowNewConsignment(true);
     setRepairStep(0);
   };
 
@@ -187,10 +219,10 @@ const Repairs = ({ globalFunc }) => {
                       variant="contained"
                       color="success"
                       onClick={() => {
-                        showNewRepair();
+                        showNewConsignment();
                       }}
                     >
-                      New Repair
+                      New Consignment
                     </MDButton>
                   </Grid>
                   <Grid item xs={11} md={7}>
@@ -233,7 +265,7 @@ const Repairs = ({ globalFunc }) => {
       </MDBox>
       <Footer />
       <Modal
-        open={newRepair}
+        open={newConsigment}
         onClose={() => null}
         // onClose={() => {
         //   setNewRepair(false);
@@ -241,38 +273,48 @@ const Repairs = ({ globalFunc }) => {
         aria-labelledby="modal-modal-title"
         aria-describedby="modal-modal-description"
       >
-        <MDBox sx={style}>
+        <MDBox sx={repairStep != 5 ? style : styleCustomerInput}>
           {repairStep == 0 ? (
             <Step1 nextRepairStep={nextRepairStep} globalFunc={globalFunc}></Step1>
           ) : repairStep == 2 ? (
             <Step2
               nextRepairStep={nextRepairStep}
-              repairData={repairData}
-              updateRepairData={updateRepairData}
+              newConsignmentData={newConsignmentData}
+              updateConsignmentData={updateConsignmentData}
               setrepairID={setrepairID}
               globalFunc={globalFunc}
             ></Step2>
           ) : repairStep == 3 ? (
             <Step3
+              nextRepairStep={nextRepairStep}
+              newConsignmentData={newConsignmentData}
+              updateConsignmentData={updateConsignmentData}
+              setrepairID={setrepairID}
+              globalFunc={globalFunc}
+            ></Step3>
+          ) : repairStep == 4 ? (
+            <Step4
               repairID={repairID}
               globalFunc={globalFunc}
+              newConsignmentData={newConsignmentData}
+              updateConsignmentData={updateConsignmentData}
               nextRepairStep={nextRepairStep}
-            ></Step3>
+            ></Step4>
           ) : (
-            <Step4
+            <Step5
               repairID={repairID}
               globalFunc={globalFunc}
               nextRepairStep={nextRepairStep}
               reRender={reRender}
-              setNewRepair={setNewRepair}
-            ></Step4>
+              setNewRepair={setshowNewConsignment}
+            ></Step5>
           )}
           <MDButton
             sx={{ marginTop: "2px" }}
             fullWidth
             color="secondary"
             onClick={() => {
-              setNewRepair(false);
+              setshowNewConsignment(false);
               reRender();
               setRepairStep(0);
             }}
@@ -292,4 +334,4 @@ const Repairs = ({ globalFunc }) => {
   );
 };
 
-export default Repairs;
+export default Consignments;

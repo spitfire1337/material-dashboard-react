@@ -212,7 +212,19 @@ export default function App() {
   const renderWhatsNew = (
     <Dialog open={showWhatsNew}>
       <DialogTitle>Whats New!</DialogTitle>
-      <DialogContent sx={{ paddingTop: "2px" }}>
+      <DialogContent
+        sx={{
+          paddingTop: "2px",
+          marginLeft: "10px",
+          marginRight: "10px",
+          paddingBottom: "5px",
+          maxWidth: "75vh",
+          minWidth: "50vh",
+          minHeight: "30vh",
+          maxHeight: "70vh",
+          overflowY: "auto",
+        }}
+      >
         <MDTypography variant="body2" color="text">
           {parse(whatsNew)}
         </MDTypography>

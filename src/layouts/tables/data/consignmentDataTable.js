@@ -96,6 +96,9 @@ export default function data(globalFunc, contIntake, status) {
       setRepairs(filtered);
     }
   };
+  useEffect(() => {
+    doFilter();
+  }, [myFilters, repairsOrig]);
   const filter = (filter) => {
     setmyFilters(filter);
   };
@@ -107,7 +110,7 @@ export default function data(globalFunc, contIntake, status) {
   const doSearch = () => {
     let filterData = [...repairs];
     if (searchTerm == "" || searchTerm == null) {
-      //doFilter(repairsOrig);
+      doFilter(repairsOrig);
       return;
     }
     let filtered = filterData.filter((item) => {
@@ -150,7 +153,7 @@ export default function data(globalFunc, contIntake, status) {
       return false;
     });
     setRepairs(filtered);
-    //doFilter(filtered);
+    doFilter(filtered);
   };
 
   const resetFilter = () => {

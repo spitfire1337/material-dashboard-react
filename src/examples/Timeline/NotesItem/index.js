@@ -15,6 +15,7 @@ Coded by www.creative-tim.com
 
 // prop-types is a library for typechecking of props
 import PropTypes from "prop-types";
+import parse from "html-react-parser";
 
 // @mui material components
 import Icon from "@mui/material/Icon";
@@ -51,9 +52,9 @@ function NotesItem({ color, icon, notes, dateTime, description, lastItem, user }
       >
         <Icon fontSize="inherit">text_snippet</Icon>
       </MDBox>
-      <MDBox ml={5.75} pt={description || user ? 0.7 : 0.5} lineHeight={0} maxWidth="30rem">
+      <MDBox ml={7.75} pt={description || user ? 0.7 : 0.5} lineHeight={0} maxWidth="30rem">
         <MDTypography variant="button" fontWeight="medium" color={isDark ? "white" : "dark"}>
-          {notes}
+          {parse(notes)}
         </MDTypography>
         <MDBox mt={0} mb={0.5}>
           <MDTypography variant="caption" color={isDark ? "secondary" : "text"}>
