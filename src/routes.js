@@ -52,20 +52,20 @@ import PEVDatabase from "layouts/pevs";
 import ETags from "layouts/inventoryTags";
 // @mui icons
 import Icon from "@mui/material/Icon";
-const devRoutes = (globalFunc, stats) => {
+const devRoutes = (stats) => {
   console.log("Stats: ", stats);
   return [
     {
       name: "Repairs",
       key: "repairs2",
       route: "/repairdetails/:id",
-      component: <RepairDetails globalFunc={globalFunc} />,
+      component: <RepairDetails />,
     },
     {
       name: "Repairs",
       key: "repairs3",
       route: "/repairs/:repairstatus",
-      component: <Repairs globalFunc={globalFunc} />,
+      component: <Repairs />,
     },
     {
       type: "collapse",
@@ -74,7 +74,7 @@ const devRoutes = (globalFunc, stats) => {
       key: "dashboard",
       icon: <Icon fontSize="small">dashboard</Icon>,
       route: "/dashboard",
-      component: <Dashboard globalFunc={globalFunc} stats={stats} />,
+      component: <Dashboard stats={stats} />,
     },
     {
       type: "collapse",
@@ -83,7 +83,7 @@ const devRoutes = (globalFunc, stats) => {
       key: "orders",
       icon: <Icon fontSize="small">shopping_bag</Icon>,
       route: "/consignments",
-      component: <Consignments globalFunc={globalFunc} />,
+      component: <Consignments />,
     },
     {
       type: "collapse",
@@ -92,7 +92,7 @@ const devRoutes = (globalFunc, stats) => {
       key: "repairs",
       icon: <Icon fontSize="small">assignment</Icon>,
       route: "/repairs/",
-      component: <Repairs globalFunc={globalFunc} />,
+      component: <Repairs />,
     },
     {
       type: "collapse",
@@ -109,7 +109,7 @@ const devRoutes = (globalFunc, stats) => {
       key: "Inventory",
       icon: <Icon fontSize="small">inventory_2</Icon>,
       route: "/inventory/",
-      component: <Inventory globalFunc={globalFunc} />,
+      component: <Inventory />,
       collapse: [
         {
           type: "collapse",
@@ -117,7 +117,7 @@ const devRoutes = (globalFunc, stats) => {
           key: "Inventory",
           icon: <Icon fontSize="small">inventory_2</Icon>,
           route: "/inventory/",
-          component: <Inventory globalFunc={globalFunc} />,
+          component: <Inventory />,
         },
         {
           type: "collapse",
@@ -125,7 +125,7 @@ const devRoutes = (globalFunc, stats) => {
           key: "categories",
           icon: <Icon fontSize="small">inventory_2</Icon>,
           route: "/categories/",
-          component: <Categories globalFunc={globalFunc} />,
+          component: <Categories />,
         },
         {
           type: "collapse",
@@ -133,7 +133,7 @@ const devRoutes = (globalFunc, stats) => {
           key: "eTags",
           icon: <Icon fontSize="small">inventory_2</Icon>,
           route: "/etags/",
-          component: <ETags globalFunc={globalFunc} />,
+          component: <ETags />,
         },
       ],
     },
@@ -141,7 +141,7 @@ const devRoutes = (globalFunc, stats) => {
       name: "Customers",
       key: "customers2",
       route: "/customer/:id",
-      component: <CustomerDetails globalFunc={globalFunc} />,
+      component: <CustomerDetails />,
     },
     {
       type: "collapse",
@@ -149,13 +149,13 @@ const devRoutes = (globalFunc, stats) => {
       key: "pevs",
       route: "/pevDB",
       icon: <Icon fontSize="small">electric_scooter</Icon>,
-      component: <PEVDatabase globalFunc={globalFunc} />,
+      component: <PEVDatabase />,
       collapse: [
         {
           name: "PEV Database",
           key: "pevs",
           route: "/pevDB",
-          component: <PEVDatabase globalFunc={globalFunc} />,
+          component: <PEVDatabase />,
         },
         {
           type: "collapse",
@@ -163,7 +163,7 @@ const devRoutes = (globalFunc, stats) => {
           icon: <Icon fontSize="small">app_registration</Icon>,
           key: "Admin",
           route: "/warranty_admin",
-          component: <WarrantyAdmin globalFunc={globalFunc} />,
+          component: <WarrantyAdmin />,
         },
       ],
     },
@@ -180,7 +180,7 @@ const devRoutes = (globalFunc, stats) => {
       key: "consignments",
       icon: <Icon fontSize="small">sell</Icon>,
       route: "/consignments",
-      component: <Consignments globalFunc={globalFunc} />,
+      component: <Consignments />,
     },
     {
       type: "collapse",
@@ -189,7 +189,7 @@ const devRoutes = (globalFunc, stats) => {
       key: "whatsnew",
       icon: <Icon fontSize="small">note_add</Icon>,
       route: "/WhatsNew",
-      component: <WhatsNew globalFunc={globalFunc} />,
+      component: <WhatsNew />,
     },
     {
       type: "collapse",
@@ -198,12 +198,12 @@ const devRoutes = (globalFunc, stats) => {
       key: "signout",
       icon: <Icon fontSize="small">note_add</Icon>,
       route: "/signout",
-      component: <Signout globalFunc={globalFunc} />,
+      component: <Signout />,
     },
   ];
 };
 
-const adminRoutes = (globalFunc, stats) => {
+const adminRoutes = (stats) => {
   return [
     {
       type: "collapse",
@@ -212,7 +212,7 @@ const adminRoutes = (globalFunc, stats) => {
       key: "dashboard",
       icon: <Icon fontSize="small">dashboard</Icon>,
       route: "/dashboard",
-      component: <Dashboard globalFunc={globalFunc} stats={stats} />,
+      component: <Dashboard stats={stats} />,
     },
     {
       type: "collapse",
@@ -221,7 +221,7 @@ const adminRoutes = (globalFunc, stats) => {
       key: "repairs",
       icon: <Icon fontSize="small">assignment</Icon>,
       route: "/repairs",
-      component: <Repairs globalFunc={globalFunc} />,
+      component: <Repairs />,
     },
     {
       type: "collapse",
@@ -238,7 +238,7 @@ const adminRoutes = (globalFunc, stats) => {
       key: "Inventory",
       icon: <Icon fontSize="small">inventory_2</Icon>,
       route: "/inventory/",
-      component: <Inventory globalFunc={globalFunc} />,
+      component: <Inventory />,
       collapse: [
         {
           type: "collapse",
@@ -246,7 +246,7 @@ const adminRoutes = (globalFunc, stats) => {
           key: "Inventory",
           icon: <Icon fontSize="small">inventory_2</Icon>,
           route: "/inventory/",
-          component: <Inventory globalFunc={globalFunc} />,
+          component: <Inventory />,
         },
         {
           type: "collapse",
@@ -254,7 +254,7 @@ const adminRoutes = (globalFunc, stats) => {
           key: "categories",
           icon: <Icon fontSize="small">inventory_2</Icon>,
           route: "/categories/",
-          component: <Categories globalFunc={globalFunc} />,
+          component: <Categories />,
         },
         {
           type: "collapse",
@@ -262,7 +262,7 @@ const adminRoutes = (globalFunc, stats) => {
           key: "eTags",
           icon: <Icon fontSize="small">inventory_2</Icon>,
           route: "/etags/",
-          component: <ETags globalFunc={globalFunc} />,
+          component: <ETags />,
         },
       ],
     },
@@ -270,13 +270,13 @@ const adminRoutes = (globalFunc, stats) => {
       name: "Repairs",
       key: "repairs2",
       route: "/repairdetails/:id",
-      component: <RepairDetails globalFunc={globalFunc} />,
+      component: <RepairDetails />,
     },
     {
       name: "Customers",
       key: "customers2",
       route: "/customer/:id",
-      component: <CustomerDetails globalFunc={globalFunc} />,
+      component: <CustomerDetails />,
     },
     {
       type: "collapse",
@@ -284,13 +284,13 @@ const adminRoutes = (globalFunc, stats) => {
       key: "pevs",
       route: "/pevDB",
       icon: <Icon fontSize="small">electric_scooter</Icon>,
-      component: <PEVDatabase globalFunc={globalFunc} />,
+      component: <PEVDatabase />,
       collapse: [
         {
           name: "PEV Database",
           key: "pevs",
           route: "/pevDB",
-          component: <PEVDatabase globalFunc={globalFunc} />,
+          component: <PEVDatabase />,
         },
         {
           type: "collapse",
@@ -298,7 +298,7 @@ const adminRoutes = (globalFunc, stats) => {
           icon: <Icon fontSize="small">app_registration</Icon>,
           key: "Admin",
           route: "/warranty_admin",
-          component: <WarrantyAdmin globalFunc={globalFunc} />,
+          component: <WarrantyAdmin />,
         },
       ],
     },
@@ -311,7 +311,7 @@ const adminRoutes = (globalFunc, stats) => {
   ];
 };
 
-const techRoutes = (globalFunc, stats) => {
+const techRoutes = (stats) => {
   return [
     {
       type: "collapse",
@@ -319,7 +319,7 @@ const techRoutes = (globalFunc, stats) => {
       key: "dashboard",
       icon: <Icon fontSize="small">dashboard</Icon>,
       route: "/dashboard",
-      component: <Dashboard globalFunc={globalFunc} stats={stats} />,
+      component: <Dashboard stats={stats} />,
     },
     {
       type: "collapse",
@@ -327,13 +327,13 @@ const techRoutes = (globalFunc, stats) => {
       key: "repairs",
       icon: <Icon fontSize="small">assignment</Icon>,
       route: "/repairs",
-      component: <Repairs globalFunc={globalFunc} />,
+      component: <Repairs />,
     },
     {
       name: "Repairs",
       key: "repairs2",
       route: "/repairdetails/:id",
-      component: <RepairDetails globalFunc={globalFunc} />,
+      component: <RepairDetails />,
     },
     {
       name: "Group Rides",
@@ -354,11 +354,11 @@ const publicRoutes = () => {
     },
   ];
 };
-const routes = (globalFunc, stats, loginState) => {
+const routes = (stats, loginState) => {
   console.log("Routes loginState: ", loginState);
-  if (loginState.user.isDev) return devRoutes(globalFunc, stats);
-  if (loginState.user.isAdmin) return adminRoutes(globalFunc, stats);
-  if (loginState.user.isTech) return techRoutes(globalFunc, stats);
+  if (loginState.user.isDev) return devRoutes(stats);
+  if (loginState.user.isAdmin) return adminRoutes(stats);
+  if (loginState.user.isTech) return techRoutes(stats);
   return publicRoutes;
   /*
       {

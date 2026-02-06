@@ -108,6 +108,7 @@
     "ajv": "^7.2.4",
     "assert": "^2.1.0",
     "buffer": "^6.0.3",
+    "craco": "^0.0.3",
     "crypto-browserify": "^3.12.1",
     "eslint": "8.39.0",
     "eslint-config-prettier": "8.8.0",

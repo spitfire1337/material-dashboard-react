@@ -53,10 +53,8 @@ import Step4 from "./components/step4";
 
 import ExpandedComponent from "./components/expand";
 // Data
-import authorsTableData from "layouts/tables/data/repairsDataTable";
-import projectsTableData from "layouts/tables/data/projectsTableData";
+import repairsTableData from "./data/repairsDataTable";
 import FilterDialog from "./components/filter";
-import tab from "assets/theme/components/tabs/tab";
 
 const style = {
   position: "absolute",
@@ -92,7 +90,7 @@ const iconsStyle = ({ palette: { dark, white, text }, functions: { rgba } }) => 
   },
 });
 // eslint-disable-next-line react/prop-types
-const Repairs = ({ globalFunc }) => {
+const Repairs = () => {
   const { tableState, setTableState, RepairRerender } = useTableState();
   const { repairstatus } = useParams();
   const classes = useStyles();
@@ -120,7 +118,7 @@ const Repairs = ({ globalFunc }) => {
     myFilters,
     setmyFilters,
     doFilter,
-  } = authorsTableData(globalFunc, statusfilter, tableState, setTableState);
+  } = repairsTableData(statusfilter, tableState, setTableState);
 
   useEffect(() => {
     let statusfilter = [];
@@ -166,7 +164,7 @@ const Repairs = ({ globalFunc }) => {
   console.log("Repair table rendered");
   return (
     <DashboardLayout>
-      <DashboardNavbar globalFunc={globalFunc} />
+      <DashboardNavbar />
       <MDBox pt={6} pb={3}>
         <Grid container spacing={6}>
           <Grid item xs={12}>
@@ -270,25 +268,19 @@ const Repairs = ({ globalFunc }) => {
       >
         <MDBox sx={style}>
           {repairStep == 0 ? (
-            <Step1 nextRepairStep={nextRepairStep} globalFunc={globalFunc}></Step1>
+            <Step1 nextRepairStep={nextRepairStep}></Step1>
           ) : repairStep == 2 ? (
             <Step2
               nextRepairStep={nextRepairStep}
               repairData={repairData}
               updateRepairData={updateRepairData}
               setrepairID={setrepairID}
-              globalFunc={globalFunc}
             ></Step2>
           ) : repairStep == 3 ? (
-            <Step3
-              repairID={repairID}
-              globalFunc={globalFunc}
-              nextRepairStep={nextRepairStep}
-            ></Step3>
+            <Step3 repairID={repairID} nextRepairStep={nextRepairStep}></Step3>
           ) : (
             <Step4
               repairID={repairID}
-              globalFunc={globalFunc}
               nextRepairStep={nextRepairStep}
               reRender={() => RepairRerender(doFilter)}
               setNewRepair={setNewRepair}

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 //Global
 import { globalFuncs } from "../../../context/global";
-
+import { useLoginState } from "../../../context/loginContext";
 import MDTypography from "components/MDTypography";
 import MDButton from "components/MDButton";
 import {
@@ -19,8 +19,9 @@ import {
 
 import vars from "../../../config";
 
-const step1 = ({ globalFunc, repairData, callback }) => {
+const step1 = ({ repairData, callback }) => {
   const { setSnackBar } = globalFuncs();
+  const { setLoggedIn } = useLoginState();
   const [pevSelection, setPEVSelection] = useState([]);
   const [allowContinue, setAllowContinue] = useState(false);
   const [pevBrand, setPEVBrand] = useState([]);
@@ -63,10 +64,10 @@ const step1 = ({ globalFunc, repairData, callback }) => {
           //setSelectedCustomer({});
           //setShowCustForm(false);
         } else if (res.res === 401) {
-          globalFunc.setLoggedIn(false);
+          setLoggedIn(false);
         }
       } else if (response.status == 401) {
-        globalFunc.setLoggedIn(false);
+        setLoggedIn(false);
       }
     };
     fetchData();

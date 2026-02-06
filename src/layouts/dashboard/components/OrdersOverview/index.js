@@ -17,7 +17,7 @@ Coded by www.creative-tim.com
 import Card from "@mui/material/Card";
 //Global
 import { globalFuncs } from "../../../../context/global";
-
+import { useLoginState } from "../../../../context/loginContext";
 // Material Dashboard 2 React components
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
@@ -28,11 +28,12 @@ import { useState, useEffect } from "react";
 import vars from "../../../../config";
 import moment from "moment";
 
-function OrdersOverview({ globalFunc }) {
+function OrdersOverview() {
+  const { setLoggedIn } = useLoginState();
   const { setSnackBar } = globalFuncs();
   const [history, setHistory] = useState([]);
 
-  const fetchData = async (globalFunc) => {
+  const fetchData = async () => {
     const response = await fetch(`${vars.serverUrl}/square/getHistory`, {
       credentials: "include",
     });
@@ -42,7 +43,7 @@ function OrdersOverview({ globalFunc }) {
       if (res.res === 200) {
         setHistory(res.data);
       } else if (res.res === 401) {
-        globalFunc.setLoggedIn(false);
+        setLoggedIn(false);
         setSnackBar({
           type: "error",
           title: "Error",
@@ -52,7 +53,7 @@ function OrdersOverview({ globalFunc }) {
         });
       }
     } else if (response.status == 401) {
-      globalFunc.setLoggedIn(false);
+      setLoggedIn(false);
       setSnackBar({
         type: "error",
         title: "Error",
@@ -64,7 +65,7 @@ function OrdersOverview({ globalFunc }) {
   };
 
   useEffect(() => {
-    fetchData(globalFunc);
+    fetchData();
   }, []);
   return (
     <Card sx={{ height: "100%" }}>

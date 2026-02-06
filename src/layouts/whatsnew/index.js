@@ -19,6 +19,7 @@ import vars from "../../config";
 
 //Global
 import { globalFuncs } from "../../context/global";
+import { useLoginState } from "../../context/loginContext";
 
 import { EditorState, convertToRaw } from "draft-js";
 import { Editor } from "react-draft-wysiwyg";
@@ -38,8 +39,9 @@ import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import Footer from "examples/Footer";
 import MDButton from "components/MDButton";
 // eslint-disable-next-line react/prop-types
-const WhatsNew = ({ globalFunc }) => {
+const WhatsNew = () => {
   const { setSnackBar } = globalFuncs();
+  const { setLoggedIn } = useLoginState();
   const [value, setValue] = useState({ editorState: EditorState.createEmpty() });
 
   const onEditorStateChange = (editorState) => {
@@ -60,7 +62,7 @@ const WhatsNew = ({ globalFunc }) => {
     });
     const res = await response.json();
     if (res.res === 401) {
-      globalFunc.setLoggedIn(false);
+      setLoggedIn(false);
       setSnackBar({
         type: "error",
         title: "Server error occured",
@@ -90,7 +92,7 @@ const WhatsNew = ({ globalFunc }) => {
 
   return (
     <DashboardLayout>
-      <DashboardNavbar globalFunc={globalFunc} />
+      <DashboardNavbar />
       <MDBox pt={6} pb={3}>
         <Grid container spacing={1}>
           <Grid item xs={12} md={8}>

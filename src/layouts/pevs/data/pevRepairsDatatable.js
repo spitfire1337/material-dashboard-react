@@ -25,7 +25,7 @@ import MDTypography from "components/MDTypography";
 import MDBadge from "components/MDBadge";
 import moment from "moment";
 
-export default function data(globalFunc) {
+export default function data() {
   let redirect = useNavigate();
   const [repairs, setRepairs] = useState([]);
   //const [searchTerm, setsearchTerm] = useState(null);

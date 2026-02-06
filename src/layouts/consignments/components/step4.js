@@ -10,7 +10,7 @@ import draftToHtml from "draftjs-to-html";
 import "../../../../node_modules/react-draft-wysiwyg/dist/react-draft-wysiwyg.css";
 import { FormControl, Select, MenuItem, InputLabel, TextField, Divider, Grid } from "@mui/material";
 import vars from "../../../config";
-const step4 = ({ globalFunc, newConsignmentData, updateConsignmentData, nextRepairStep }) => {
+const step4 = ({ newConsignmentData, updateConsignmentData, nextRepairStep }) => {
   const { setSnackBar } = globalFuncs();
   const [mileage, setMileage] = useState("0");
   const [serialNumber, setSerialNumber] = useState("");

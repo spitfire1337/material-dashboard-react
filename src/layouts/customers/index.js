@@ -56,7 +56,7 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 // eslint-disable-next-line react/prop-types
-const Customers = ({ globalFunc }) => {
+const Customers = () => {
   const classes = useStyles();
   const [repairData, setRepairData] = useState({});
   const [repairID, setrepairID] = useState(null);
@@ -74,14 +74,12 @@ const Customers = ({ globalFunc }) => {
     setRepairStep(3);
   };
 
-  const { columns, rows, reRender, filter, resetFilter, repairs, myFilters } = customersTableData(
-    globalFunc,
-    contIntake
-  );
+  const { columns, rows, reRender, filter, resetFilter, repairs, myFilters } =
+    customersTableData(contIntake);
 
   return (
     <DashboardLayout>
-      <DashboardNavbar globalFunc={globalFunc} />
+      <DashboardNavbar />
       <MDBox pt={6} pb={3}>
         <Grid container spacing={6}>
           <Grid item xs={12}>

@@ -17,6 +17,10 @@ Coded by www.creative-tim.com
 import { useState, React, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
+//Global
+import { globalFuncs } from "../../../context/global";
+import { useLoginState } from "../../../context/loginContext";
+
 import vars from "../../../config";
 
 // Material Dashboard 2 React components
@@ -25,7 +29,10 @@ import MDTypography from "components/MDTypography";
 import MDBadge from "components/MDBadge";
 import moment from "moment";
 
-export default function data(globalFunc, contIntake, filters) {
+export default function data(contIntake, filters) {
+  const { setSnackBar, setShowLoad } = globalFuncs();
+  const { setLoggedIn } = useLoginState();
+
   let redirect = useNavigate();
   const [repairsOrig, setrepairsOrig] = useState([]);
   const [repairs, setRepairs] = useState([]);
@@ -34,7 +41,7 @@ export default function data(globalFunc, contIntake, filters) {
   const defaultFilter = {
     status: [0, 1, 2, 3, 4, 5],
   };
-  const fetchData = async (globalFunc) => {
+  const fetchData = async () => {
     const response = await fetch(`${vars.serverUrl}/warranty_admin/getWarrantyWheels`, {
       credentials: "include",
     });
@@ -45,22 +52,32 @@ export default function data(globalFunc, contIntake, filters) {
         setrepairsOrig(res.data);
         setRepairs(res.data);
       } else if (res.res === 401) {
-        globalFunc.setLoggedIn(false);
-        globalFunc.setErrorSBText("Unauthorized, redirecting to login");
-        globalFunc.setErrorSB(true);
+        setLoggedIn(false);
+        setSnackBar({
+          type: "error",
+          title: "Error",
+          message: "Unauthorized, redirecting to login",
+          show: true,
+          icon: "warning",
+        });
       }
     } else if (response.status == 401) {
-      globalFunc.setLoggedIn(false);
-      globalFunc.setErrorSBText("Unauthorized, redirecting to login");
-      globalFunc.setErrorSB(true);
+      setLoggedIn(false);
+      setSnackBar({
+        type: "error",
+        title: "Error",
+        message: "Unauthorized, redirecting to login",
+        show: true,
+        icon: "warning",
+      });
     }
   };
   useEffect(() => {
-    fetchData(globalFunc);
+    fetchData();
   }, []);
 
   const reRender = () => {
-    fetchData(globalFunc);
+    fetchData();
   };
 
   const doFilter = (data = null) => {

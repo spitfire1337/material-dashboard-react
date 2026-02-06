@@ -14,7 +14,7 @@ Coded by www.creative-tim.com
 */
 
 import React, { useState, useEffect } from "react";
-
+import { globalFuncs } from "../../../context/global";
 // react-router components
 import { useLocation, Link } from "react-router-dom";
 
@@ -52,7 +52,8 @@ import {
   setOpenConfigurator,
 } from "context";
 
-function DashboardNavbar({ absolute, light, isMini, globalFunc }) {
+function DashboardNavbar({ absolute, light, isMini }) {
+  const { setShowVideoFeed } = globalFuncs();
   const [navbarType, setNavbarType] = useState();
   const [controller, dispatch] = useMaterialUIController();
   const { miniSidenav, transparentNavbar, fixedNavbar, openConfigurator, darkMode } = controller;
@@ -166,7 +167,7 @@ function DashboardNavbar({ absolute, light, isMini, globalFunc }) {
                 sx={navbarIconButton}
                 variant="contained"
                 onClick={() => {
-                  globalFunc.setShowVideoFeed(true);
+                  setShowVideoFeed(true);
                 }}
               >
                 <Icon sx={iconsStyle}>qr_code</Icon>

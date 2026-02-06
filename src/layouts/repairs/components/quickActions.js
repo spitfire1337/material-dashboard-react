@@ -42,7 +42,6 @@ function Actions({
   status,
   getRepair,
   repairID,
-  globalFunc,
   repairTime,
   repairOrder,
   repairOrderReady,
@@ -541,30 +540,13 @@ function Actions({
       </Dialog>
     );
   };
-  //   const PartsModal = () => {
-  //     return (
-  //       <PartsAdd
-  //         globalFunc={globalFunc}
-  //         showPartsModal={newRepairPart}
-  //         setshowPartsModal={setnewRepairPart}
-  //         toggleloadingOpen={setShowLoad}
-  //         createInvoice={createInvoice}
-  //         dialogOpen={dialogOpen}
-  //         toggleDialogOpen={toggleDialogOpen}
-  //         repairID={repairID}
-  //         getRepair={getRepair}
-  //         status={status}
-  //       />
-  //     );
-  //   };
 
   const ReprintButton = () => {
     return (
       <Tooltip title="Reprint Paperwork">
-        <MDButton fullwidth color="dark" variant="contained" onClick={() => getDocuments()}>
+        <MDButton fullwidth color="dark" variant="contained" pb={3} onClick={() => getDocuments()}>
           <Icon>print</Icon>
         </MDButton>
-        <PrintDocsDialog />
       </Tooltip>
     );
   };
@@ -577,7 +559,7 @@ function Actions({
           color="success"
           variant="contained"
           pb={3}
-          onClick={() => repairAction(2, "Repair started", "construction", "success", globalFunc)}
+          onClick={() => repairAction(2, "Repair started", "construction", "success")}
         >
           <Icon>play_circle</Icon>
         </MDButton>
@@ -593,9 +575,7 @@ function Actions({
           color="primary"
           variant="contained"
           p={3}
-          onClick={() =>
-            repairAction(997, "Return to customer", "event_busy", "primary", globalFunc)
-          }
+          onClick={() => repairAction(997, "Return to customer", "event_busy", "primary")}
         >
           <Icon>exit_to_app</Icon>
         </MDButton>
@@ -610,7 +590,7 @@ function Actions({
           fullwidth
           color="primary"
           variant="contained"
-          onClick={() => repairAction(998, "Repair cancelled", "event_busy", "primary", globalFunc)}
+          onClick={() => repairAction(998, "Repair cancelled", "event_busy", "primary")}
         >
           <Icon>cancel</Icon>
         </MDButton>
@@ -625,7 +605,7 @@ function Actions({
           fullwidth
           color="info"
           variant="contained"
-          onClick={() => repairAction(3, "Repair paused", "pause", "info", globalFunc)}
+          onClick={() => repairAction(3, "Repair paused", "pause", "info")}
         >
           <Icon>pause_circle</Icon>
         </MDButton>
@@ -641,10 +621,7 @@ function Actions({
             fullwidth
             color="info"
             variant="contained"
-            onClick={
-              () => togglePartsOrderOpen(true)
-              //repairAction(11, "Repair paused - Awaiting parts", "pause", "info", globalFunc)
-            }
+            onClick={() => togglePartsOrderOpen(true)}
           >
             <Icon>alarm_pause</Icon>
           </MDButton>
@@ -653,70 +630,6 @@ function Actions({
       </>
     );
   };
-
-  //   const PartsOrderDialog = () => {
-  //     return (
-  //       <Dialog open={partsOrderOpen}>
-  //         <DialogTitle>Enter parts on order</DialogTitle>
-  //         <DialogContent>
-  //           <Grid container spacing={1} marginTop={1}>
-  //             {partsOrder.map((part, i) => {
-  //               return (
-  //                 // eslint-disable-next-line react/jsx-key
-  //                 <>
-  //                   <Grid item key={part.id} sm={11}>
-  //                     <TextField
-  //                       fullWidth
-  //                       value={part.part}
-  //                       onChange={(e) => {
-  //                         let oldPart = [...partsOrder];
-  //                         oldPart[i].part = e.currentTarget.value;
-  //                         setPartsOrder(oldPart);
-  //                       }}
-  //                     />
-  //                   </Grid>
-  //                   <Grid item key={part.id} sm={1}>
-  //                     <IconButton
-  //                       size="small"
-  //                       disableRipple
-  //                       color="red"
-  //                       style={i === partsOrder.length - 1 ? { visibility: "hidden" } : {}}
-  //                       onClick={() => {
-  //                         let oldPart = [...partsOrder];
-  //                         oldPart.splice(i, 1);
-  //                         setPartsOrder(oldPart);
-  //                       }}
-  //                     >
-  //                       <Icon sx={iconsStyle}>clear</Icon>
-  //                     </IconButton>
-  //                   </Grid>
-  //                 </>
-  //               );
-  //             })}
-  //             <Grid item sm={12}>
-  //               <MDButton variant="outlined" color="secondary" onClick={() => addPartsOrder()}>
-  //                 Add part
-  //               </MDButton>
-  //             </Grid>
-  //           </Grid>
-  //         </DialogContent>
-  //         <DialogActions>
-  //           <MDButton color="error" fullWidth onClick={() => togglePartsOrderOpen(false)}>
-  //             Cancel
-  //           </MDButton>
-  //           <MDButton
-  //             color="success"
-  //             fullWidth
-  //             onClick={() => {
-  //               togglePartsOrderOpen(false);
-  //             }}
-  //           >
-  //             Submit
-  //           </MDButton>
-  //         </DialogActions>
-  //       </Dialog>
-  //     );
-  //   };
 
   const AddPartsButton = () => {
     return (
@@ -735,7 +648,7 @@ function Actions({
           fullwidth
           color="success"
           variant="contained"
-          onClick={() => repairAction(4, "Repair completed", "build_circle", "success", globalFunc)}
+          onClick={() => repairAction(4, "Repair completed", "build_circle", "success")}
         >
           <Icon>check_circle</Icon>
         </MDButton>
@@ -751,7 +664,7 @@ function Actions({
           color="success"
           variant="contained"
           p={3}
-          onClick={() => repairAction(2, "Repair resumed", "construction", "success", globalFunc)}
+          onClick={() => repairAction(2, "Repair resumed", "construction", "success")}
         >
           <Icon>restart_alt</Icon>
         </MDButton>
@@ -800,7 +713,7 @@ function Actions({
           color="primary"
           variant="contained"
           p={3}
-          onClick={() => repairAction(998, "Repair Archived", "event_busy", "primary", globalFunc)}
+          onClick={() => repairAction(998, "Repair Archived", "event_busy", "primary")}
         >
           <Icon>archive</Icon>
         </MDButton>

@@ -18,7 +18,7 @@ import { useState, React, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 //Global
 import { globalFuncs } from "../../../context/global";
-
+import { useLoginState } from "../../../context/loginContext";
 import vars from "../../../config";
 
 // Material Dashboard 2 React components
@@ -26,7 +26,8 @@ import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 import { set } from "draft-js/lib/DefaultDraftBlockRenderMap";
 
-export default function data(globalFunc, contIntake, filters) {
+export default function data(contIntake, filters) {
+  const { setLoggedIn } = useLoginState();
   const { setSnackBar, setShowLoad } = globalFuncs();
   let redirect = useNavigate();
   const [repairsOrig, setrepairsOrig] = useState([]);
@@ -35,7 +36,7 @@ export default function data(globalFunc, contIntake, filters) {
   const defaultFilter = {
     status: [0, 1, 2, 3, 4, 5],
   };
-  const fetchData = async (globalFunc) => {
+  const fetchData = async () => {
     setShowLoad(true);
     const response = await fetch(`${vars.serverUrl}/square/getcustomers`, {
       credentials: "include",
@@ -50,7 +51,7 @@ export default function data(globalFunc, contIntake, filters) {
         doFilter();
       } else if (res.res === 401) {
         setShowLoad(false);
-        globalFunc.setLoggedIn(false);
+        setLoggedIn(false);
         setSnackBar({
           type: "error",
           title: "Error",
@@ -61,7 +62,7 @@ export default function data(globalFunc, contIntake, filters) {
       }
     } else if (response.status == 401) {
       setShowLoad(false);
-      globalFunc.setLoggedIn(false);
+      setLoggedIn(false);
       setSnackBar({
         type: "error",
         title: "Error",
@@ -72,11 +73,11 @@ export default function data(globalFunc, contIntake, filters) {
     }
   };
   useEffect(() => {
-    fetchData(globalFunc);
+    fetchData();
   }, []);
 
   const reRender = () => {
-    fetchData(globalFunc);
+    fetchData();
   };
 
   const doFilter = (data = null) => {

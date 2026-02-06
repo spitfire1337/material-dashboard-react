@@ -12,7 +12,6 @@ import { FormControl, Grid } from "@mui/material";
 import vars from "../../../config";
 
 const step5 = ({
-  globalFunc,
   repairID,
   nextRepairStep,
   newConsignmentData,

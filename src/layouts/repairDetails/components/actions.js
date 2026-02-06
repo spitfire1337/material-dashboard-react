@@ -24,6 +24,7 @@ import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
+import PartsButton from "../../../components/PartsButton";
 
 import PartsAdd from "../components/addParts";
 
@@ -43,7 +44,6 @@ function Actions({
   status,
   getRepair,
   repairID,
-  globalFunc,
   repairTime,
   repairOrder,
   repairOrderReady,
@@ -101,50 +101,6 @@ function Actions({
   useEffect(() => {
     setLaborTime(repairTime.toFixed(2));
   }, [repairTime]);
-  const dialogHandleClose = () => {
-    // setPartCost(0);
-    // setPartQuantity(1);
-    setPartDetails({
-      qty: 1,
-      cost: 0,
-      name: "",
-    });
-    toggleDialogOpen(false);
-  };
-  const choosePart = (value) => {
-    if (value.id == 0) {
-      //New item
-      setPartName(value.inputValue);
-      setPartCost((0).toFixed(2));
-      setPartDetail(true);
-    } else {
-      let selectedpart = allparts.filter((x) =>
-        x.itemData.variations.filter((y) => y.id == value.id)
-      );
-      const filteredArray = allparts.filter((part) => {
-        // Use Array.prototype.some() to check if any rating has the desired category
-        return part.itemData.variations.some((item) => {
-          return item.id === value.id;
-        });
-      })[0];
-      let variant = filteredArray.itemData.variations.filter((x) => x.id == value.id);
-      let cost =
-        variant[0].itemVariationData.priceMoney != undefined
-          ? variant[0].itemVariationData.priceMoney
-          : 0;
-      setPartDetails({
-        ...partDetails,
-        qty: 1,
-        cost:
-          variant[0].itemVariationData.priceMoney != undefined
-            ? (variant[0].itemVariationData.priceMoney.amount / 100).toFixed(2)
-            : (0).toFixed(2),
-        name: filteredArray.itemData.name + " - " + variant[0].itemVariationData.name,
-      });
-      setPart(value.id);
-      setPartDetail(true);
-    }
-  };
 
   const getParts = async () => {
     setShowLoad(true);
@@ -532,7 +488,6 @@ function Actions({
   const PartsModal = () => {
     return (
       <PartsAdd
-        globalFunc={globalFunc}
         showPartsModal={newRepairPart}
         setshowPartsModal={setnewRepairPart}
         toggleloadingOpen={setShowLoad}
@@ -549,10 +504,9 @@ function Actions({
   const ReprintButton = () => {
     return (
       <Tooltip title="Reprint Paperwork">
-        <MDButton fullwidth color="dark" variant="contained" onClick={() => getDocuments()}>
+        <MDButton fullwidth color="dark" variant="contained" pb={3} onClick={() => getDocuments()}>
           <Icon>print</Icon>
         </MDButton>
-        <PrintDocsDialog />
       </Tooltip>
     );
   };
@@ -566,7 +520,7 @@ function Actions({
             color="success"
             variant="contained"
             pb={3}
-            onClick={() => repairAction(2, "Repair started", "construction", "success", globalFunc)}
+            onClick={() => repairAction(2, "Repair started", "construction", "success")}
           >
             <Icon>play_circle</Icon>
           </MDButton>
@@ -595,9 +549,7 @@ function Actions({
           color="primary"
           variant="contained"
           p={3}
-          onClick={() =>
-            repairAction(997, "Return to customer", "event_busy", "primary", globalFunc)
-          }
+          onClick={() => repairAction(997, "Return to customer", "event_busy", "primary")}
         >
           <Icon>exit_to_app</Icon>
         </MDButton>
@@ -612,7 +564,7 @@ function Actions({
           fullwidth
           color="primary"
           variant="contained"
-          onClick={() => repairAction(998, "Repair cancelled", "event_busy", "primary", globalFunc)}
+          onClick={() => repairAction(998, "Repair cancelled", "event_busy", "primary")}
         >
           <Icon>cancel</Icon>
         </MDButton>
@@ -627,7 +579,7 @@ function Actions({
           fullwidth
           color="info"
           variant="contained"
-          onClick={() => repairAction(3, "Repair paused", "pause", "info", globalFunc)}
+          onClick={() => repairAction(3, "Repair paused", "pause", "info")}
         >
           <Icon>pause_circle</Icon>
         </MDButton>
@@ -642,21 +594,9 @@ function Actions({
           fullwidth
           color="info"
           variant="contained"
-          onClick={() =>
-            repairAction(11, "Repair paused - Awaiting parts", "pause", "info", globalFunc)
-          }
+          onClick={() => repairAction(11, "Repair paused - Awaiting parts", "pause", "info")}
         >
           <Icon>alarm_pause</Icon>
-        </MDButton>
-      </Tooltip>
-    );
-  };
-
-  const AddPartsButton = () => {
-    return (
-      <Tooltip title="Add Parts">
-        <MDButton fullwidth color="dark" variant="contained" onClick={() => getParts()}>
-          <Icon>add_shopping_cart</Icon>
         </MDButton>
       </Tooltip>
     );
@@ -669,7 +609,7 @@ function Actions({
           fullwidth
           color="success"
           variant="contained"
-          onClick={() => repairAction(4, "Repair completed", "build_circle", "success", globalFunc)}
+          onClick={() => repairAction(4, "Repair completed", "build_circle", "success")}
         >
           <Icon>check_circle</Icon>
         </MDButton>
@@ -686,7 +626,7 @@ function Actions({
             color="success"
             variant="contained"
             p={3}
-            onClick={() => repairAction(2, "Repair resumed", "construction", "success", globalFunc)}
+            onClick={() => repairAction(2, "Repair resumed", "construction", "success")}
           >
             <Icon>restart_alt</Icon>
           </MDButton>
@@ -748,7 +688,7 @@ function Actions({
           color="primary"
           variant="contained"
           p={3}
-          onClick={() => repairAction(998, "Repair Archived", "event_busy", "primary", globalFunc)}
+          onClick={() => repairAction(998, "Repair Archived", "event_busy", "primary")}
         >
           <Icon>archive</Icon>
         </MDButton>
@@ -767,7 +707,7 @@ function Actions({
             <PauseRepairPartsButton />
           </Grid>
           <Grid item xs={4} md={2}>
-            <AddPartsButton />
+            <PartsButton size="icon" status={status} getRepair={getRepair} repairID={repairID} />
           </Grid>
           <Grid item xs={4} md={2}>
             <ReturnToCustomerButton />
@@ -797,7 +737,7 @@ function Actions({
             <PauseRepairPartsButton />
           </Grid>
           <Grid item xs={4} md={2}>
-            <AddPartsButton />
+            <PartsButton size="icon" status={status} getRepair={getRepair} repairID={repairID} />
           </Grid>
           <Grid item xs={4} md={2}>
             <CompleteRepairButton />
@@ -826,7 +766,9 @@ function Actions({
           <Grid item xs={4} md={2}>
             <RestartRepairButton />
           </Grid>
-
+          <Grid item xs={4} md={2}>
+            <PartsButton size="icon" status={status} getRepair={getRepair} repairID={repairID} />
+          </Grid>
           <Grid item xs={4} md={2}>
             <CompleteRepairButton />
           </Grid>
@@ -843,7 +785,6 @@ function Actions({
             <ReprintButton />
           </Grid>
         </Grid>
-        <setShowLoad />
       </>
     );
   }
@@ -864,7 +805,6 @@ function Actions({
             <ReprintButton />
           </Grid>
         </Grid>
-        <setShowLoad />
       </>
     );
   }
@@ -874,7 +814,7 @@ function Actions({
       <>
         <Grid container spacing={2} mb={3}>
           <Grid item xs={4} md={2}>
-            <AddPartsButton />
+            <PartsButton size="icon" status={status} getRepair={getRepair} repairID={repairID} />
           </Grid>
           <Grid item xs={4} md={2}>
             <CreateInvoiceButton />
@@ -1101,7 +1041,6 @@ function Actions({
         <Grid container spacing={2} mb={3}>
           <ReprintButton />
         </Grid>
-        <setShowLoad />
       </>
     );
   }

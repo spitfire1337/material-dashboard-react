@@ -1,26 +1,15 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState } from "react";
+//Global
+import { globalFuncs } from "../../../context/global";
 
-import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 import MDButton from "components/MDButton";
-import {
-  Modal,
-  FormControl,
-  Select,
-  MenuItem,
-  InputLabel,
-  Autocomplete,
-  TextField,
-  Divider,
-  Grid,
-  FormControlLabel,
-  FormGroup,
-  Checkbox,
-} from "@mui/material";
+import { FormControl, Divider, Grid } from "@mui/material";
 
 import vars from "../../../config";
 
-const step4 = ({ globalFunc, repairID, nextRepairStep, reRender, setNewRepair }) => {
+const step4 = ({ repairID, nextRepairStep, reRender, setNewRepair }) => {
+  const { setSnackBar } = globalFuncs();
   const [repairType, setRepairType] = useState([]);
   const [repairDetails, setRepairDetails] = useState();
   const [warranty, setWarranty] = useState(false);
@@ -56,16 +45,30 @@ const step4 = ({ globalFunc, repairID, nextRepairStep, reRender, setNewRepair })
         reRender();
         setNewRepair(false);
         nextRepairStep(5);
-        globalFunc.setSuccessSBText("Sent to printer");
-        globalFunc.setSuccessSB(true);
+        setSnackBar({
+          type: "success",
+          title: "Success",
+          message: "Sent to printer",
+          show: true,
+          icon: "check",
+        });
       } else {
-        globalFunc.setErrorSBText("Error occurred saving repair progress.");
-        globalFunc.setErrorSB(true);
+        setSnackBar({
+          type: "error",
+          title: "Error",
+          message: "Error occurred saving repair progress.",
+          show: true,
+          icon: "warning",
+        });
       }
     } catch (e) {
-      globalFunc.setErrorSBText("Error occurred saving repair progress.");
-      globalFunc.setErrorSB(true);
-      // TODO: Add error notification
+      setSnackBar({
+        type: "error",
+        title: "Error",
+        message: "Error occurred saving repair progress.",
+        show: true,
+        icon: "warning",
+      });
     }
   };
 

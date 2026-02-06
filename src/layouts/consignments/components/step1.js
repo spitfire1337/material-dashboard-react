@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 //Global
 import { globalFuncs } from "../../../context/global";
-
+import { useLoginState } from "context/loginContext";
 import MDTypography from "components/MDTypography";
 import MDButton from "components/MDButton";
 import { FormControl, TextField, Divider, Grid } from "@mui/material";
@@ -10,8 +10,9 @@ import Autocomplete, { createFilterOptions } from "@mui/material/Autocomplete";
 import vars from "../../../config";
 const filter = createFilterOptions();
 
-const step1 = ({ globalFunc, nextRepairStep, setcustomerName }) => {
+const step1 = ({ nextRepairStep, setcustomerName }) => {
   const { setSnackBar } = globalFuncs();
+  const { setLoggedIn } = useLoginState();
   const [customersSelection, setCustomersSelection] = useState([]);
   const [showCustForm, setShowCustForm] = useState(false);
   const [customers, setCustomers] = useState([]);
@@ -57,7 +58,7 @@ const step1 = ({ globalFunc, nextRepairStep, setcustomerName }) => {
           emptyCustomer();
           setShowCustForm(false);
         } else if (res.res === 401) {
-          globalFunc.setLoggedIn(false);
+          setLoggedIn(false);
           setSnackBar({
             type: "error",
             title: "Error",
@@ -67,7 +68,7 @@ const step1 = ({ globalFunc, nextRepairStep, setcustomerName }) => {
           });
         }
       } else if (response.status == 401) {
-        globalFunc.setLoggedIn(false);
+        setLoggedIn(false);
         setSnackBar({
           type: "error",
           title: "Error",
@@ -202,7 +203,7 @@ const step1 = ({ globalFunc, nextRepairStep, setcustomerName }) => {
           nextRepairStep(val, json.data._id);
           return null;
         } else if (json.res == 401) {
-          globalFunc.setLoggedIn(false);
+          setLoggedIn(false);
         }
       } catch (e) {
         setSnackBar({

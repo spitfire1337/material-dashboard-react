@@ -26,7 +26,7 @@ import EditTime from "./editTime";
 import TimelineItem from "examples/Timeline/TimelineItem";
 import { Grid } from "@mui/material";
 import { useState } from "react";
-function RepairHistory({ data, repairTime, getRepair, repairID, globalFunc }) {
+function RepairHistory({ data, repairTime, getRepair, repairID }) {
   const [showDialog, setShowDialog] = useState(false);
 
   //   return (
@@ -84,7 +84,6 @@ function RepairHistory({ data, repairTime, getRepair, repairID, globalFunc }) {
         repairTime={repairTime}
         getRepair={getRepair}
         repairID={repairID}
-        globalFunc={globalFunc}
       />
     </>
   );

@@ -16,7 +16,10 @@ Coded by www.creative-tim.com
 */
 import { useState, React, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-
+//Global
+import { globalFuncs } from "../../../context/global";
+import { useLoginState } from "../../../context/loginContext";
+// Vars
 import vars from "../../../config";
 
 // Material Dashboard 2 React components
@@ -26,22 +29,10 @@ import MDButton from "components/MDButton";
 import MDBadge from "components/MDBadge";
 import moment from "moment";
 import Button from "@mui/material/Button";
-import {
-  FormControl,
-  InputLabel,
-  MenuItem,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  NativeSelect,
-  Select,
-  TextField,
-} from "@mui/material";
-import { Update } from "@mui/icons-material";
 
-export default function data(globalFunc, setShowLoad, getParts) {
-  let redirect = useNavigate();
+export default function data(setShowLoad, getParts) {
+  const { setSnackBar } = globalFuncs();
+  const { setLoggedIn } = useLoginState();
   const [inventoryOrig, setInventoryOrig] = useState([]);
   const [inventory, setInventory] = useState([]);
   const [lastUpdated, setlastUpdated] = useState(null);
@@ -60,7 +51,7 @@ export default function data(globalFunc, setShowLoad, getParts) {
     sku: "",
     squareId: "",
   });
-  const fetchData = async (globalFunc) => {
+  const fetchData = async () => {
     const response = await fetch(`${vars.serverUrl}/api/tags`, {
       credentials: "include",
     });
@@ -72,24 +63,34 @@ export default function data(globalFunc, setShowLoad, getParts) {
         setInventory(res.data);
         setlastUpdated(res.lastUpdate);
       } else if (res.res === 401) {
-        globalFunc.setLoggedIn(false);
-        globalFunc.setErrorSBText("Unauthorized, redirecting to login");
-        globalFunc.setErrorSB(true);
+        setLoggedIn(false);
+        setSnackBar({
+          type: "error",
+          title: "Error",
+          message: "Unauthorized, redirecting to login",
+          show: true,
+          icon: "warning",
+        });
       }
     } else if (response.status == 401) {
-      globalFunc.setLoggedIn(false);
-      globalFunc.setErrorSBText("Unauthorized, redirecting to login");
-      globalFunc.setErrorSB(true);
+      setLoggedIn(false);
+      setSnackBar({
+        type: "error",
+        title: "Error",
+        message: "Unauthorized, redirecting to login",
+        show: true,
+        icon: "warning",
+      });
     }
   };
   useEffect(() => {
     setShowLoad(true);
-    fetchData(globalFunc);
+    fetchData();
   }, []);
 
   const reRender = () => {
     setShowLoad(true);
-    fetchData(globalFunc);
+    fetchData();
   };
   useEffect(() => {
     doSearch();
@@ -150,12 +151,22 @@ export default function data(globalFunc, setShowLoad, getParts) {
     });
     const json = await response.json();
     if (json.res == 200) {
-      globalFunc.setSuccessSBText("Associated Square item updated");
-      globalFunc.setSuccessSB(true);
+      setSnackBar({
+        type: "success",
+        title: "Success",
+        message: "Associated Square item updated",
+        show: true,
+        icon: "check_circle",
+      });
       reRender();
     } else {
-      globalFunc.setErrorSBText("Server error occured");
-      globalFunc.setErrorSB(true);
+      setSnackBar({
+        type: "error",
+        title: "Error",
+        message: "Server error occured",
+        show: true,
+        icon: "warning",
+      });
     }
   };
 
@@ -176,12 +187,22 @@ export default function data(globalFunc, setShowLoad, getParts) {
     });
     const json = await response.json();
     if (json.res == 200) {
-      globalFunc.setSuccessSBText("Custom data sent to tag");
-      globalFunc.setSuccessSB(true);
+      setSnackBar({
+        type: "success",
+        title: "Success",
+        message: "Custom data sent to tag",
+        show: true,
+        icon: "check_circle",
+      });
       reRender();
     } else {
-      globalFunc.setErrorSBText("Server error occured");
-      globalFunc.setErrorSB(true);
+      setSnackBar({
+        type: "error",
+        title: "Error",
+        message: "Server error occured",
+        show: true,
+        icon: "warning",
+      });
     }
   };
 
@@ -201,12 +222,22 @@ export default function data(globalFunc, setShowLoad, getParts) {
     });
     const json = await response.json();
     if (json.res == 200) {
-      globalFunc.setSuccessSBText("Resolution updated");
-      globalFunc.setSuccessSB(true);
+      setSnackBar({
+        type: "success",
+        title: "Success",
+        message: "Resolution updated",
+        show: true,
+        icon: "check_circle",
+      });
       reRender();
     } else {
-      globalFunc.setErrorSBText("Server error occured");
-      globalFunc.setErrorSB(true);
+      setSnackBar({
+        type: "error",
+        title: "Error",
+        message: "Server error occured",
+        show: true,
+        icon: "warning",
+      });
     }
   };
 
@@ -226,12 +257,22 @@ export default function data(globalFunc, setShowLoad, getParts) {
     });
     const json = await response.json();
     if (json.res == 200) {
-      globalFunc.setSuccessSBText("Color profile updated");
-      globalFunc.setSuccessSB(true);
+      setSnackBar({
+        type: "success",
+        title: "Success",
+        message: "Color profile updated",
+        show: true,
+        icon: "check_circle",
+      });
       reRender();
     } else {
-      globalFunc.setErrorSBText("Server error occured");
-      globalFunc.setErrorSB(true);
+      setSnackBar({
+        type: "error",
+        title: "Error",
+        message: "Server error occured",
+        show: true,
+        icon: "warning",
+      });
     }
   };
 
@@ -282,15 +323,31 @@ export default function data(globalFunc, setShowLoad, getParts) {
     setShowLoad(false);
     if (json.res == 200) {
       if (!status) {
-        globalFunc.setSuccessSBText("Item disabled");
+        setSnackBar({
+          type: "success",
+          title: "Success",
+          message: "Item disabled",
+          show: true,
+          icon: "check_circle",
+        });
       } else {
-        globalFunc.setSuccessSBText("Item enabled");
+        setSnackBar({
+          type: "success",
+          title: "Success",
+          message: "Item enabled",
+          show: true,
+          icon: "check_circle",
+        });
       }
-      globalFunc.setSuccessSB(true);
       reRender();
     } else {
-      globalFunc.setErrorSBText("Server error occured");
-      globalFunc.setErrorSB(true);
+      setSnackBar({
+        type: "error",
+        title: "Error",
+        message: "Server error occured",
+        show: true,
+        icon: "warning",
+      });
     }
   };
 

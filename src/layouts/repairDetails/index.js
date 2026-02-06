@@ -22,7 +22,7 @@ import RepairImages from "./components/images";
 import AddNotes from "layouts/repairs/components/addnotes";
 import parse from "html-react-parser";
 import { globalFuncs } from "../../context/global";
-
+import { useLoginState } from "../../context/loginContext";
 // Vars
 import vars from "../../config";
 
@@ -50,6 +50,7 @@ import Icon from "@mui/material/Icon";
 import PartsAdd from "./components/addParts";
 import AddPhotos from "./components/addPhoto";
 import { useTableState } from "../../context/tableState";
+import PartsButton from "components/PartsButton";
 
 const iconsStyle = ({ palette: { dark, white, text }, functions: { rgba } }) => ({
   color: () => {
@@ -64,8 +65,9 @@ const iconsStyle = ({ palette: { dark, white, text }, functions: { rgba } }) => 
 });
 
 // eslint-disable-next-line react/prop-types
-const RepairDetails = ({ globalFunc }) => {
+const RepairDetails = () => {
   const { setSnackBar, setShowLoad } = globalFuncs();
+  const { setLoggedIn } = useLoginState();
   const { RepairRerender } = useTableState();
   const { id } = useParams();
   const [repairID, setrepairID] = useState(id);
@@ -100,7 +102,7 @@ const RepairDetails = ({ globalFunc }) => {
     });
     const res = await response.json();
     if (res.res === 401) {
-      globalFunc.setLoggedIn(false);
+      setLoggedIn(false);
       setSnackBar({
         type: "error",
         title: "Unauthorized",
@@ -118,7 +120,6 @@ const RepairDetails = ({ globalFunc }) => {
       });
     } else {
       setLoading(false);
-      setShowLoad(false);
       setnewMinutes(Math.round(res.data.repairTime * 60));
       setrepairDetails(res.data);
       setrepairHistory(res.history);
@@ -126,9 +127,10 @@ const RepairDetails = ({ globalFunc }) => {
       setAllRepairNotes(res.notes);
       setAllParts(res.parts);
       RepairRerender();
+      setShowLoad(false);
+
       //setRepairOrderReady(true);
     }
-    setShowLoad(false);
   };
 
   const createInvoice = async () => {
@@ -171,7 +173,7 @@ const RepairDetails = ({ globalFunc }) => {
     });
     const res = await response.json();
     if (res.res === 401) {
-      globalFunc.setLoggedIn(false);
+      setLoggedIn(false);
       setSnackBar({
         type: "error",
         title: "Unauthorized",
@@ -340,7 +342,6 @@ const RepairDetails = ({ globalFunc }) => {
 
   const { showUploadFunc, AddPhotoModal, setRepairId } = AddPhotos({
     getRepair,
-    globalFunc,
   });
 
   useEffect(() => {
@@ -354,7 +355,7 @@ const RepairDetails = ({ globalFunc }) => {
   if (loading) {
     return (
       <DashboardLayout>
-        <DashboardNavbar globalFunc={globalFunc} />
+        <DashboardNavbar />
       </DashboardLayout>
     );
   }
@@ -525,7 +526,7 @@ const RepairDetails = ({ globalFunc }) => {
   };
   return (
     <DashboardLayout>
-      <DashboardNavbar globalFunc={globalFunc} />
+      <DashboardNavbar />
       <MDBox pt={6} pb={3}>
         <Grid container spacing={1}>
           <Grid item xs={12} md={8}>
@@ -722,13 +723,12 @@ const RepairDetails = ({ globalFunc }) => {
                         {repairDetails.status == 2 ||
                         repairDetails.status == 3 ||
                         repairDetails.status == 4 ? (
-                          <MDButton
-                            color="success"
-                            size="small"
-                            onClick={() => setnewRepairPart(true)}
-                          >
-                            Add parts
-                          </MDButton>
+                          <PartsButton
+                            size="full"
+                            status={repairDetails.status}
+                            getRepair={getRepair}
+                            repairID={repairDetails._id}
+                          />
                         ) : (
                           ""
                         )}
@@ -796,7 +796,6 @@ const RepairDetails = ({ globalFunc }) => {
                     <Actions
                       repairTime={repairDetails.repairTime}
                       status={repairDetails.status}
-                      globalFunc={globalFunc}
                       getRepair={getRepair}
                       repairID={repairDetails._id}
                       repairOrder={repairOrder}
@@ -834,7 +833,6 @@ const RepairDetails = ({ globalFunc }) => {
                     data={repairHistory}
                     getRepair={getRepair}
                     repairID={repairDetails._id}
-                    globalFunc={globalFunc}
                     setShowLoad={setShowLoad}
                   />
                 </MDBox>
@@ -843,68 +841,18 @@ const RepairDetails = ({ globalFunc }) => {
           </Grid>
         </Grid>
       </MDBox>
-      {/* <Modal
-        open={newRepairNotes}
-        onClose={() => null}
-        // onClose={() => {
-        //   setNewRepair(false);
-        // }}
-        aria-labelledby="modal-modal-title"
-        aria-describedby="modal-modal-description"
-      >
-        <MDBox sx={style}>
-          <MDTypography id="modal-modal-title" variant="h6" component="h2">
-            Add notes
-          </MDTypography>
-          <MDTypography id="modal-modal-description" sx={{ mt: 2 }}>
-            <FormControl fullWidth>
-              <TextField
-                id="outlined-multiline-static"
-                label="Notes"
-                multiline
-                rows={4}
-                fullWidth
-                onChange={(e) => {
-                  setRepairNotes(e.target.value);
-                }}
-              />
-            </FormControl>
-          </MDTypography>
-          <MDButton
-            sx={{ marginTop: "2px" }}
-            fullWidth
-            color="success"
-            onClick={() => {
-              saveNotes();
-            }}
-          >
-            Save
-          </MDButton>
-          <MDButton
-            sx={{ marginTop: "2px" }}
-            fullWidth
-            color="secondary"
-            onClick={() => {
-              setnewRepairNotes(false);
-            }}
-          >
-            Cancel
-          </MDButton>
-        </MDBox>
-      </Modal> */}
+
       <AddNotes
         RepairNotes={RepairNotes}
         setRepairNotes={setRepairNotes}
         newRepairNotes={newRepairNotes}
         setnewRepairNotes={setnewRepairNotes}
         saveNotes={saveNotes}
-        globalFunc={globalFunc}
         getRepair={getRepair}
         repairId={repairID}
       />
       <PartsAdd
         status={repairDetails.status}
-        globalFunc={globalFunc}
         showPartsModal={newRepairPart}
         setshowPartsModal={setnewRepairPart}
         toggleloadingOpen={setShowLoad}
@@ -914,7 +862,7 @@ const RepairDetails = ({ globalFunc }) => {
         repairID={repairID}
         getRepair={getRepair}
       />
-      <AddPhotoModal repairID={repairID} getRepair={getRepair} globalFunc={globalFunc} />
+      <AddPhotoModal repairID={repairID} getRepair={getRepair} />
       <ConfirmActionDialog
         title="Are you sure?"
         content="Do you wish to remove this item?"

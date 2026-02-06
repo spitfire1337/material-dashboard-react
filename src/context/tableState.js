@@ -1,10 +1,13 @@
 // TableStateContext.js
 import React, { createContext, useState, useContext } from "react";
 import vars from "../config";
-
+import { useLoginState } from "./loginContext";
+import { globalFuncs } from "./global";
 const TableStateContext = createContext();
 
 export const TableStateProvider = ({ children }) => {
+  const { setSnackBar, setShowLoad } = globalFuncs();
+  const { setLoggedIn } = useLoginState();
   const [tableState, setTableState] = useState({
     page: 0,
     pageSize: 10,
@@ -15,6 +18,7 @@ export const TableStateProvider = ({ children }) => {
     loaded: false,
   });
   const RepairRerender = async (callback) => {
+    setShowLoad(true);
     const response = await fetch(`${vars.serverUrl}/square/getMyData?action=getRepairs`, {
       credentials: "include",
     });
@@ -26,15 +30,28 @@ export const TableStateProvider = ({ children }) => {
         if (callback != undefined) {
           callback(res.data);
         }
+        setShowLoad(false);
       } else if (res.res === 401) {
-        globalFunc.setLoggedIn(false);
-        globalFunc.setErrorSBText("Unauthorized, redirecting to login");
-        globalFunc.setErrorSB(true);
+        setLoggedIn(false);
+        setSnackBar({
+          type: "error",
+          title: "Error",
+          message: "Unauthorized, redirecting to login",
+          show: true,
+          icon: "warning",
+        });
+        setShowLoad(false);
       }
     } else if (response.status == 401) {
-      globalFunc.setLoggedIn(false);
-      globalFunc.setErrorSBText("Unauthorized, redirecting to login");
-      globalFunc.setErrorSB(true);
+      setLoggedIn(false);
+      setSnackBar({
+        type: "error",
+        title: "Error",
+        message: "Unauthorized, redirecting to login",
+        show: true,
+        icon: "warning",
+      });
+      setShowLoad(false);
     }
   };
 
@@ -56,14 +73,24 @@ export const RepairRerender = async (callback) => {
       setTableState((s) => ({ ...s, data: res.data, dataFiltered: res.data, loaded: true }));
       callback(res.data);
     } else if (res.res === 401) {
-      globalFunc.setLoggedIn(false);
-      globalFunc.setErrorSBText("Unauthorized, redirecting to login");
-      globalFunc.setErrorSB(true);
+      setLoggedIn(false);
+      setSnackBar({
+        type: "error",
+        title: "Error",
+        message: "Unauthorized, redirecting to login",
+        show: true,
+        icon: "warning",
+      });
     }
   } else if (response.status == 401) {
-    globalFunc.setLoggedIn(false);
-    globalFunc.setErrorSBText("Unauthorized, redirecting to login");
-    globalFunc.setErrorSB(true);
+    setLoggedIn(false);
+    setSnackBar({
+      type: "error",
+      title: "Error",
+      message: "Unauthorized, redirecting to login",
+      show: true,
+      icon: "warning",
+    });
   }
 };
 

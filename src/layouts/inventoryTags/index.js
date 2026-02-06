@@ -50,7 +50,7 @@ import Autocomplete, { createFilterOptions } from "@mui/material/Autocomplete";
 const filter = createFilterOptions();
 
 // Data
-import authorsTableData from "layouts/tables/data/eTagsData";
+import etagTableData from "./data/eTagsData";
 
 const style = {
   position: "absolute",
@@ -75,7 +75,7 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 // eslint-disable-next-line react/prop-types
-const ETags = ({ globalFunc }) => {
+const ETags = () => {
   const { setShowLoad } = globalFuncs();
   const classes = useStyles();
   const [parts, setParts] = useState([]);
@@ -90,19 +90,6 @@ const ETags = ({ globalFunc }) => {
     price: "",
     sku: "",
   });
-
-  const useForm = (initialValues) => {
-    const [values, setValues] = useState(initialValues);
-    return [
-      values,
-      (newValue) => {
-        setValues({
-          ...values,
-          ...newValue,
-        });
-      },
-    ];
-  };
 
   const getParts = async () => {
     setShowLoad(true);
@@ -159,7 +146,7 @@ const ETags = ({ globalFunc }) => {
     setCustomData,
     customData,
     itemid,
-  } = authorsTableData(globalFunc, setShowLoad, getParts);
+  } = etagTableData(setShowLoad, getParts);
 
   const choosePart = (value) => {
     if (value == undefined || value == null || value == "") {
@@ -192,7 +179,7 @@ const ETags = ({ globalFunc }) => {
   }, []);
   return (
     <DashboardLayout>
-      <DashboardNavbar globalFunc={globalFunc} />
+      <DashboardNavbar />
       <MDBox pt={6} pb={3}>
         <Grid container spacing={6}>
           <Grid item xs={12}>

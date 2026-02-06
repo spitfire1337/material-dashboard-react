@@ -34,7 +34,7 @@ import OrdersOverview from "layouts/dashboard/components/OrdersOverview";
 import { useNavigate } from "react-router-dom";
 
 // eslint-disable-next-line react/prop-types
-function Dashboard({ globalFunc, stats }) {
+function Dashboard({ stats }) {
   const { loginState, setLoginState, checkLogin } = useLoginState();
 
   const [sales, setSalesData] = useState({
@@ -57,7 +57,7 @@ function Dashboard({ globalFunc, stats }) {
 
   return (
     <DashboardLayout>
-      <DashboardNavbar globalFunc={globalFunc} />
+      <DashboardNavbar />
       <MDBox py={3}>
         <Grid container spacing={3}>
           {loginState.user.isAdmin ? (
@@ -277,7 +277,7 @@ function Dashboard({ globalFunc, stats }) {
             </MDBox>
           </Grid>
           <Grid item xs={12} md={4}>
-            <OrdersOverview globalFunc={globalFunc} />
+            <OrdersOverview />
           </Grid>
         </Grid>
         {/* <MDBox>

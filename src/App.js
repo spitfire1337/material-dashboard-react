@@ -14,7 +14,6 @@ Coded by www.creative-tim.com
 */
 
 import { useState, useEffect, useMemo } from "react";
-import { useLoginState } from "./context/loginContext";
 import "material-icons/iconfont/material-icons.css";
 // Vars
 import vars from "./config";
@@ -23,6 +22,7 @@ import { Routes, Route, Navigate, useLocation, useNavigate } from "react-router-
 import parse from "html-react-parser";
 //Global elements
 import { globalFuncs } from "./context/global";
+import { useLoginState } from "./context/loginContext";
 
 // @mui material components
 import { ThemeProvider } from "@mui/material/styles";
@@ -64,7 +64,6 @@ import { Scanner } from "@yudiel/react-qr-scanner";
 import { Modal, Dialog, DialogActions, DialogContent, DialogTitle } from "@mui/material";
 import "react-barcode-scanner/polyfill";
 import MDButton from "components/MDButton";
-import Loading from "components/loading";
 import "./scanner.css";
 import "./assets/style.css";
 import MDTypography from "components/MDTypography";
@@ -103,7 +102,7 @@ export function getCookie(name) {
 
 export default function App() {
   const { loginState, setLoginState, checkLogin } = useLoginState();
-  const { setSnackBar, RenderSb, LoadDialog } = globalFuncs();
+  const { setSnackBar, RenderSb, LoadDialog, showVideoFeed } = globalFuncs();
 
   const [controller, dispatch] = useMaterialUIController();
   const {
@@ -125,7 +124,6 @@ export default function App() {
   const [location, setLocation] = useState(null);
   const [loading, setLoading] = useState(true);
   const { pathname } = useLocation();
-  const [showVideoFeed, setShowVideoFeed] = useState(false);
   const cookies = new Cookies(null, { path: "/" });
   // Cache for the rtl
   const [successSB, setSuccessSB] = useState(false);
@@ -309,15 +307,6 @@ export default function App() {
       </DialogActions>
     </Dialog>
   );
-  let globalFunc = {
-    setLoggedIn: setLoggedIn,
-    setSuccessSB: setSuccessSB,
-    setSuccessSBText: setSuccessSBText,
-    setErrorSB: setErrorSB,
-    setErrorSBText: setErrorSBText,
-    user: user,
-    setShowVideoFeed: setShowVideoFeed,
-  };
 
   const getWhatsnew = async () => {
     if (loginState.loggedin) {
@@ -530,23 +519,18 @@ export default function App() {
                 color={sidenavColor}
                 brand={(transparentSidenav && !darkMode) || whiteSidenav ? brandDark : brandWhite}
                 brandName="PEV Connection, LLC"
-                routes={routes(globalFunc, stats, loginState)}
+                routes={routes(stats, loginState)}
                 onMouseEnter={handleOnMouseEnter}
                 onMouseLeave={handleOnMouseLeave}
                 doSearch={doSearch}
               />
-              <Configurator
-                globalFunc={globalFunc}
-                // setSuccessSB={setSuccessSB}
-                // setSuccessSBText={setSuccessSBText}
-                // closeSuccessSB={closeSuccessSB}
-              />
+              <Configurator />
               {configsButton}
             </>
           )}
           {layout === "vr" && <Configurator />}
           <Routes>
-            {getRoutes(routes(globalFunc, stats, loginState))}
+            {getRoutes(routes(stats, loginState))}
             <Route path="*" element={<Navigate to="/dashboard" />} />
           </Routes>
           {RenderSb}
@@ -565,17 +549,12 @@ export default function App() {
               color={sidenavColor}
               brand={(transparentSidenav && !darkMode) || whiteSidenav ? brandDark : brandWhite}
               brandName="PEV Connection, LLC"
-              routes={routes(globalFunc, stats, loginState)}
+              routes={routes(stats, loginState)}
               onMouseEnter={handleOnMouseEnter}
               onMouseLeave={handleOnMouseLeave}
               doSearch={doSearch}
             />
-            <Configurator
-              globalFunc={globalFunc}
-              // setSuccessSB={setSuccessSB}
-              // setSuccessSBText={setSuccessSBText}
-              // closeSuccessSB={closeSuccessSB}
-            />
+            <Configurator />
             <LoadDialog />
             {RenderSb}
             {renderSuccessSB}
@@ -584,18 +563,11 @@ export default function App() {
             {configsButton}
           </>
         )}
-        {layout === "vr" && (
-          <Configurator
-            globalFunc={globalFunc}
-            // setSuccessSB={setSuccessSB}
-            // setSuccessSBText={setSuccessSBText}
-            // closeSuccessSB={closeSuccessSB}
-          />
-        )}
+        {layout === "vr" && <Configurator />}
         {showVideoFeed && <MyScanner />}
         {/* {location == null && <LocationSelect locations={locations.locations} />} */}
         <Routes>
-          {getRoutes(routes(globalFunc, stats, loginState))}
+          {getRoutes(routes(stats, loginState))}
           <Route path="*" element={<Navigate to="/dashboard" />} />
         </Routes>
       </ThemeProvider>

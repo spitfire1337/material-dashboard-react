@@ -41,7 +41,7 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 // eslint-disable-next-line react/prop-types
-const PEVDatabase = ({ globalFunc }) => {
+const PEVDatabase = () => {
   const classes = useStyles();
   const [showModal, setshowModal] = useState(false);
 
@@ -55,11 +55,11 @@ const PEVDatabase = ({ globalFunc }) => {
     brands,
     ConfirmDialog,
     ViewRepairs,
-  } = authorsTableData(globalFunc, setshowModal);
+  } = authorsTableData(setshowModal);
 
   return (
     <DashboardLayout>
-      <DashboardNavbar globalFunc={globalFunc} />
+      <DashboardNavbar />
       <MDBox pt={6} pb={3}>
         <Grid container spacing={6}>
           <Grid item xs={12}>
@@ -106,7 +106,6 @@ const PEVDatabase = ({ globalFunc }) => {
         pev={selectedPEV}
         brands={brands}
         close={setshowModal}
-        globalFunc={globalFunc}
         reRender={reRender}
       />
       <ConfirmDialog />

@@ -1,13 +1,14 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 
-import MDBox from "components/MDBox";
+//Global
+import { globalFuncs } from "../../../context/global";
+import { useLoginState } from "../../../context/loginContext";
+// Material Dashboard 2 React components
 import MDTypography from "components/MDTypography";
 import MDButton from "components/MDButton";
 import {
   Modal,
   FormControl,
-  Select,
-  MenuItem,
   InputLabel,
   Autocomplete,
   TextField,
@@ -19,10 +20,9 @@ import {
   NativeSelect,
 } from "@mui/material";
 
-import vars from "../../../config";
-import { RFC_2822 } from "moment";
-
-const step1 = ({ globalFunc, repairData, callback }) => {
+const step1 = ({ callback }) => {
+  const { setLoggedIn } = useLoginState();
+  const { setSnackBar } = globalFuncs();
   const [pevSelection, setPEVSelection] = useState([]);
   const [allowContinue, setAllowContinue] = useState(false);
   const [pevBrand, setPEVBrand] = useState([]);
@@ -80,10 +80,10 @@ const step1 = ({ globalFunc, repairData, callback }) => {
           //setSelectedCustomer({});
           //setShowCustForm(false);
         } else if (res.res === 401) {
-          globalFunc.setLoggedIn(false);
+          setLoggedIn(false);
         }
       } else if (response.status == 401) {
-        globalFunc.setLoggedIn(false);
+        setLoggedIn(false);
       }
     };
     fetchData();
@@ -153,21 +153,41 @@ const step1 = ({ globalFunc, repairData, callback }) => {
           });
           let pevjson = await newpevresp.json();
           if (pevjson.res == 200) {
-            globalFunc.setSuccessSBText("New PEV Added to database");
-            globalFunc.setSuccessSB(true);
+            setSnackBar({
+              type: "success",
+              title: "Success",
+              message: "New PEV Added to database",
+              show: true,
+              icon: "check_circle",
+            });
             //PASS TO PARENT
             callback(2, pevjson.data._id);
           } else {
-            globalFunc.setErrorSBText("An error occured while saving data, please try again");
-            globalFunc.setErrorSB(true);
+            setSnackBar({
+              type: "error",
+              title: "Error",
+              message: "An error occured while saving data, please try again",
+              show: true,
+              icon: "warning",
+            });
           }
         } else {
-          globalFunc.setErrorSBText("An error occured while saving data, please try again");
-          globalFunc.setErrorSB(true);
+          setSnackBar({
+            type: "error",
+            title: "Error",
+            message: "An error occured while saving data, please try again",
+            show: true,
+            icon: "warning",
+          });
         }
       } catch (e) {
-        globalFunc.setErrorSBText("An error occured while saving data, please try again");
-        globalFunc.setErrorSB(true);
+        setSnackBar({
+          type: "error",
+          title: "Error",
+          message: "An error occured while saving data, please try again",
+          show: true,
+          icon: "warning",
+        });
       }
     } else if (pevBrand == 1) {
       //
@@ -184,12 +204,22 @@ const step1 = ({ globalFunc, repairData, callback }) => {
       });
       let pevjson = await newpevresp.json();
       if (pevjson.res == 200) {
-        globalFunc.setSuccessSBText("New PEV Added to database");
-        globalFunc.setSuccessSB(true);
+        setSnackBar({
+          type: "success",
+          title: "Success",
+          message: "New PEV Added to database",
+          show: true,
+          icon: "check_circle",
+        });
         callback(2, pevjson.data._id);
       } else {
-        globalFunc.setErrorSBText("An error occured while saving data, please try again");
-        globalFunc.setErrorSB(true);
+        setSnackBar({
+          type: "error",
+          title: "Error",
+          message: "An error occured while saving data, please try again",
+          show: true,
+          icon: "warning",
+        });
       }
     } else {
       callback(2, pevBrand);

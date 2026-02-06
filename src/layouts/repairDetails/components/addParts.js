@@ -1,8 +1,11 @@
+import { useState, React, useEffect } from "react";
+// Global
+import { globalFuncs } from "../../../context/global";
+// Material Dashboard 2 React components
 import MDButton from "components/MDButton";
 import MDBox from "components/MDBox";
 import { Grid } from "@mui/material";
 import vars from "../../../config";
-import { useState, React, useEffect, useMemo } from "react";
 import MDTypography from "components/MDTypography";
 import { Modal, FormControl, TextField } from "@mui/material";
 import Autocomplete, { createFilterOptions } from "@mui/material/Autocomplete";
@@ -25,7 +28,6 @@ const style = {
   borderRadius: "25px",
 };
 const PartsAdd = ({
-  globalFunc,
   showPartsModal,
   setshowPartsModal,
   toggleloadingOpen,
@@ -36,6 +38,7 @@ const PartsAdd = ({
   getRepair,
   status,
 }) => {
+  const { setSnackBar, setShowLoad } = globalFuncs();
   const [newRepairPart, setnewRepairPart] = useState(false);
   const [parts, setParts] = useState([]);
   const [allparts, setAllParts] = useState();
@@ -161,8 +164,13 @@ const PartsAdd = ({
     const json = await response.json();
     toggleloadingOpen(false);
     if (json.res == 200) {
-      globalFunc.setSuccessSBText("Part added to repair");
-      globalFunc.setSuccessSB(true);
+      setSnackBar({
+        type: "success",
+        title: "Success",
+        message: "Part added to repair",
+        show: true,
+        icon: "check_circle",
+      });
       getRepair();
       if (status == 4) {
         createInvoice();
@@ -174,8 +182,13 @@ const PartsAdd = ({
       setPartName();
       setshowPartsModal(false);
     } else {
-      globalFunc.setErrorSBText("Server error occured");
-      globalFunc.setErrorSB(true);
+      setSnackBar({
+        type: "error",
+        title: "Error",
+        message: "Server error occured",
+        show: true,
+        icon: "warning",
+      });
     }
   };
 

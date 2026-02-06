@@ -1,6 +1,8 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
+// global
+import { globalFuncs } from "../../../context/global";
+import { useLoginState } from "context/loginContext";
 
-import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 import MDButton from "components/MDButton";
 import {
@@ -30,7 +32,9 @@ const style = {
 };
 const filter = createFilterOptions();
 
-const step1 = ({ globalFunc, nextRepairStep }) => {
+const step1 = ({ nextRepairStep }) => {
+  const { setSnackBar } = globalFuncs();
+  const { setLoggedIn } = useLoginState();
   const [customersSelection, setCustomersSelection] = useState([]);
   const [showCustForm, setShowCustForm] = useState(false);
   const [customers, setCustomers] = useState([]);
@@ -76,14 +80,24 @@ const step1 = ({ globalFunc, nextRepairStep }) => {
           emptyCustomer();
           setShowCustForm(false);
         } else if (res.res === 401) {
-          globalFunc.setLoggedIn(false);
-          globalFunc.setErrorSBText("Unauthorized, redirecting to login");
-          globalFunc.setErrorSB(true);
+          setLoggedIn(false);
+          setSnackBar({
+            type: "error",
+            title: "Error",
+            message: "Unauthorized, redirecting to login",
+            show: true,
+            icon: "warning",
+          });
         }
       } else if (response.status == 401) {
-        globalFunc.setLoggedIn(false);
-        globalFunc.setErrorSBText("Unauthorized, redirecting to login");
-        globalFunc.setErrorSB(true);
+        setLoggedIn(false);
+        setSnackBar({
+          type: "error",
+          title: "Error",
+          message: "Unauthorized, redirecting to login",
+          show: true,
+          icon: "warning",
+        });
       }
     };
     fetchData();
@@ -154,8 +168,13 @@ const step1 = ({ globalFunc, nextRepairStep }) => {
       !validateEmail(selectedcustomer.email_address) &&
       !PhoneisValid(selectedcustomer.phone_number)
     ) {
-      globalFunc.setErrorSBText("Please enter a valid email or phone number.");
-      globalFunc.setErrorSB(true);
+      setSnackBar({
+        type: "error",
+        title: "Error",
+        message: "Please enter a valid email or phone number.",
+        show: true,
+        icon: "warning",
+      });
       return null;
     }
     if (selectedcustomer.id == undefined || selectedcustomer.id == 0) {
@@ -176,11 +195,16 @@ const step1 = ({ globalFunc, nextRepairStep }) => {
           nextRepairStep(val, json.data._id);
           return null;
         } else if (json.res == 401) {
-          globalFunc.setLoggedIn(false);
+          setLoggedIn(false);
         }
       } catch (e) {
-        globalFunc.setErrorSBText("Error creating customer.");
-        globalFunc.setErrorSB(true);
+        setSnackBar({
+          type: "error",
+          title: "Error",
+          message: "Error creating customer.",
+          show: true,
+          icon: "warning",
+        });
         // TODO: Add error notification
       }
     } else {

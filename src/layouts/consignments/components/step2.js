@@ -12,7 +12,7 @@ import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import NodeRSA from "node-rsa";
 import vars from "../../../config";
-const step4 = ({ globalFunc, newConsignmentData, updateConsignmentData, nextRepairStep }) => {
+const step4 = ({ newConsignmentData, updateConsignmentData, nextRepairStep }) => {
   const { setSnackBar } = globalFuncs();
   const [idNumber, setIdNumber] = useState("");
   const [issuer, setIssuer] = useState("");

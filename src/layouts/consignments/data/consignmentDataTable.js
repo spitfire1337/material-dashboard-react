@@ -18,6 +18,7 @@ import { useState, React, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 //Global
 import { globalFuncs } from "../../../context/global";
+import { useLoginState } from "context/loginContext";
 import vars from "../../../config";
 
 // Material Dashboard 2 React components
@@ -26,7 +27,8 @@ import MDTypography from "components/MDTypography";
 import MDBadge from "components/MDBadge";
 import moment from "moment";
 
-export default function data(globalFunc, contIntake, status) {
+export default function data(contIntake, status) {
+  const { setLoggedIn } = useLoginState();
   const { setShowLoad, setSnackBar } = globalFuncs();
   let redirect = useNavigate();
   const [repairsOrig, setrepairsOrig] = useState([]);
@@ -36,7 +38,7 @@ export default function data(globalFunc, contIntake, status) {
     status: status,
     RepairType: [undefined],
   });
-  const fetchData = async (globalFunc) => {
+  const fetchData = async () => {
     setShowLoad(true);
     const response = await fetch(`${vars.serverUrl}/api/getConsignments`, {
       credentials: "include",
@@ -51,7 +53,7 @@ export default function data(globalFunc, contIntake, status) {
         // doFilter();
       } else if (res.res === 401) {
         setShowLoad(false);
-        globalFunc.setLoggedIn(false);
+        setLoggedIn(false);
         setSnackBar({
           type: "error",
           title: "Error",
@@ -62,7 +64,7 @@ export default function data(globalFunc, contIntake, status) {
       }
     } else if (response.status == 401) {
       setShowLoad(false);
-      globalFunc.setLoggedIn(false);
+      setLoggedIn(false);
       setSnackBar({
         type: "error",
         title: "Error",
@@ -73,11 +75,11 @@ export default function data(globalFunc, contIntake, status) {
     }
   };
   useEffect(() => {
-    fetchData(globalFunc);
+    fetchData();
   }, []);
 
   const reRender = () => {
-    fetchData(globalFunc);
+    fetchData();
   };
 
   // useEffect(() => {

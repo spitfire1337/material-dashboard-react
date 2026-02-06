@@ -13,7 +13,9 @@ Coded by www.creative-tim.com
 * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 */
 // React components
-import { useState, React, useEffect } from "react";
+import { useState, React } from "react";
+//Global
+import { globalFuncs } from "../../context/global";
 
 // Vars
 import vars from "../../config";
@@ -21,21 +23,11 @@ import vars from "../../config";
 // @mui material components
 import Grid from "@mui/material/Grid";
 import Card from "@mui/material/Card";
-import {
-  FormControl,
-  InputLabel,
-  MenuItem,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
-} from "@mui/material";
+import { TextField } from "@mui/material";
 import { makeStyles } from "@mui/styles";
-import { Modal, Select, IconButton, Icon } from "@mui/material";
+import { Modal } from "@mui/material";
 // Material Dashboard 2 React components
 import MDBox from "components/MDBox";
-import MDTypography from "components/MDTypography";
 import MDButton from "components/MDButton";
 
 // Material Dashboard 2 React example components
@@ -48,7 +40,7 @@ import Step1 from "./components/step1";
 import Step2 from "./components/step2";
 
 // Data
-import authorsTableData from "layouts/tables/data/warrantyData";
+import warrantyTableData from "./data/warrantyData";
 
 const style = {
   position: "absolute",
@@ -72,19 +64,9 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const iconsStyle = ({ palette: { dark, white, text }, functions: { rgba } }) => ({
-  color: () => {
-    let colorValue = dark.main;
-
-    // if (transparentNavbar) {
-    //   colorValue = darkMode ? rgba(text.main, 0.6) : text.main;
-    // }
-
-    return colorValue;
-  },
-});
 // eslint-disable-next-line react/prop-types
-const WarrantyAdmin = ({ globalFunc }) => {
+const WarrantyAdmin = () => {
+  const { setSnackBar } = globalFuncs();
   const classes = useStyles();
   const [newRepair, setNewRepair] = useState(false);
   const [warrantyData, setWarrantyData] = useState({
@@ -95,21 +77,9 @@ const WarrantyAdmin = ({ globalFunc }) => {
     warrantyStart: null,
   });
 
-  const useForm = (initialValues) => {
-    const [values, setValues] = useState(initialValues);
-    return [
-      values,
-      (newValue) => {
-        setValues({
-          ...values,
-          ...newValue,
-        });
-      },
-    ];
-  };
   const [repairStep, setRepairStep] = useState(1);
 
-  const { columns, rows, reRender, setsearchTerm, searchterm } = authorsTableData(globalFunc);
+  const { columns, rows, reRender, setsearchTerm, searchterm } = warrantyTableData();
 
   const nextRepairStep = async (val, data = null) => {
     if (val == 2) {
@@ -151,8 +121,13 @@ const WarrantyAdmin = ({ globalFunc }) => {
         warrantyStart: null,
         startonpurchase: false,
       });
-      globalFunc.setSuccessSBText("Warranty details saved");
-      globalFunc.setSuccessSB(true);
+      setSnackBar({
+        type: "success",
+        title: "Success",
+        message: "Warranty details saved",
+        show: true,
+        icon: "warning",
+      });
       reRender();
     } else {
       setWarrantyData({
@@ -163,8 +138,13 @@ const WarrantyAdmin = ({ globalFunc }) => {
         warrantyStart: null,
         startonpurchase: false,
       });
-      globalFunc.setErrorSBText("Error occurred saving warranty details.");
-      globalFunc.setErrorSB(true);
+      setSnackBar({
+        type: "error",
+        title: "Error",
+        message: "Error occurred saving warranty details.",
+        show: true,
+        icon: "warning",
+      });
     }
   };
 
@@ -175,7 +155,7 @@ const WarrantyAdmin = ({ globalFunc }) => {
 
   return (
     <DashboardLayout>
-      <DashboardNavbar globalFunc={globalFunc} />
+      <DashboardNavbar />
       <MDBox pt={6} pb={3}>
         <Grid container spacing={6}>
           <Grid item xs={12}>
@@ -237,9 +217,9 @@ const WarrantyAdmin = ({ globalFunc }) => {
       >
         <MDBox sx={style}>
           {repairStep == 0 ? (
-            <Step1 callback={nextRepairStep} globalFunc={globalFunc}></Step1>
+            <Step1 callback={nextRepairStep}></Step1>
           ) : (
-            <Step2 callback={nextRepairStep} globalFunc={globalFunc}></Step2>
+            <Step2 callback={nextRepairStep}></Step2>
           )}
           <MDButton
             sx={{ marginTop: "2px" }}

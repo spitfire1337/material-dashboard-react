@@ -17,7 +17,7 @@ export const GlobalProvider = ({ children }) => {
     icon: "check",
   });
   const [showLoad, setShowLoad] = useState(true);
-
+  const [showVideoFeed, setShowVideoFeed] = useState(false);
   const RenderSb = (
     <MDSnackbar
       color={snackBar.type}
@@ -38,7 +38,7 @@ export const GlobalProvider = ({ children }) => {
     return (
       <Dialog open={showLoad}>
         <DialogTitle>Loading</DialogTitle>
-        <DialogContent>
+        <DialogContent sx={{ alignItems: "center", textAlign: "center" }}>
           <CircularProgress />
         </DialogContent>
       </Dialog>
@@ -47,7 +47,16 @@ export const GlobalProvider = ({ children }) => {
 
   return (
     <GlobalContext.Provider
-      value={{ snackBar, setSnackBar, RenderSb, showLoad, setShowLoad, LoadDialog }}
+      value={{
+        snackBar,
+        setSnackBar,
+        RenderSb,
+        showLoad,
+        setShowLoad,
+        LoadDialog,
+        showVideoFeed,
+        setShowVideoFeed,
+      }}
     >
       {children}
     </GlobalContext.Provider>

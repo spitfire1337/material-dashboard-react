@@ -1,6 +1,8 @@
 //React
 import { useState, React, useEffect, forwardRef } from "react";
-
+//Global
+import { globalFuncs } from "../../../context/global";
+import { useLoginState } from "../../../context/loginContext";
 // Vars
 import vars from "../../../config";
 
@@ -51,7 +53,9 @@ const borderStyle = {
 };
 
 const filter = createFilterOptions();
-const NewItem = ({ globalFunc, showNewItem, setShowNewItem, setShowLoad }) => {
+const NewItem = ({ showNewItem, setShowNewItem, setShowLoad }) => {
+  const { setLoggedIn } = useLoginState();
+  const { setSnackBar } = globalFuncs();
   const [catList, setCatList] = useState([]);
   const [locations, setLocations] = useState([]);
   const [availableLocations, setAvailableLocations] = useState([]);
@@ -94,10 +98,10 @@ const NewItem = ({ globalFunc, showNewItem, setShowNewItem, setShowLoad }) => {
   };
   useEffect(() => {
     if (showNewItem) {
-      fetchCategories(globalFunc);
+      fetchCategories();
     }
   }, [showNewItem]);
-  const fetchCategories = async (globalFunc) => {
+  const fetchCategories = async () => {
     const response = await fetch(`${vars.serverUrl}/api/newItemInfo`, {
       credentials: "include",
     });
@@ -135,14 +139,24 @@ const NewItem = ({ globalFunc, showNewItem, setShowNewItem, setShowLoad }) => {
         setCatList(cats);
         setShowNewitemModal(true);
       } else if (res.res === 401) {
-        globalFunc.setLoggedIn(false);
-        globalFunc.setErrorSBText("Unauthorized, redirecting to login");
-        globalFunc.setErrorSB(true);
+        setLoggedIn(false);
+        setSnackBar({
+          type: "error",
+          title: "Error",
+          message: "Unauthorized, redirecting to login",
+          show: true,
+          icon: "warning",
+        });
       }
     } else if (response.status == 401) {
-      globalFunc.setLoggedIn(false);
-      globalFunc.setErrorSBText("Unauthorized, redirecting to login");
-      globalFunc.setErrorSB(true);
+      setLoggedIn(false);
+      setSnackBar({
+        type: "error",
+        title: "Error",
+        message: "Unauthorized, redirecting to login",
+        show: true,
+        icon: "warning",
+      });
     }
   };
   let variationEl = [VariationTemplate()];
@@ -175,8 +189,13 @@ const NewItem = ({ globalFunc, showNewItem, setShowNewItem, setShowLoad }) => {
 
   const GenerateSku = async (index) => {
     if (catSku == null) {
-      globalFunc.setErrorSBText("Please select a category");
-      globalFunc.setErrorSB(true);
+      setSnackBar({
+        type: "error",
+        title: "Error",
+        message: "Please select a category",
+        show: true,
+        icon: "warning",
+      });
       return;
     } else if (nextSku != null) {
       setNextSku(nextSku + 1);
@@ -207,8 +226,13 @@ const NewItem = ({ globalFunc, showNewItem, setShowNewItem, setShowLoad }) => {
         setNewItemData(updatedFields);
         console.log("Next Sku:", json.data);
       } else {
-        globalFunc.setErrorSBText("Error generating SKU");
-        globalFunc.setErrorSB(true);
+        setSnackBar({
+          type: "error",
+          title: "Error",
+          message: "Error generating SKU",
+          show: true,
+          icon: "warning",
+        });
       }
     }
   };

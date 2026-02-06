@@ -89,7 +89,7 @@ const iconsStyle = ({ palette: { dark, white, text }, functions: { rgba } }) => 
   },
 });
 // eslint-disable-next-line react/prop-types
-const Consignments = ({ globalFunc }) => {
+const Consignments = () => {
   const classes = useStyles();
   const [newConsigment, setshowNewConsignment] = useState(false);
   const [customer, setcustomer] = useState({
@@ -175,7 +175,7 @@ const Consignments = ({ globalFunc }) => {
   }, [newConsignmentData]);
 
   const { columns, rows, reRender, filter, resetFilter, repairs, setsearchTerm, searchterm } =
-    consignmentTableData(globalFunc);
+    consignmentTableData();
 
   const nextRepairStep = async (val, customer = null) => {
     if (val == 2) {
@@ -209,7 +209,7 @@ const Consignments = ({ globalFunc }) => {
 
   return (
     <DashboardLayout>
-      <DashboardNavbar globalFunc={globalFunc} />
+      <DashboardNavbar />
       <MDBox pt={6} pb={3}>
         <Grid container spacing={6}>
           <Grid item xs={12}>
@@ -286,18 +286,13 @@ const Consignments = ({ globalFunc }) => {
       >
         <MDBox sx={repairStep != 5 ? style : styleCustomerInput}>
           {repairStep == 0 ? (
-            <Step1
-              nextRepairStep={nextRepairStep}
-              setcustomerName={setcustomer}
-              globalFunc={globalFunc}
-            ></Step1>
+            <Step1 nextRepairStep={nextRepairStep} setcustomerName={setcustomer}></Step1>
           ) : repairStep == 2 ? (
             <Step2
               nextRepairStep={nextRepairStep}
               newConsignmentData={newConsignmentData}
               updateConsignmentData={updateConsignmentData}
               setrepairID={setrepairID}
-              globalFunc={globalFunc}
             ></Step2>
           ) : repairStep == 3 ? (
             <Step3
@@ -305,12 +300,10 @@ const Consignments = ({ globalFunc }) => {
               newConsignmentData={newConsignmentData}
               updateConsignmentData={updateConsignmentData}
               setrepairID={setrepairID}
-              globalFunc={globalFunc}
             ></Step3>
           ) : repairStep == 4 ? (
             <Step4
               repairID={repairID}
-              globalFunc={globalFunc}
               newConsignmentData={newConsignmentData}
               updateConsignmentData={updateConsignmentData}
               nextRepairStep={nextRepairStep}
@@ -318,7 +311,6 @@ const Consignments = ({ globalFunc }) => {
           ) : repairStep == 5 ? (
             <Step5
               repairID={repairID}
-              globalFunc={globalFunc}
               nextRepairStep={nextRepairStep}
               newConsignmentData={newConsignmentData}
               updateConsignmentData={updateConsignmentData}
@@ -329,7 +321,6 @@ const Consignments = ({ globalFunc }) => {
           ) : (
             <Step6
               repairID={repairID}
-              globalFunc={globalFunc}
               nextRepairStep={nextRepairStep}
               newConsignmentData={newConsignmentData}
               updateConsignmentData={updateConsignmentData}

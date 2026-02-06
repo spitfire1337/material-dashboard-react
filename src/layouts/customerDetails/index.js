@@ -22,6 +22,7 @@ import DataTable from "examples/Tables/DataTable";
 
 //Global
 import { globalFuncs } from "../../context/global";
+import { useLoginState } from "context/loginContext";
 // @mui material components
 import Grid from "@mui/material/Grid";
 import Card from "@mui/material/Card";
@@ -56,7 +57,8 @@ const style = {
   borderRadius: "25px",
 };
 // eslint-disable-next-line react/prop-types
-const CustomerDetails = ({ globalFunc }) => {
+const CustomerDetails = () => {
+  const { setLoggedIn } = useLoginState();
   const { setSnackBar, setShowLoad } = globalFuncs();
   const { id } = useParams();
   const [loading, setLoading] = useState(true);
@@ -290,7 +292,7 @@ const CustomerDetails = ({ globalFunc }) => {
     });
     const res = await response.json();
     if (res.res === 401) {
-      globalFunc.setLoggedIn(false);
+      setLoggedIn(false);
       setSnackBar({
         type: "error",
         title: "Server error occured",
@@ -395,14 +397,14 @@ const CustomerDetails = ({ globalFunc }) => {
   if (loading) {
     return (
       <DashboardLayout>
-        <DashboardNavbar globalFunc={globalFunc} />
+        <DashboardNavbar />
       </DashboardLayout>
     );
   }
 
   return (
     <DashboardLayout>
-      <DashboardNavbar globalFunc={globalFunc} />
+      <DashboardNavbar />
       <MDBox pt={6} pb={3}>
         <Grid container spacing={1}>
           <Grid item xs={12} md={8}>

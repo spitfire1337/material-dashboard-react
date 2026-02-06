@@ -18,6 +18,7 @@ import vars from "../../config";
 
 //Global
 import { globalFuncs } from "../../context/global";
+import { useLoginState } from "../../context/loginContext";
 
 // @mui material components
 import Divider from "@mui/material/Divider";
@@ -52,7 +53,7 @@ import "react-time-picker/dist/TimePicker.css";
 import "react-clock/dist/Clock.css";
 
 // eslint-disable-next-line react/prop-types
-function Configurator({ globalFunc }) {
+function Configurator() {
   const [controller, dispatch] = useMaterialUIController();
   const { openConfigurator, fixedNavbar, darkMode } = controller;
   const [disabled, setDisabled] = useState(false);
@@ -62,6 +63,8 @@ function Configurator({ globalFunc }) {
   const [businessHours, setBusinessHours] = useState([]);
   const [myAvailability, setMyAvailabilty] = useState([]);
   const { setSnackBar } = globalFuncs();
+  const { setLoggedIn } = useLoginState();
+
   // Use the useEffect hook to change the button state for the sidenav type based on window size.
   useEffect(() => {
     const fetchPrinters = async () => {
@@ -97,7 +100,7 @@ function Configurator({ globalFunc }) {
       if (res.res === 200) {
         setBusinessHours(res.data);
       } else if (res.res === 401) {
-        globalFunc.setLoggedIn(false);
+        setLoggedIn(false);
         setSnackBar({
           type: "error",
           title: "Server error occured",
@@ -115,7 +118,7 @@ function Configurator({ globalFunc }) {
       if (res.res === 200) {
         setMyAvailabilty(res.data);
       } else if (res.res === 401) {
-        globalFunc.setLoggedIn(false);
+        setLoggedIn(false);
         setSnackBar({
           type: "error",
           title: "Server error occured",
@@ -236,7 +239,7 @@ function Configurator({ globalFunc }) {
       });
       return null;
     } else if (res.res == 401) {
-      globalFunc.setLoggedIn(false);
+      setLoggedIn(false);
       setSnackBar({
         type: "error",
         title: "Server error occured",
@@ -270,7 +273,7 @@ function Configurator({ globalFunc }) {
       });
       return null;
     } else if (res.res == 401) {
-      globalFunc.setLoggedIn(false);
+      setLoggedIn(false);
       setSnackBar({
         type: "error",
         title: "Server error occured",

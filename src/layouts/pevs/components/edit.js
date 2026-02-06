@@ -39,7 +39,7 @@ const style = {
   borderRadius: "25px",
 };
 
-const PEVEdit = ({ pev = undefined, open, brands, close, globalFunc, reRender }) => {
+const PEVEdit = ({ pev = undefined, open, brands, close, reRender }) => {
   const { setSnackBar } = globalFuncs();
   const [brandDisable, setBrandDisable] = useState(true);
   const [selectedPEV, setSelectedPEV] = useState(null);

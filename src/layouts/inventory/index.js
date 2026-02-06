@@ -16,7 +16,7 @@ Coded by www.creative-tim.com
 import { useState, React } from "react";
 //Global
 import { globalFuncs } from "../../context/global";
-
+import { useLoginState } from "../../context/loginContext";
 // Vars
 import vars from "../../config";
 
@@ -28,7 +28,6 @@ import { makeStyles } from "@mui/styles";
 // Material Dashboard 2 React components
 import MDBox from "components/MDBox";
 import MDButton from "components/MDButton";
-import Loading from "../../components/Loading_Dialog";
 
 // Material Dashboard 2 React example components
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
@@ -37,7 +36,7 @@ import Footer from "examples/Footer";
 import DataTable from "examples/Tables/DataTable";
 import NewItem from "./components/newItem";
 // Data
-import authorsTableData from "layouts/tables/data/inventoryData";
+import inventoryTableData from "./data/inventoryData";
 
 const useStyles = makeStyles((theme) => ({
   input: {
@@ -46,7 +45,8 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 // eslint-disable-next-line react/prop-types
-const InventoryAdmin = ({ globalFunc }) => {
+const InventoryAdmin = () => {
+  const { setLoggedIn } = useLoginState();
   const { setSnackBar, setShowLoad } = globalFuncs();
   const classes = useStyles();
   const [updateLoc, setUpdateLoc] = useState(false);
@@ -56,19 +56,7 @@ const InventoryAdmin = ({ globalFunc }) => {
   const [catList, setCatList] = useState([]);
   const [locations, setLocations] = useState([]);
 
-  const useForm = (initialValues) => {
-    const [values, setValues] = useState(initialValues);
-    return [
-      values,
-      (newValue) => {
-        setValues({
-          ...values,
-          ...newValue,
-        });
-      },
-    ];
-  };
-  const fetchCategories = async (globalFunc) => {
+  const fetchCategories = async () => {
     const response = await fetch(`${vars.serverUrl}/api/newItemInfo`, {
       credentials: "include",
     });
@@ -94,7 +82,7 @@ const InventoryAdmin = ({ globalFunc }) => {
         setCatList(cats);
         setShowNewItem(true);
       } else if (res.res === 401) {
-        globalFunc.setLoggedIn(false);
+        setLoggedIn(false);
         setSnackBar({
           type: "error",
           title: "Error",
@@ -104,7 +92,7 @@ const InventoryAdmin = ({ globalFunc }) => {
         });
       }
     } else if (response.status == 401) {
-      globalFunc.setLoggedIn(false);
+      setLoggedIn(false);
       setSnackBar({
         type: "error",
         title: "Error",
@@ -115,7 +103,7 @@ const InventoryAdmin = ({ globalFunc }) => {
     }
   };
   const showNewItemModal = () => {
-    fetchCategories(globalFunc);
+    fetchCategories();
   };
 
   const updateLocation = (item) => {
@@ -124,8 +112,7 @@ const InventoryAdmin = ({ globalFunc }) => {
     setCurrentLoc(item.storage_loc || "");
   };
 
-  const { columns, rows, reRender, setsearchTerm, searchterm } = authorsTableData(
-    globalFunc,
+  const { columns, rows, reRender, setsearchTerm, searchterm } = inventoryTableData(
     updateLocation,
     setShowLoad
   );
@@ -169,7 +156,7 @@ const InventoryAdmin = ({ globalFunc }) => {
 
   return (
     <DashboardLayout>
-      <DashboardNavbar globalFunc={globalFunc} />
+      <DashboardNavbar />
       <MDBox pt={6} pb={3}>
         <Grid container spacing={6}>
           <Grid item xs={12}>
@@ -241,7 +228,6 @@ const InventoryAdmin = ({ globalFunc }) => {
         </DialogActions>
       </Dialog>
       <NewItem
-        globalFunc={globalFunc}
         showNewItem={showNewItem}
         setShowNewItem={setShowNewItem}
         setShowLoad={setShowLoad}

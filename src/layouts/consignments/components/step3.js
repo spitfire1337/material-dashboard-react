@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 //Global
 import { globalFuncs } from "../../../context/global";
-
+import { useLoginState } from "context/loginContext";
 import MDTypography from "components/MDTypography";
 import MDButton from "components/MDButton";
 import { FormControl, InputLabel, TextField, Divider, Grid, NativeSelect } from "@mui/material";
@@ -10,14 +10,9 @@ import Autocomplete, { createFilterOptions } from "@mui/material/Autocomplete";
 import vars from "../../../config";
 
 const filter = createFilterOptions();
-const step3 = ({
-  globalFunc,
-  newConsignmentData,
-  updateConsignmentData,
-  setrepairID,
-  nextRepairStep,
-}) => {
+const step3 = ({ newConsignmentData, updateConsignmentData, setrepairID, nextRepairStep }) => {
   const { setSnackBar } = globalFuncs();
+  const { setLoggedIn } = useLoginState();
   const [pevSelection, setPEVSelection] = useState([]);
   const [allowContinue, setAllowContinue] = useState(false);
   const [pevBrand, setPEVBrand] = useState([]);
@@ -73,10 +68,10 @@ const step3 = ({
           //setSelectedCustomer({});
           //setShowCustForm(false);
         } else if (res.res === 401) {
-          globalFunc.setLoggedIn(false);
+          setLoggedIn(false);
         }
       } else if (response.status == 401) {
-        globalFunc.setLoggedIn(false);
+        setLoggedIn(false);
       }
     };
     fetchData();

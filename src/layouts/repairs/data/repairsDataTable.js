@@ -19,15 +19,16 @@ import { useNavigate } from "react-router-dom";
 import vars from "../../../config";
 //Global
 import { globalFuncs } from "../../../context/global";
-
+import { useLoginState } from "../../../context/loginContext";
 // Material Dashboard 2 React components
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 import MDBadge from "components/MDBadge";
 import moment from "moment";
 
-const data = (globalFunc, status = [], tableState, setTableState) => {
+const data = (status = [], tableState, setTableState) => {
   const { setSnackBar, setShowLoad } = globalFuncs();
+  const { setLoggedIn } = useLoginState();
   let redirect = useNavigate();
   const [repairsOrig, setrepairsOrig] = useState([]);
   const [repairs, setRepairs] = useState([]);
@@ -45,7 +46,7 @@ const data = (globalFunc, status = [], tableState, setTableState) => {
     ],
   });
 
-  const fetchData = async (globalFunc) => {
+  const fetchData = async () => {
     setShowLoad(true);
     const response = await fetch(`${vars.serverUrl}/square/getMyData?action=getRepairs`, {
       credentials: "include",
@@ -54,11 +55,11 @@ const data = (globalFunc, status = [], tableState, setTableState) => {
       const res = await response.json();
 
       if (res.res === 200) {
-        setShowLoad(false);
         setTableState((s) => ({ ...s, data: res.data, dataFiltered: res.data, loaded: true }));
         doFilter(res.data);
+        setShowLoad(false);
       } else if (res.res === 401) {
-        globalFunc.setLoggedIn(false);
+        setLoggedIn(false);
         setSnackBar({
           type: "error",
           title: "Error",
@@ -66,10 +67,10 @@ const data = (globalFunc, status = [], tableState, setTableState) => {
           show: true,
           icon: "check",
         });
+        setShowLoad(false);
       }
     } else if (response.status == 401) {
-      setShowLoad(false);
-      globalFunc.setLoggedIn(false);
+      setLoggedIn(false);
       setSnackBar({
         type: "error",
         title: "Error",
@@ -77,11 +78,12 @@ const data = (globalFunc, status = [], tableState, setTableState) => {
         show: true,
         icon: "check",
       });
+      setShowLoad(false);
     }
   };
   useEffect(() => {
     if (!tableState.loaded) {
-      fetchData(globalFunc);
+      fetchData();
     } else {
       doFilter();
     }
@@ -91,7 +93,7 @@ const data = (globalFunc, status = [], tableState, setTableState) => {
   }, [tableState.data]);
 
   const reRender = () => {
-    fetchData(globalFunc);
+    fetchData();
   };
 
   const doFilter = (data = null) => {

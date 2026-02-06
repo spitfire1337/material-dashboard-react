@@ -18,7 +18,7 @@ import { useState, React, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 //Global
 import { globalFuncs } from "../../../context/global";
-
+import { useLoginState } from "../../../context/loginContext";
 import vars from "../../../config";
 
 // Material Dashboard 2 React components
@@ -29,8 +29,7 @@ import ConfirmDialog from "components/Confirm_Dialog";
 import MDBadge from "components/MDBadge";
 import DataTable from "examples/Tables/DataTable";
 import { Modal, Grid, Icon } from "@mui/material";
-import pevTableData from "layouts/tables/data/pevRepairsDatatable";
-import { set } from "draft-js/lib/DefaultDraftBlockRenderMap";
+import pevTableData from "./pevRepairsDatatable";
 const style = {
   position: "absolute",
   top: "50%",
@@ -54,8 +53,9 @@ const style2 = {
   borderRadius: "25px",
 };
 
-export default function data(globalFunc, setshowModal) {
+export default function data(setshowModal) {
   const { setSnackBar, setShowLoad } = globalFuncs();
+  const { setLoggedIn } = useLoginState();
   let redirect = useNavigate();
   const [inventoryOrig, setInventoryOrig] = useState([]);
   const [inventory, setInventory] = useState([]);
@@ -70,9 +70,9 @@ export default function data(globalFunc, setshowModal) {
   const [brands, setBrands] = useState({});
   const [showNewPev, setShowNewPev] = useState(false);
   const { setShowConfirm, ConfirmActionDialog } = ConfirmDialog();
-  const { columns, rows, reRenderDT } = pevTableData(globalFunc);
+  const { columns, rows, reRenderDT } = pevTableData();
 
-  const fetchData = async (globalFunc) => {
+  const fetchData = async () => {
     setShowLoad(true);
     const response = await fetch(`${vars.serverUrl}/square/getMyData?action=getPEVS`, {
       credentials: "include",
@@ -94,7 +94,7 @@ export default function data(globalFunc, setshowModal) {
         setBrands(brands);
       } else if (res.res === 401) {
         setShowLoad(false);
-        globalFunc.setLoggedIn(false);
+        setLoggedIn(false);
         setSnackBar({
           type: "error",
           title: "Error",
@@ -105,7 +105,7 @@ export default function data(globalFunc, setshowModal) {
       }
     } else if (response.status == 401) {
       setShowLoad(false);
-      globalFunc.setLoggedIn(false);
+      setLoggedIn(false);
       setSnackBar({
         type: "error",
         title: "Error",
@@ -117,12 +117,12 @@ export default function data(globalFunc, setshowModal) {
   };
   useEffect(() => {
     setShowLoad(true);
-    fetchData(globalFunc);
+    fetchData();
   }, []);
 
   const reRender = () => {
     setShowLoad(true);
-    fetchData(globalFunc);
+    fetchData();
   };
   useEffect(() => {
     doSearch();

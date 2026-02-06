@@ -16,7 +16,9 @@ Coded by www.creative-tim.com
 */
 import { useState, React, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-
+//Global
+import { globalFuncs } from "context/global";
+import { useLoginState } from "context/loginContext";
 import vars from "../../../config";
 
 // Material Dashboard 2 React components
@@ -25,7 +27,9 @@ import MDTypography from "components/MDTypography";
 import MDBadge from "components/MDBadge";
 import moment from "moment";
 
-export default function data(globalFunc, updateLocation, setShowLoad) {
+export default function data(updateLocation, setShowLoad) {
+  const { setSnackBar } = globalFuncs();
+  const { setLoggedIn } = useLoginState();
   let redirect = useNavigate();
   const [repairsOrig, setrepairsOrig] = useState([]);
   const [repairs, setRepairs] = useState([]);
@@ -34,7 +38,7 @@ export default function data(globalFunc, updateLocation, setShowLoad) {
   const defaultFilter = {
     status: [0, 1, 2, 3, 4, 5],
   };
-  const fetchData = async (globalFunc) => {
+  const fetchData = async () => {
     setShowLoad(true);
     const response = await fetch(`${vars.serverUrl}/api/categories`, {
       credentials: "include",
@@ -47,24 +51,35 @@ export default function data(globalFunc, updateLocation, setShowLoad) {
         setRepairs(res.data);
         setShowLoad(false);
       } else if (res.res === 401) {
-        globalFunc.setLoggedIn(false);
-        globalFunc.setErrorSBText("Unauthorized, redirecting to login");
-        globalFunc.setErrorSB(true);
+        setLoggedIn(false);
+        setSnackBar({
+          type: "error",
+          title: "Error",
+          message: "Unauthorized, redirecting to login",
+          show: true,
+          icon: "warning",
+        });
+        setErrorSBText("Unauthorized, redirecting to login");
         setShowLoad(false);
       }
     } else if (response.status == 401) {
-      globalFunc.setLoggedIn(false);
-      globalFunc.setErrorSBText("Unauthorized, redirecting to login");
-      globalFunc.setErrorSB(true);
+      setLoggedIn(false);
+      setSnackBar({
+        type: "error",
+        title: "Error",
+        message: "Unauthorized, redirecting to login",
+        show: true,
+        icon: "warning",
+      });
       setShowLoad(false);
     }
   };
   useEffect(() => {
-    fetchData(globalFunc);
+    fetchData();
   }, []);
 
   const reRender = () => {
-    fetchData(globalFunc);
+    fetchData();
   };
 
   useEffect(() => {

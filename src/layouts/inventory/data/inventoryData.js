@@ -16,7 +16,10 @@ Coded by www.creative-tim.com
 */
 import { useState, React, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-
+//Global
+import { globalFuncs } from "../../../context/global";
+import { useLoginState } from "../../../context/loginContext";
+// Vars
 import vars from "../../../config";
 
 // Material Dashboard 2 React components
@@ -25,13 +28,15 @@ import MDTypography from "components/MDTypography";
 import MDBadge from "components/MDBadge";
 import moment from "moment";
 
-export default function data(globalFunc, updateLocation, setShowLoad) {
+export default function data(updateLocation) {
+  const { setSnackBar, setShowLoad } = globalFuncs();
+  const { setLoggedIn } = useLoginState();
   let redirect = useNavigate();
   const [inventoryOrig, setInventoryOrig] = useState([]);
   const [inventory, setInventory] = useState([]);
   const [searchTerm, setsearchTerm] = useState(null);
 
-  const fetchData = async (globalFunc) => {
+  const fetchData = async () => {
     const response = await fetch(`${vars.serverUrl}/square/getInventory`, {
       credentials: "include",
     });
@@ -42,24 +47,34 @@ export default function data(globalFunc, updateLocation, setShowLoad) {
         setInventoryOrig(res.data);
         setInventory(res.data);
       } else if (res.res === 401) {
-        globalFunc.setLoggedIn(false);
-        globalFunc.setErrorSBText("Unauthorized, redirecting to login");
-        globalFunc.setErrorSB(true);
+        setLoggedIn(false);
+        setSnackBar({
+          type: "error",
+          title: "Error",
+          message: "Unauthorized, redirecting to login",
+          show: true,
+          icon: "warning",
+        });
       }
     } else if (response.status == 401) {
-      globalFunc.setLoggedIn(false);
-      globalFunc.setErrorSBText("Unauthorized, redirecting to login");
-      globalFunc.setErrorSB(true);
+      setLoggedIn(false);
+      setSnackBar({
+        type: "error",
+        title: "Error",
+        message: "Unauthorized, redirecting to login",
+        show: true,
+        icon: "warning",
+      });
     }
   };
   useEffect(() => {
     setShowLoad(true);
-    fetchData(globalFunc);
+    fetchData();
   }, []);
 
   const reRender = () => {
     setShowLoad(true);
-    fetchData(globalFunc);
+    fetchData();
   };
   useEffect(() => {
     doSearch();

@@ -24,7 +24,7 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import "react-datepicker/dist/react-datepicker.css";
 import dayjs from "dayjs";
 import vars from "../../../config";
-const step2 = ({ globalFunc, callback }) => {
+const step2 = ({ callback }) => {
   const [warrantyData, setwarrantyData] = useState({
     serialNumber: "",
     warrantyStart: dayjs(new Date()),

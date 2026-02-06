@@ -6,7 +6,7 @@ import { FormControl, Divider, Grid } from "@mui/material";
 
 import vars from "../../../config";
 
-const step6 = ({ globalFunc, newConsignmentData, reRender, setNewRepair }) => {
+const step6 = ({ newConsignmentData, reRender, setNewRepair }) => {
   const { setSnackBar, setShowLoad } = globalFuncs();
   const submitConsignment = async (pev) => {
     setNewRepair(false);

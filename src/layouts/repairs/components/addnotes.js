@@ -8,6 +8,7 @@ import { EditorState, convertToRaw } from "draft-js";
 import { Editor } from "react-draft-wysiwyg";
 import draftToHtml from "draftjs-to-html";
 import { globalFuncs } from "../../../context/global";
+import { useLoginState } from "context/loginContext";
 import "../../../../node_modules/react-draft-wysiwyg/dist/react-draft-wysiwyg.css";
 const style = {
   position: "absolute",
@@ -23,6 +24,7 @@ const style = {
 };
 const AddNotes = ({ setShowLoad, getRepair, newRepairNotes, setnewRepairNotes, repairId }) => {
   const { setSnackBar } = globalFuncs();
+  const { setLoggedIn } = useLoginState();
   const saveNotes = async () => {
     setShowLoad(true);
     const response = await fetch(`${vars.serverUrl}/repairs/repairNotes`, {
@@ -39,7 +41,7 @@ const AddNotes = ({ setShowLoad, getRepair, newRepairNotes, setnewRepairNotes, r
     });
     const res = await response.json();
     if (res.res === 401) {
-      //globalFunc.setLoggedIn(false);
+      setLoggedIn(false);
       setSnackBar({
         type: "error",
         title: "Unauthorized",

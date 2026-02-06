@@ -27,7 +27,7 @@ const iconsStyle = ({ palette: { dark, white, text }, functions: { rgba } }) => 
     return colorValue;
   },
 });
-const step3 = ({ globalFunc, repairID, nextRepairStep }) => {
+const step3 = ({ repairID, nextRepairStep }) => {
   const { setSnackBar } = globalFuncs();
   const [repairType, setRepairType] = useState([]);
   const [repairDetails, setRepairDetails] = useState();

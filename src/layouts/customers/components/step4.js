@@ -7,7 +7,7 @@ import { FormControl, Divider, Grid } from "@mui/material";
 
 import vars from "../../../config";
 
-const step4 = ({ globalFunc, repairID, nextRepairStep, reRender, setNewRepair }) => {
+const step4 = ({ repairID, nextRepairStep, reRender, setNewRepair }) => {
   const { setSnackBar } = globalFuncs();
   const printRepair = async (pev) => {
     try {

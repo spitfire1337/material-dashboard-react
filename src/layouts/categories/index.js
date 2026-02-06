@@ -16,7 +16,7 @@ Coded by www.creative-tim.com
 import { useState, React } from "react";
 //Global
 import { globalFuncs } from "../../context/global";
-
+import { useLoginState } from "context/loginContext";
 // Vars
 import vars from "../../config";
 
@@ -44,7 +44,7 @@ import Footer from "examples/Footer";
 import DataTable from "examples/Tables/DataTable";
 
 // Data
-import authorsTableData from "layouts/tables/data/categories";
+import categoryTableData from "./data/categoriesData";
 import Autocomplete, { createFilterOptions } from "@mui/material/Autocomplete";
 const style = {
   position: "absolute",
@@ -69,7 +69,8 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 // eslint-disable-next-line react/prop-types
-const CategoryAdmin = ({ globalFunc }) => {
+const CategoryAdmin = () => {
+  const { setLoggedIn } = useLoginState();
   const classes = useStyles();
   const { setSnackBar, setShowLoad } = globalFuncs();
   const [updateLoc, setUpdateLoc] = useState(false);
@@ -90,13 +91,12 @@ const CategoryAdmin = ({ globalFunc }) => {
     setCurrentSku(item.categoryData.sku || "");
   };
 
-  const { columns, rows, reRender, setsearchTerm, searchterm } = authorsTableData(
-    globalFunc,
+  const { columns, rows, reRender, setsearchTerm, searchterm } = categoryTableData(
     updateLocation,
     setShowLoad
   );
 
-  const fetchCategories = async (globalFunc) => {
+  const fetchCategories = async () => {
     const response = await fetch(`${vars.serverUrl}/api/categories`, {
       credentials: "include",
     });
@@ -121,7 +121,7 @@ const CategoryAdmin = ({ globalFunc }) => {
         setCatList(cats);
         setNewCategory(true);
       } else if (res.res === 401) {
-        globalFunc.setLoggedIn(false);
+        setLoggedIn(false);
         setSnackBar({
           type: "error",
           title: "Unauthorized",
@@ -131,7 +131,7 @@ const CategoryAdmin = ({ globalFunc }) => {
         });
       }
     } else if (response.status == 401) {
-      globalFunc.setLoggedIn(false);
+      setLoggedIn(false);
       setSnackBar({
         type: "error",
         title: "Unauthorized",
@@ -190,7 +190,7 @@ const CategoryAdmin = ({ globalFunc }) => {
     }
   };
   const showNewCategory = async () => {
-    fetchCategories(globalFunc);
+    fetchCategories();
   };
 
   const saveLoc = async () => {
@@ -232,7 +232,7 @@ const CategoryAdmin = ({ globalFunc }) => {
 
   return (
     <DashboardLayout>
-      <DashboardNavbar globalFunc={globalFunc} />
+      <DashboardNavbar />
       <MDBox pt={6} pb={3}>
         <Grid container spacing={6}>
           <Grid item xs={12}>
