@@ -16,6 +16,10 @@ Coded by www.creative-tim.com
 import { useState, React, useEffect } from "react";
 // Vars
 import vars from "../../config";
+
+//Global
+import { globalFuncs } from "../../context/global";
+
 import { EditorState, convertToRaw } from "draft-js";
 import { Editor } from "react-draft-wysiwyg";
 import draftToHtml from "draftjs-to-html";
@@ -32,11 +36,10 @@ import MDBox from "components/MDBox";
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import Footer from "examples/Footer";
-import Notification from "components/Notifications";
 import MDButton from "components/MDButton";
 // eslint-disable-next-line react/prop-types
 const WhatsNew = ({ globalFunc }) => {
-  const { showSnackBar, RenderSnackbar } = Notification();
+  const { setSnackBar } = globalFuncs();
   const [value, setValue] = useState({ editorState: EditorState.createEmpty() });
 
   const onEditorStateChange = (editorState) => {
@@ -58,12 +61,30 @@ const WhatsNew = ({ globalFunc }) => {
     const res = await response.json();
     if (res.res === 401) {
       globalFunc.setLoggedIn(false);
-      showSnackBar("error", "Unauthorized, redirecting to login");
+      setSnackBar({
+        type: "error",
+        title: "Server error occured",
+        message: "Unauthorized, redirecting to login",
+        show: true,
+        icon: "error",
+      });
     } else if (res.res === 500) {
-      showSnackBar("error", "Server error occured");
+      setSnackBar({
+        type: "error",
+        title: "Server error occured",
+        message: "An unexpected error occurred",
+        show: true,
+        icon: "error",
+      });
     } else {
       setValue({ editorState: EditorState.createEmpty() });
-      showSnackBar("success", "Whats new updated");
+      setSnackBar({
+        type: "success",
+        title: "Whats new updated",
+        message: "Whats new content has been updated successfully",
+        show: true,
+        icon: "check",
+      });
     }
   };
 
@@ -105,7 +126,6 @@ const WhatsNew = ({ globalFunc }) => {
           {/* Repair Actions & History */}
         </Grid>
       </MDBox>
-      <RenderSnackbar />
       <Footer />
     </DashboardLayout>
   );

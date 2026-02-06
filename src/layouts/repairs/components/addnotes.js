@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { Modal, Grid } from "@mui/material";
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
@@ -7,7 +7,7 @@ import vars from "../../../config";
 import { EditorState, convertToRaw } from "draft-js";
 import { Editor } from "react-draft-wysiwyg";
 import draftToHtml from "draftjs-to-html";
-import htmlToDraft from "html-to-draftjs";
+import { globalFuncs } from "../../../context/global";
 import "../../../../node_modules/react-draft-wysiwyg/dist/react-draft-wysiwyg.css";
 const style = {
   position: "absolute",
@@ -21,16 +21,8 @@ const style = {
   p: 4,
   borderRadius: "25px",
 };
-const AddNotes = ({
-  setShowLoad,
-  globalFunc,
-  showSnackBar,
-  getRepair,
-  newRepairNotes,
-  setnewRepairNotes,
-  repairId,
-}) => {
-  console.log("AddNotes render", repairId);
+const AddNotes = ({ setShowLoad, getRepair, newRepairNotes, setnewRepairNotes, repairId }) => {
+  const { setSnackBar } = globalFuncs();
   const saveNotes = async () => {
     setShowLoad(true);
     const response = await fetch(`${vars.serverUrl}/repairs/repairNotes`, {
@@ -47,15 +39,33 @@ const AddNotes = ({
     });
     const res = await response.json();
     if (res.res === 401) {
-      globalFunc.setLoggedIn(false);
-      showSnackBar("error", "Unauthorized, redirecting to login");
+      //globalFunc.setLoggedIn(false);
+      setSnackBar({
+        type: "error",
+        title: "Unauthorized",
+        message: "redirecting to login",
+        show: true,
+        icon: "warning",
+      });
     } else if (res.res === 500) {
-      showSnackBar("error", "Server error occured");
+      setSnackBar({
+        type: "error",
+        title: "Server error occured",
+        message: "Please try again later",
+        show: true,
+        icon: "error",
+      });
     } else {
       setnewRepairNotes(false);
       setValue({ editorState: EditorState.createEmpty() });
       getRepair();
-      showSnackBar("success", "Notes saved");
+      setSnackBar({
+        type: "success",
+        title: "Notes saved",
+        message: "Your notes have been saved successfully",
+        show: true,
+        icon: "check",
+      });
     }
     setShowLoad(false);
   };

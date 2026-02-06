@@ -23,6 +23,17 @@ import vars from "../../../config";
 
 const filter = createFilterOptions();
 const step2 = ({ globalFunc, repairData, updateRepairData, setrepairID, nextRepairStep }) => {
+  const blackListedNames = [
+    "generic",
+    "scooter",
+    "bike",
+    "ebike",
+    "e-bike",
+    "e-scooter",
+    "scoot",
+    "sport scooter",
+    "custom",
+  ];
   const [pevSelection, setPEVSelection] = useState([]);
   const [allowContinue, setAllowContinue] = useState(false);
   const [pevBrand, setPEVBrand] = useState([]);
@@ -260,8 +271,8 @@ const step2 = ({ globalFunc, repairData, updateRepairData, setrepairID, nextRepa
                   (element) => element.label.toLowerCase() === params.inputValue.toLowerCase()
                 );
                 if (
-                  (params.inputValue.toLowerCase() !== "generic" ||
-                    params.inputValue.toLowerCase() !== "custom") &&
+                  blackListedNames.filter((x) => x === params.inputValue.toLowerCase()).length ==
+                    0 &&
                   finder == undefined
                 ) {
                   console.log("FINDER", finder);
@@ -278,7 +289,7 @@ const step2 = ({ globalFunc, repairData, updateRepairData, setrepairID, nextRepa
             options={mybrands}
             //getOptionDisabled={(option) => !!brands.find((element) => element.label === "Generic")}
             getOptionDisabled={(option) =>
-              option.label.toLowerCase() === "generic" || option.label.toLowerCase() === "custom"
+              blackListedNames.filter((x) => x === option.label.toLowerCase()).length > 0
             }
             fullWidth
             renderInput={(params) => <TextField {...params} label="Select Brand" />}
@@ -306,26 +317,26 @@ const step2 = ({ globalFunc, repairData, updateRepairData, setrepairID, nextRepa
                         ? newPevData(newData)
                         : null;
                       console.log("PEV SELECTED", newData);
-                      // let newData = { ...newPev };
-                      // newData.Brand == undefined ? (newPev.Brand = {}) : null;
-                      // newData.Brand._id = newValue != null ? newValue.id : "";
-                      // newData.Brand.name =
-                      //   newValue != null ? (newValue.id == 0 ? "" : newValue.label) : "";
-                      // newValue != "" &&
-                      // newValue != undefined &&
-                      // newValue.id != undefined &&
-                      // newValue != ""
-                      //   ? newPevData(newData)
-                      //   : null;
                     }}
                     filterOptions={(options, params) => {
                       const filtered = filter(options, params);
                       if (params.inputValue !== "") {
-                        filtered.unshift({
-                          inputValue: params.inputValue,
-                          label: `Add "${params.inputValue}"`,
-                          id: 0,
-                        });
+                        let finder = mybrands.find(
+                          (element) =>
+                            element.label.toLowerCase() === params.inputValue.toLowerCase()
+                        );
+                        if (
+                          blackListedNames.filter((x) => x === params.inputValue.toLowerCase())
+                            .length == 0 &&
+                          finder == undefined
+                        ) {
+                          console.log("FINDER", finder);
+                          filtered.unshift({
+                            inputValue: params.inputValue,
+                            label: `Add "${params.inputValue}"`,
+                            id: 0,
+                          });
+                        }
                       }
                       return filtered;
                     }}
@@ -333,6 +344,9 @@ const step2 = ({ globalFunc, repairData, updateRepairData, setrepairID, nextRepa
                     options={mymodels}
                     fullWidth
                     renderInput={(params) => <TextField {...params} label="Model" />}
+                    getOptionDisabled={(option) =>
+                      blackListedNames.filter((x) => x === option.label.toLowerCase()).length > 0
+                    }
                   />
                 </Grid>
                 {/* <Grid item md={6} sm={12}>

@@ -1,22 +1,10 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
+//Global
+import { globalFuncs } from "../../../context/global";
 
-import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 import MDButton from "components/MDButton";
-import {
-  FormControl,
-  Select,
-  MenuItem,
-  InputLabel,
-  TextField,
-  Divider,
-  Modal,
-  Grid,
-  FormControlLabel,
-  FormGroup,
-  Checkbox,
-  NativeSelect,
-} from "@mui/material";
+import { FormControl, InputLabel, TextField, Divider, Grid, NativeSelect } from "@mui/material";
 import Autocomplete, { createFilterOptions } from "@mui/material/Autocomplete";
 
 import vars from "../../../config";
@@ -29,6 +17,7 @@ const step3 = ({
   setrepairID,
   nextRepairStep,
 }) => {
+  const { setSnackBar } = globalFuncs();
   const [pevSelection, setPEVSelection] = useState([]);
   const [allowContinue, setAllowContinue] = useState(false);
   const [pevBrand, setPEVBrand] = useState([]);
@@ -124,7 +113,7 @@ const step3 = ({
       setShowNewPev(true);
       console.log("Brand ID", pev.id);
       setPEVBrand(pev.id);
-      setAllowContinue(true);
+      setAllowContinue(false);
       //setShowCustForm(true);
     }
   };
@@ -160,13 +149,22 @@ const step3 = ({
         setrepairID(json.data._id);
         nextRepairStep(4);
       } else {
-        globalFunc.setErrorSBText("Error occurred saving repair progress.");
-        globalFunc.setErrorSB(true);
+        setSnackBar({
+          type: "error",
+          title: "Error",
+          message: "Error occurred saving consignment progress.",
+          show: true,
+          icon: "warning",
+        });
       }
     } catch (e) {
-      globalFunc.setErrorSBText("Error occurred saving repair progress.");
-      globalFunc.setErrorSB(true);
-      // TODO: Add error notification
+      setSnackBar({
+        type: "error",
+        title: "Error",
+        message: "Error occurred saving consignment progress.",
+        show: true,
+        icon: "warning",
+      });
     }
   };
 
@@ -200,24 +198,45 @@ const step3 = ({
           });
           let pevjson = await newpevresp.json();
           if (pevjson.res == 200) {
-            globalFunc.setSuccessSBText("New PEV Added to database");
-            globalFunc.setSuccessSB(true);
+            setSnackBar({
+              type: "success",
+              title: "Success",
+              message: "New PEV Added to database",
+              show: true,
+              icon: "check",
+            });
             let newRepairData = { ...newConsignmentData };
+            newRepairData.pev = pevjson.data._id;
             newRepairData.itemData.name = `${newPev.Brand.name} ${newPev.Model}`;
             updateConsignmentData(newRepairData);
             nextRepairStep(4);
             //createRepair(newRepairData);
           } else {
-            globalFunc.setErrorSBText("An error occured while saving data, please try again");
-            globalFunc.setErrorSB(true);
+            setSnackBar({
+              type: "error",
+              title: "Error",
+              message: "An error occured while saving data, please try again",
+              show: true,
+              icon: "warning",
+            });
           }
         } else {
-          globalFunc.setErrorSBText("An error occured while saving data, please try again");
-          globalFunc.setErrorSB(true);
+          setSnackBar({
+            type: "error",
+            title: "Error",
+            message: "An error occured while saving data, please try again",
+            show: true,
+            icon: "warning",
+          });
         }
       } catch (e) {
-        globalFunc.setErrorSBText("An error occured while saving data, please try again");
-        globalFunc.setErrorSB(true);
+        setSnackBar({
+          type: "error",
+          title: "Error",
+          message: "An error occured while saving data, please try again",
+          show: true,
+          icon: "warning",
+        });
       }
     } else if (pevBrand == 1) {
       //
@@ -235,18 +254,30 @@ const step3 = ({
       });
       let pevjson = await newpevresp.json();
       if (pevjson.res == 200) {
-        globalFunc.setSuccessSBText("New PEV Added to database");
-        globalFunc.setSuccessSB(true);
+        setSnackBar({
+          type: "success",
+          title: "Success",
+          message: "New PEV Added to database",
+          show: true,
+          icon: "check",
+        });
         let newRepairData = { ...newConsignmentData };
+        newRepairData.pev = pevjson.data._id;
         newRepairData.itemData.name = `${newPev.Brand.name} ${newPev.Model}`;
         updateConsignmentData(newRepairData);
         nextRepairStep(4);
       } else {
-        globalFunc.setErrorSBText("An error occured while saving data, please try again");
-        globalFunc.setErrorSB(true);
+        setSnackBar({
+          type: "error",
+          title: "Error",
+          message: "An error occured while saving data, please try again",
+          show: true,
+          icon: "warning",
+        });
       }
     } else {
       let newRepairData = { ...newConsignmentData };
+      newRepairData.pev = pevBrand;
       newRepairData.itemData.name = `${newPev.Brand.name} ${newPev.Model}`;
       updateConsignmentData(newRepairData);
       nextRepairStep(4);

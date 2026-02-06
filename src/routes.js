@@ -37,17 +37,12 @@ Coded by www.creative-tim.com
 
 // Material Dashboard 2 React layouts
 import Dashboard from "layouts/dashboard";
-import Tables from "layouts/tables";
 import Repairs from "layouts/repairs";
 import Customers from "layouts/customers";
 import RepairDetails from "layouts/repairDetails";
 import CustomerDetails from "layouts/customerDetails";
-import Appointments from "layouts/appointments";
-import Availability from "layouts/availability";
 import WhatsNew from "layouts/whatsnew";
-import Profile from "layouts/profile";
-import SignIn from "layouts/authentication/sign-in";
-import SignUp from "layouts/authentication/sign-up";
+import Signout from "layouts/authentication/signout";
 import GroupRides from "layouts/grouprides";
 import WarrantyAdmin from "layouts/warranty_admin";
 import Inventory from "layouts/inventory";
@@ -57,7 +52,8 @@ import PEVDatabase from "layouts/pevs";
 import ETags from "layouts/inventoryTags";
 // @mui icons
 import Icon from "@mui/material/Icon";
-const devRoutes = (globalFunc) => {
+const devRoutes = (globalFunc, stats) => {
+  console.log("Stats: ", stats);
   return [
     {
       name: "Repairs",
@@ -78,11 +74,20 @@ const devRoutes = (globalFunc) => {
       key: "dashboard",
       icon: <Icon fontSize="small">dashboard</Icon>,
       route: "/dashboard",
-      component: <Dashboard globalFunc={globalFunc} />,
+      component: <Dashboard globalFunc={globalFunc} stats={stats} />,
     },
     {
       type: "collapse",
-      name: "Repairs",
+      noCollapse: true,
+      name: `Orders (${stats.openOrders})`,
+      key: "orders",
+      icon: <Icon fontSize="small">shopping_bag</Icon>,
+      route: "/consignments",
+      component: <Consignments globalFunc={globalFunc} />,
+    },
+    {
+      type: "collapse",
+      name: `Repairs (${stats.repairs})`,
       noCollapse: true,
       key: "repairs",
       icon: <Icon fontSize="small">assignment</Icon>,
@@ -173,7 +178,7 @@ const devRoutes = (globalFunc) => {
       noCollapse: true,
       name: "Consignments",
       key: "consignments",
-      icon: <Icon fontSize="small">note_add</Icon>,
+      icon: <Icon fontSize="small">sell</Icon>,
       route: "/consignments",
       component: <Consignments globalFunc={globalFunc} />,
     },
@@ -186,10 +191,19 @@ const devRoutes = (globalFunc) => {
       route: "/WhatsNew",
       component: <WhatsNew globalFunc={globalFunc} />,
     },
+    {
+      type: "collapse",
+      noCollapse: true,
+      name: "Sign out",
+      key: "signout",
+      icon: <Icon fontSize="small">note_add</Icon>,
+      route: "/signout",
+      component: <Signout globalFunc={globalFunc} />,
+    },
   ];
 };
 
-const adminRoutes = (globalFunc) => {
+const adminRoutes = (globalFunc, stats) => {
   return [
     {
       type: "collapse",
@@ -198,42 +212,17 @@ const adminRoutes = (globalFunc) => {
       key: "dashboard",
       icon: <Icon fontSize="small">dashboard</Icon>,
       route: "/dashboard",
-      component: <Dashboard globalFunc={globalFunc} />,
+      component: <Dashboard globalFunc={globalFunc} stats={stats} />,
     },
     {
       type: "collapse",
-      name: "Repairs",
+      name: `Repairs (${stats.repairs})`,
       noCollapse: true,
       key: "repairs",
       icon: <Icon fontSize="small">assignment</Icon>,
       route: "/repairs",
       component: <Repairs globalFunc={globalFunc} />,
     },
-    // {
-    //   type: "collapse",
-    //   name: "Scheduling",
-    //   key: "appoint",
-    //   icon: <Icon fontSize="small">calendar_month</Icon>,
-    //   collapse: [
-    //     {
-    //       type: "collapse",
-    //       name: "Appointments",
-    //       key: "appointment",
-    //       icon: <Icon fontSize="small">inventory_2</Icon>,
-    //       route: "/appointments/",
-    //       component: <Appointments globalFunc={globalFunc} />,
-    //     },
-    //     {
-    //       type: "collapse",
-    //       name: "My Availability",
-    //       key: "availabilty",
-    //       route: "/myavailability",
-    //       icon: <Icon fontSize="small">inventory_2</Icon>,
-    //       component: <Availability globalFunc={globalFunc} />,
-    //     },
-    //   ],
-    // },
-
     {
       type: "collapse",
       name: "Customers",
@@ -280,7 +269,7 @@ const adminRoutes = (globalFunc) => {
     {
       name: "Repairs",
       key: "repairs2",
-      route: "/repairs/:id",
+      route: "/repairdetails/:id",
       component: <RepairDetails globalFunc={globalFunc} />,
     },
     {
@@ -322,7 +311,7 @@ const adminRoutes = (globalFunc) => {
   ];
 };
 
-const techRoutes = (globalFunc) => {
+const techRoutes = (globalFunc, stats) => {
   return [
     {
       type: "collapse",
@@ -330,11 +319,11 @@ const techRoutes = (globalFunc) => {
       key: "dashboard",
       icon: <Icon fontSize="small">dashboard</Icon>,
       route: "/dashboard",
-      component: <Dashboard globalFunc={globalFunc} />,
+      component: <Dashboard globalFunc={globalFunc} stats={stats} />,
     },
     {
       type: "collapse",
-      name: "Repairs",
+      name: `Repairs (${stats.repairs})`,
       key: "repairs",
       icon: <Icon fontSize="small">assignment</Icon>,
       route: "/repairs",
@@ -343,32 +332,8 @@ const techRoutes = (globalFunc) => {
     {
       name: "Repairs",
       key: "repairs2",
-      route: "/repairs/:id",
+      route: "/repairdetails/:id",
       component: <RepairDetails globalFunc={globalFunc} />,
-    },
-    {
-      type: "collapse",
-      name: "Scheduling",
-      key: "appoint",
-      icon: <Icon fontSize="small">calendar_month</Icon>,
-      collapse: [
-        {
-          type: "collapse",
-          name: "Appointments",
-          key: "appointment",
-          icon: <Icon fontSize="small">inventory_2</Icon>,
-          route: "/appointments/",
-          component: <Appointments globalFunc={globalFunc} />,
-        },
-        {
-          type: "collapse",
-          name: "My Availability",
-          key: "availabilty",
-          route: "/myavailability",
-          icon: <Icon fontSize="small">inventory_2</Icon>,
-          component: <Availability globalFunc={globalFunc} />,
-        },
-      ],
     },
     {
       name: "Group Rides",
@@ -389,10 +354,11 @@ const publicRoutes = () => {
     },
   ];
 };
-const routes = (globalFunc) => {
-  if (globalFunc.user.isDev) return devRoutes(globalFunc);
-  if (globalFunc.user.isAdmin) return adminRoutes(globalFunc);
-  if (globalFunc.user.isTech) return techRoutes(globalFunc);
+const routes = (globalFunc, stats, loginState) => {
+  console.log("Routes loginState: ", loginState);
+  if (loginState.user.isDev) return devRoutes(globalFunc, stats);
+  if (loginState.user.isAdmin) return adminRoutes(globalFunc, stats);
+  if (loginState.user.isTech) return techRoutes(globalFunc, stats);
   return publicRoutes;
   /*
       {

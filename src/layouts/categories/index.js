@@ -13,7 +13,9 @@ Coded by www.creative-tim.com
 * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 */
 // React components
-import { useState, React, useEffect } from "react";
+import { useState, React } from "react";
+//Global
+import { globalFuncs } from "../../context/global";
 
 // Vars
 import vars from "../../config";
@@ -23,8 +25,6 @@ import Grid from "@mui/material/Grid";
 import Card from "@mui/material/Card";
 import {
   FormControl,
-  InputLabel,
-  MenuItem,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -32,12 +32,10 @@ import {
   TextField,
 } from "@mui/material";
 import { makeStyles } from "@mui/styles";
-import { Modal, Select, IconButton, Icon } from "@mui/material";
+import { Modal } from "@mui/material";
 // Material Dashboard 2 React components
 import MDBox from "components/MDBox";
-import MDTypography from "components/MDTypography";
 import MDButton from "components/MDButton";
-import Loading from "../../components/Loading_Dialog";
 
 // Material Dashboard 2 React example components
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
@@ -70,24 +68,13 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const iconsStyle = ({ palette: { dark, white, text }, functions: { rgba } }) => ({
-  color: () => {
-    let colorValue = dark.main;
-
-    // if (transparentNavbar) {
-    //   colorValue = darkMode ? rgba(text.main, 0.6) : text.main;
-    // }
-
-    return colorValue;
-  },
-});
 // eslint-disable-next-line react/prop-types
 const CategoryAdmin = ({ globalFunc }) => {
   const classes = useStyles();
+  const { setSnackBar, setShowLoad } = globalFuncs();
   const [updateLoc, setUpdateLoc] = useState(false);
   const [updateItem, setUpdateItem] = useState();
   const [currentSku, setCurrentSku] = useState("");
-  const { setShowLoad, LoadBox } = Loading();
   const [newCategory, setNewCategory] = useState(false);
   const [catList, setCatList] = useState([]);
   const [newCategoryData, setNewCategoryData] = useState({
@@ -96,18 +83,6 @@ const CategoryAdmin = ({ globalFunc }) => {
     name: "",
   });
   const [newCategorySku, setNewCategorySku] = useState(undefined);
-  const useForm = (initialValues) => {
-    const [values, setValues] = useState(initialValues);
-    return [
-      values,
-      (newValue) => {
-        setValues({
-          ...values,
-          ...newValue,
-        });
-      },
-    ];
-  };
 
   const updateLocation = (item) => {
     setUpdateLoc(true);
@@ -147,13 +122,23 @@ const CategoryAdmin = ({ globalFunc }) => {
         setNewCategory(true);
       } else if (res.res === 401) {
         globalFunc.setLoggedIn(false);
-        globalFunc.setErrorSBText("Unauthorized, redirecting to login");
-        globalFunc.setErrorSB(true);
+        setSnackBar({
+          type: "error",
+          title: "Unauthorized",
+          message: "Redirecting to login",
+          show: true,
+          icon: "error",
+        });
       }
     } else if (response.status == 401) {
       globalFunc.setLoggedIn(false);
-      globalFunc.setErrorSBText("Unauthorized, redirecting to login");
-      globalFunc.setErrorSB(true);
+      setSnackBar({
+        type: "error",
+        title: "Unauthorized",
+        message: "Redirecting to login",
+        show: true,
+        icon: "error",
+      });
     }
   };
 
@@ -178,16 +163,30 @@ const CategoryAdmin = ({ globalFunc }) => {
           onlineVisibility: true,
           name: "",
         });
-        globalFunc.setSuccessSBText("Category created");
-        globalFunc.setSuccessSB(true);
+        setSnackBar({
+          type: "success",
+          title: "Category created",
+          message: "Category created successfully",
+          show: true,
+          icon: "check",
+        });
       } else {
-        globalFunc.setErrorSBText("Error occurred creating category.");
-        globalFunc.setErrorSB(true);
+        setSnackBar({
+          type: "error",
+          title: "Error occurred",
+          message: "Error occurred creating category.",
+          show: true,
+          icon: "error",
+        });
       }
     } catch (e) {
-      globalFunc.setErrorSBText("Error occurred creating category.");
-      globalFunc.setErrorSB(true);
-      // TODO: Add error notification
+      setSnackBar({
+        type: "error",
+        title: "Error occurred",
+        message: "Error occurred creating category.",
+        show: true,
+        icon: "error",
+      });
     }
   };
   const showNewCategory = async () => {
@@ -212,12 +211,22 @@ const CategoryAdmin = ({ globalFunc }) => {
     const json = await response.json();
     setShowLoad(false);
     if (json.res == 200) {
-      globalFunc.setSuccessSBText("SKU Code updated");
-      globalFunc.setSuccessSB(true);
+      setSnackBar({
+        type: "success",
+        title: "SKU Code updated",
+        message: "SKU Code updated successfully",
+        show: true,
+        icon: "check",
+      });
       reRender();
     } else {
-      globalFunc.setErrorSBText("Server error occured");
-      globalFunc.setErrorSB(true);
+      setSnackBar({
+        type: "error",
+        title: "Server error occured",
+        message: json.message,
+        show: true,
+        icon: "error",
+      });
     }
   };
 
@@ -389,7 +398,6 @@ const CategoryAdmin = ({ globalFunc }) => {
           </Grid>
         </MDBox>
       </Modal>
-      <LoadBox />
       <Footer />
     </DashboardLayout>
   );

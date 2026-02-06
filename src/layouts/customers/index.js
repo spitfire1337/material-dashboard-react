@@ -13,31 +13,16 @@ Coded by www.creative-tim.com
 * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 */
 // React components
-import { useState, React, useEffect } from "react";
-
-// Vars
-import vars from "../../config";
+import { useState, React } from "react";
 
 // @mui material components
 import Grid from "@mui/material/Grid";
 import Card from "@mui/material/Card";
-import {
-  FormControl,
-  InputLabel,
-  MenuItem,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
-} from "@mui/material";
+import { TextField } from "@mui/material";
 
 import { makeStyles } from "@mui/styles";
-import { Modal, Select, IconButton, Icon } from "@mui/material";
 // Material Dashboard 2 React components
 import MDBox from "components/MDBox";
-import MDTypography from "components/MDTypography";
-import MDButton from "components/MDButton";
 
 // Material Dashboard 2 React example components
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
@@ -46,9 +31,7 @@ import Footer from "examples/Footer";
 import DataTable from "examples/Tables/DataTable";
 
 // Data
-import authorsTableData from "layouts/tables/data/customersTable";
-import projectsTableData from "layouts/tables/data/projectsTableData";
-import FilterDialog from "./components/filter";
+import customersTableData from "./data/customersTable";
 
 const style = {
   position: "absolute",
@@ -71,38 +54,13 @@ const useStyles = makeStyles((theme) => ({
     background: "rgb(232, 241, 250)",
   },
 }));
-const iconsStyle = ({ palette: { dark, white, text }, functions: { rgba } }) => ({
-  color: () => {
-    let colorValue = dark.main;
 
-    // if (transparentNavbar) {
-    //   colorValue = darkMode ? rgba(text.main, 0.6) : text.main;
-    // }
-
-    return colorValue;
-  },
-});
 // eslint-disable-next-line react/prop-types
 const Customers = ({ globalFunc }) => {
   const classes = useStyles();
   const [repairData, setRepairData] = useState({});
   const [repairID, setrepairID] = useState(null);
-  const [showFilter, setShowFiler] = useState(false);
-  const [filterVal, setfilterVal] = useState();
-  const [filteKey, setfilterKey] = useState();
 
-  const useForm = (initialValues) => {
-    const [values, setValues] = useState(initialValues);
-    return [
-      values,
-      (newValue) => {
-        setValues({
-          ...values,
-          ...newValue,
-        });
-      },
-    ];
-  };
   const [repairStep, setRepairStep] = useState(1);
 
   const updateRepairData = (val) => {
@@ -116,7 +74,7 @@ const Customers = ({ globalFunc }) => {
     setRepairStep(3);
   };
 
-  const { columns, rows, reRender, filter, resetFilter, repairs, myFilters } = authorsTableData(
+  const { columns, rows, reRender, filter, resetFilter, repairs, myFilters } = customersTableData(
     globalFunc,
     contIntake
   );

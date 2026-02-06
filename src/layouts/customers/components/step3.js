@@ -1,15 +1,11 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState } from "react";
+//Global
+import { globalFuncs } from "../../../context/global";
 
-import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 import MDButton from "components/MDButton";
 import {
-  Modal,
   FormControl,
-  Select,
-  MenuItem,
-  InputLabel,
-  Autocomplete,
   TextField,
   Divider,
   Grid,
@@ -32,6 +28,7 @@ const iconsStyle = ({ palette: { dark, white, text }, functions: { rgba } }) => 
   },
 });
 const step3 = ({ globalFunc, repairID, nextRepairStep }) => {
+  const { setSnackBar } = globalFuncs();
   const [repairType, setRepairType] = useState([]);
   const [repairDetails, setRepairDetails] = useState();
   const [warranty, setWarranty] = useState(false);
@@ -72,12 +69,22 @@ const step3 = ({ globalFunc, repairID, nextRepairStep }) => {
       if (json.res == 200) {
         nextRepairStep(4);
       } else {
-        globalFunc.setErrorSBText("Error occurred saving repair progress.");
-        globalFunc.setErrorSB(true);
+        setSnackBar({
+          type: "error",
+          title: "Error",
+          message: "Error occurred saving repair progress.",
+          show: true,
+          icon: "warning",
+        });
       }
     } catch (e) {
-      globalFunc.setErrorSBText("Error occurred saving repair progress.");
-      globalFunc.setErrorSB(true);
+      setSnackBar({
+        type: "error",
+        title: "Error",
+        message: "Error occurred saving repair progress.",
+        show: true,
+        icon: "warning",
+      });
       // TODO: Add error notification
     }
   };

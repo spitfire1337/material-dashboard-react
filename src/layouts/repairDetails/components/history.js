@@ -14,7 +14,6 @@ Coded by www.creative-tim.com
 */
 
 // @mui material components
-import vars from "../../../config";
 
 // Material Dashboard 2 React components
 import MDBox from "components/MDBox";
@@ -27,7 +26,7 @@ import EditTime from "./editTime";
 import TimelineItem from "examples/Timeline/TimelineItem";
 import { Grid } from "@mui/material";
 import { useState } from "react";
-function RepairHistory({ data, repairTime, setloadingOpen, getRepair, repairID, globalFunc }) {
+function RepairHistory({ data, repairTime, getRepair, repairID, globalFunc }) {
   const [showDialog, setShowDialog] = useState(false);
 
   //   return (
@@ -86,7 +85,6 @@ function RepairHistory({ data, repairTime, setloadingOpen, getRepair, repairID, 
         getRepair={getRepair}
         repairID={repairID}
         globalFunc={globalFunc}
-        setloadingOpen={setloadingOpen}
       />
     </>
   );

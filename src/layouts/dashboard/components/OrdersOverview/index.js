@@ -15,7 +15,8 @@ Coded by www.creative-tim.com
 
 // @mui material components
 import Card from "@mui/material/Card";
-import Icon from "@mui/material/Icon";
+//Global
+import { globalFuncs } from "../../../../context/global";
 
 // Material Dashboard 2 React components
 import MDBox from "components/MDBox";
@@ -28,6 +29,7 @@ import vars from "../../../../config";
 import moment from "moment";
 
 function OrdersOverview({ globalFunc }) {
+  const { setSnackBar } = globalFuncs();
   const [history, setHistory] = useState([]);
 
   const fetchData = async (globalFunc) => {
@@ -41,13 +43,23 @@ function OrdersOverview({ globalFunc }) {
         setHistory(res.data);
       } else if (res.res === 401) {
         globalFunc.setLoggedIn(false);
-        globalFunc.setErrorSBText("Unauthorized, redirecting to login");
-        globalFunc.setErrorSB(true);
+        setSnackBar({
+          type: "error",
+          title: "Error",
+          message: "Unauthorized, redirecting to login",
+          show: true,
+          icon: "warning",
+        });
       }
     } else if (response.status == 401) {
       globalFunc.setLoggedIn(false);
-      globalFunc.setErrorSBText("Unauthorized, redirecting to login");
-      globalFunc.setErrorSB(true);
+      setSnackBar({
+        type: "error",
+        title: "Error",
+        message: "Unauthorized, redirecting to login",
+        show: true,
+        icon: "warning",
+      });
     }
   };
 

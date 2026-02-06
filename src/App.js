@@ -14,12 +14,16 @@ Coded by www.creative-tim.com
 */
 
 import { useState, useEffect, useMemo } from "react";
+import { useLoginState } from "./context/loginContext";
 import "material-icons/iconfont/material-icons.css";
 // Vars
 import vars from "./config";
 // react-router components
 import { Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom";
 import parse from "html-react-parser";
+//Global elements
+import { globalFuncs } from "./context/global";
+
 // @mui material components
 import { ThemeProvider } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
@@ -48,17 +52,13 @@ import createCache from "@emotion/cache";
 // Material Dashboard 2 React routes
 import routes from "routes";
 
-import LocationSelect from "./layouts/LocationSelect";
-
 // Material Dashboard 2 React contexts
 import { useMaterialUIController, setMiniSidenav, setOpenConfigurator } from "context";
 import SignIn from "layouts/authentication/sign-in";
-import Square from "layouts/authentication/square_setup";
 import Cookies from "universal-cookie";
 // Images
 import brandWhite from "assets/images/logos/Logo-Dark.png";
 import brandDark from "assets/images/logos/Logo-Light.png";
-import { MyLocation } from "@mui/icons-material";
 import MDSnackbar from "components/MDSnackbar";
 import { Scanner } from "@yudiel/react-qr-scanner";
 import { Modal, Dialog, DialogActions, DialogContent, DialogTitle } from "@mui/material";
@@ -81,11 +81,6 @@ const style = {
   borderRadius: "25px",
   maxWidth: "75vh",
 };
-const style2 = {
-  height: "75vh",
-  p: 4,
-  borderRadius: "25px",
-};
 //import { DEFAULT_CONSTRAINTS } from "react-zxing/lib/";
 export function getCookie(name) {
   var dc = document.cookie;
@@ -107,6 +102,9 @@ export function getCookie(name) {
 }
 
 export default function App() {
+  const { loginState, setLoginState, checkLogin } = useLoginState();
+  const { setSnackBar, RenderSb, LoadDialog } = globalFuncs();
+
   const [controller, dispatch] = useMaterialUIController();
   const {
     miniSidenav,
@@ -123,13 +121,10 @@ export default function App() {
   const [isLoggedin, setLoggedIn] = useState(false);
   const [isSquare, setSquare] = useState(false);
   const [customers, setCustomers] = useState([]);
-  const [sales, setSales] = useState([]);
   const [locations, setLocations] = useState({ locations: [] });
   const [location, setLocation] = useState(null);
   const [loading, setLoading] = useState(true);
   const { pathname } = useLocation();
-  const [barcodeResult, setbarcodeResult] = useState("");
-  const [barcodeScanned, setbarcodeScanned] = useState(false);
   const [showVideoFeed, setShowVideoFeed] = useState(false);
   const cookies = new Cookies(null, { path: "/" });
   // Cache for the rtl
@@ -140,6 +135,32 @@ export default function App() {
   const [user, setUser] = useState({});
   const [showWhatsNew, setShowWhatsNew] = useState(false);
   const [whatsNew, setWhatsNew] = useState("");
+  const [stats, setStats] = useState({
+    repairs: 0,
+    repairsPickup: 0,
+    repairsPaused: 0,
+    repairsParts: 0,
+    openOrders: 0,
+    repairChange: 0,
+    sales: {
+      labels: [],
+      datasets: { label: "Total Sales", data: [] },
+    },
+    salesChange: 0,
+    salesVolume: {
+      labels: [],
+      datasets: { label: "Total Sales", data: [] },
+    },
+    topSellersAll: {
+      labels: [],
+      datasets: { label: "Sales", data: [] },
+    },
+    topSellersSixty: {
+      labels: [],
+      datasets: { label: "Sales", data: [] },
+    },
+    mysales: { lastweek: 0, thisweek: 0 },
+  });
   const closeSuccessSB = () => setSuccessSB(false);
   const closeErrorSB = () => setErrorSB(false);
   let redirect = useNavigate();
@@ -162,25 +183,6 @@ export default function App() {
   const doSearch = (e, val) => {
     e.preventDefault();
     console.log("Search val", e);
-  };
-
-  // Open sidenav when mouse enter on mini sidenav
-  const checkLogin = async () => {
-    if (!isLoggedin) {
-      const response = await fetch(`${vars.serverUrl}/auth/authCheck`, {
-        method: "GET",
-        credentials: "include",
-      });
-      const res = await response.json();
-      if (res.res === 401) {
-        setLoading(false);
-        setLoggedIn(false);
-      } else {
-        setUser(res.user);
-        setLoading(false);
-        setLoggedIn(true);
-      }
-    }
   };
 
   const renderSuccessSB = (
@@ -209,6 +211,77 @@ export default function App() {
     />
   );
 
+  const getSales = async () => {
+    const response = await fetch(`${vars.serverUrl}/square/getsales`, {
+      credentials: "include",
+    });
+    const res = await response.json();
+    if (res.res === 200) {
+      let monthlySales = [];
+      let saleMonths = [];
+      let mysalesVolume = [];
+      res.monthlySales.map((month) => {
+        saleMonths.push(month.Month);
+        mysalesVolume.push(month.totalsales);
+        monthlySales.push(month.sum / 100);
+      });
+      let salesItemsAll = [];
+      let salesItemAllVol = [];
+      res.topSellersAll.map((item, i) => {
+        if (item._id != "Labor" || item._id != "Gen Merch" || i < 10) {
+          salesItemsAll.push(item._id);
+          salesItemAllVol.push(item.sales);
+        }
+      });
+      let salesItemsSixty = [];
+      let salesItemAllSixty = [];
+      res.topSellersSixty.map((item, i) => {
+        if (item._id != "Labor" || item._id != "Gen Merch" || i < 10) {
+          salesItemsSixty.push(item._id);
+          salesItemAllSixty.push(item.sales);
+        }
+      });
+
+      setStats({
+        repairs: res.repairsTotal,
+        repairsPickup: res.repairsPickup,
+        repairsPaused: res.repairsPaused,
+        repairsParts: res.repairsParts,
+        openOrders: res.openOrders,
+        repairChange:
+          ((res.repairs.find((x) => x._id == -30).count -
+            res.repairs.find((x) => x._id == -60).count) /
+            res.repairs.find((x) => x._id == -60).count) *
+          100,
+        sales: { labels: saleMonths, datasets: { data: monthlySales } },
+        salesVolume: { labels: saleMonths, datasets: { data: mysalesVolume } },
+        salesChange:
+          res.sales.find((x) => x._id == -7) != undefined
+            ? Math.round(
+                ((res.sales.find((x) => x._id == -7).sum -
+                  res.sales.find((x) => x._id == -14).sum) /
+                  res.sales.find((x) => x._id == -14).sum) *
+                  100
+              )
+            : -(res.sales.find((x) => x._id == -14).sum / 100),
+        topSellersAll: { labels: salesItemsAll, datasets: { data: salesItemAllVol } },
+        topSellersSixty: { labels: salesItemsSixty, datasets: { data: salesItemAllSixty } },
+        mysales:
+          res.sales.find((x) => x._id == -7) != undefined
+            ? res.sales.find((x) => x._id == -7).sum
+            : 0,
+      });
+    } else if (res.res === 401) {
+      setLoginState((s) => ({ ...s, loggedin: false }));
+      setSnackBar({
+        type: "error",
+        title: "Session expired",
+        message: "Please log in again.",
+        show: true,
+        icon: "error",
+      });
+    }
+  };
   const renderWhatsNew = (
     <Dialog open={showWhatsNew}>
       <DialogTitle>Whats New!</DialogTitle>
@@ -246,24 +319,8 @@ export default function App() {
     setShowVideoFeed: setShowVideoFeed,
   };
 
-  const checkSquare = async () => {
-    if (isLoggedin) {
-      const response = await fetch(`${vars.serverUrl}/square/checkconfig`, {
-        credentials: "include",
-      });
-      const res = await response.json();
-      if (res.res === 401) {
-        setLoading(false);
-        setSquare(false);
-      } else {
-        setLoading(false);
-        setSquare(true);
-      }
-    }
-  };
-
   const getWhatsnew = async () => {
-    if (isLoggedin) {
+    if (loginState.loggedin) {
       const response = await fetch(`${vars.serverUrl}/api/whatsNew`, {
         credentials: "include",
       });
@@ -278,7 +335,7 @@ export default function App() {
   };
 
   const getInitData = async () => {
-    if (isLoggedin) {
+    if (loginState.loggedin) {
       const response = await fetch(`${vars.serverUrl}/square/getSquare?action=getInitData`, {
         credentials: "same-origin",
       });
@@ -286,7 +343,7 @@ export default function App() {
       if (res.res === 200) {
         setCustomers(res.customers);
         setLocations(res.locations);
-        setLoading(false);
+        //setLoading(false);
       }
       if (location !== undefined) {
         const response = await fetch(`${vars.serverUrl}/square/getSquare?action=getSales`, {
@@ -299,7 +356,7 @@ export default function App() {
         }
       }
     } else {
-      setLoading(false);
+      //setLoading(false);
     }
   };
 
@@ -320,16 +377,18 @@ export default function App() {
   }, [direction]);
 
   useEffect(() => {
-    if (!isLoggedin) {
-      checkLogin();
-    } else if (!isSquare) {
-      checkSquare();
+    if (!loginState.loggedin) {
+      //checkLogin();
     } else {
+      // if (!loginState.square) {
+      //   //checkSquare();
+      // } else {
       setLocation(cookies.get("mylocation"));
       getWhatsnew();
       getInitData();
+      getSales();
     }
-  }, [isLoggedin, isSquare, location]);
+  }, [loginState.loggedin]);
 
   // Setting page scroll to 0 when changing the route
   useEffect(() => {
@@ -432,17 +491,17 @@ export default function App() {
       </Modal>
     );
   };
-
-  if (loading) {
+  console.log("App loginState: ", loginState);
+  if (loginState.loading) {
     return (
       <ThemeProvider theme={darkMode ? themeDarkRTL : themeRTL}>
         <CssBaseline />
-        <Loading />
-        {renderSuccessSB}
+        {/* <Loading /> */}
+        <LoadDialog />
         {renderErrorSB}
       </ThemeProvider>
     );
-  } else if (!isLoggedin) {
+  } else if (!loginState.loggedin) {
     return (
       <ThemeProvider theme={darkMode ? themeDarkRTL : themeRTL}>
         <CssBaseline />
@@ -451,14 +510,16 @@ export default function App() {
         {renderErrorSB}
       </ThemeProvider>
     );
-  } else if (!isSquare) {
-    return (
-      <ThemeProvider theme={darkMode ? themeDarkRTL : themeRTL}>
-        <CssBaseline />
-        <Square />
-      </ThemeProvider>
-    );
-  } else {
+  }
+  // else if (!loginState.square) {
+  //   return (
+  //     <ThemeProvider theme={darkMode ? themeDarkRTL : themeRTL}>
+  //       <CssBaseline />
+  //       <Square />
+  //     </ThemeProvider>
+  //   );
+  // }
+  else {
     return direction === "rtl" ? (
       <CacheProvider value={rtlCache}>
         <ThemeProvider theme={darkMode ? themeDarkRTL : themeRTL}>
@@ -469,7 +530,7 @@ export default function App() {
                 color={sidenavColor}
                 brand={(transparentSidenav && !darkMode) || whiteSidenav ? brandDark : brandWhite}
                 brandName="PEV Connection, LLC"
-                routes={routes(globalFunc)}
+                routes={routes(globalFunc, stats, loginState)}
                 onMouseEnter={handleOnMouseEnter}
                 onMouseLeave={handleOnMouseLeave}
                 doSearch={doSearch}
@@ -485,9 +546,11 @@ export default function App() {
           )}
           {layout === "vr" && <Configurator />}
           <Routes>
-            {getRoutes(routes(globalFunc))}
+            {getRoutes(routes(globalFunc, stats, loginState))}
             <Route path="*" element={<Navigate to="/dashboard" />} />
           </Routes>
+          {RenderSb}
+          <LoadDialog />
           {renderSuccessSB}
           {renderErrorSB}
           {renderWhatsNew}
@@ -502,7 +565,7 @@ export default function App() {
               color={sidenavColor}
               brand={(transparentSidenav && !darkMode) || whiteSidenav ? brandDark : brandWhite}
               brandName="PEV Connection, LLC"
-              routes={routes(globalFunc)}
+              routes={routes(globalFunc, stats, loginState)}
               onMouseEnter={handleOnMouseEnter}
               onMouseLeave={handleOnMouseLeave}
               doSearch={doSearch}
@@ -513,6 +576,8 @@ export default function App() {
               // setSuccessSBText={setSuccessSBText}
               // closeSuccessSB={closeSuccessSB}
             />
+            <LoadDialog />
+            {RenderSb}
             {renderSuccessSB}
             {renderErrorSB}
             {renderWhatsNew}
@@ -530,7 +595,7 @@ export default function App() {
         {showVideoFeed && <MyScanner />}
         {/* {location == null && <LocationSelect locations={locations.locations} />} */}
         <Routes>
-          {getRoutes(routes(globalFunc))}
+          {getRoutes(routes(globalFunc, stats, loginState))}
           <Route path="*" element={<Navigate to="/dashboard" />} />
         </Routes>
       </ThemeProvider>

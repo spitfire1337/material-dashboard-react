@@ -13,7 +13,9 @@ Coded by www.creative-tim.com
 * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 */
 // React components
-import { useState, React, useEffect } from "react";
+import { useState, React } from "react";
+//Global
+import { globalFuncs } from "../../context/global";
 
 // Vars
 import vars from "../../config";
@@ -21,21 +23,10 @@ import vars from "../../config";
 // @mui material components
 import Grid from "@mui/material/Grid";
 import Card from "@mui/material/Card";
-import {
-  FormControl,
-  InputLabel,
-  MenuItem,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
-} from "@mui/material";
+import { Dialog, DialogTitle, DialogContent, DialogActions, TextField } from "@mui/material";
 import { makeStyles } from "@mui/styles";
-import { Modal, Select, IconButton, Icon } from "@mui/material";
 // Material Dashboard 2 React components
 import MDBox from "components/MDBox";
-import MDTypography from "components/MDTypography";
 import MDButton from "components/MDButton";
 import Loading from "../../components/Loading_Dialog";
 
@@ -47,64 +38,20 @@ import DataTable from "examples/Tables/DataTable";
 import NewItem from "./components/newItem";
 // Data
 import authorsTableData from "layouts/tables/data/inventoryData";
-import Autocomplete, { createFilterOptions } from "@mui/material/Autocomplete";
 
-const style = {
-  position: "absolute",
-  top: "50%",
-  left: "50%",
-  transform: "translate(-50%, -50%)",
-  width: "80%",
-  minHeight: "50vh",
-  maxHeight: "80vh",
-  overflowY: "scroll",
-  bgcolor: "background.paper",
-  border: "2px solid #000",
-  boxShadow: 24,
-  p: 4,
-  borderRadius: "25px",
-};
-
-const itemstyle = {
-  position: "absolute",
-  top: "50%",
-  left: "50%",
-  transform: "translate(-50%, -50%)",
-  width: "98%",
-  minHeight: "95vh",
-  maxHeight: "98vh",
-  overflowY: "scroll",
-  bgcolor: "background.paper",
-  border: "2px solid #000",
-  boxShadow: 24,
-  p: 4,
-  borderRadius: "25px",
-};
 const useStyles = makeStyles((theme) => ({
   input: {
     background: "rgb(232, 241, 250)",
   },
 }));
 
-const iconsStyle = ({ palette: { dark, white, text }, functions: { rgba } }) => ({
-  color: () => {
-    let colorValue = dark.main;
-
-    // if (transparentNavbar) {
-    //   colorValue = darkMode ? rgba(text.main, 0.6) : text.main;
-    // }
-
-    return colorValue;
-  },
-});
-const filter = createFilterOptions();
 // eslint-disable-next-line react/prop-types
 const InventoryAdmin = ({ globalFunc }) => {
+  const { setSnackBar, setShowLoad } = globalFuncs();
   const classes = useStyles();
   const [updateLoc, setUpdateLoc] = useState(false);
   const [updateItem, setUpdateItem] = useState();
   const [currentLoc, setCurrentLoc] = useState("");
-  const { setShowLoad, LoadBox } = Loading();
   const [showNewItem, setShowNewItem] = useState(false);
   const [catList, setCatList] = useState([]);
   const [locations, setLocations] = useState([]);
@@ -148,13 +95,23 @@ const InventoryAdmin = ({ globalFunc }) => {
         setShowNewItem(true);
       } else if (res.res === 401) {
         globalFunc.setLoggedIn(false);
-        globalFunc.setErrorSBText("Unauthorized, redirecting to login");
-        globalFunc.setErrorSB(true);
+        setSnackBar({
+          type: "error",
+          title: "Error",
+          message: "Unauthorized, redirecting to login",
+          show: true,
+          icon: "warning",
+        });
       }
     } else if (response.status == 401) {
       globalFunc.setLoggedIn(false);
-      globalFunc.setErrorSBText("Unauthorized, redirecting to login");
-      globalFunc.setErrorSB(true);
+      setSnackBar({
+        type: "error",
+        title: "Error",
+        message: "Unauthorized, redirecting to login",
+        show: true,
+        icon: "warning",
+      });
     }
   };
   const showNewItemModal = () => {
@@ -191,12 +148,22 @@ const InventoryAdmin = ({ globalFunc }) => {
     const json = await response.json();
     setShowLoad(false);
     if (json.res == 200) {
-      globalFunc.setSuccessSBText("Location updated");
-      globalFunc.setSuccessSB(true);
+      setSnackBar({
+        type: "success",
+        title: "Success",
+        message: "Location updated",
+        show: true,
+        icon: "check",
+      });
       reRender();
     } else {
-      globalFunc.setErrorSBText("Server error occured");
-      globalFunc.setErrorSB(true);
+      setSnackBar({
+        type: "error",
+        title: "Error",
+        message: "Server error occured",
+        show: true,
+        icon: "warning",
+      });
     }
   };
 
@@ -369,7 +336,6 @@ const InventoryAdmin = ({ globalFunc }) => {
           </Grid>
         </MDBox>
       </Modal> */}
-      <LoadBox />
       <Footer />
     </DashboardLayout>
   );

@@ -1,13 +1,9 @@
 import { useState, useEffect, useMemo } from "react";
 
-import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 import MDButton from "components/MDButton";
 import {
-  Modal,
   FormControl,
-  Select,
-  MenuItem,
   InputLabel,
   Autocomplete,
   TextField,
@@ -20,9 +16,10 @@ import {
 } from "@mui/material";
 
 import vars from "../../../config";
-import { RFC_2822 } from "moment";
+import { globalFuncs } from "../../context/global";
 
 const step1 = ({ globalFunc, repairData, callback }) => {
+  const { setSnackBar, setShowLoad } = globalFuncs();
   const [pevSelection, setPEVSelection] = useState([]);
   const [allowContinue, setAllowContinue] = useState(false);
   const [pevBrand, setPEVBrand] = useState([]);
@@ -153,21 +150,41 @@ const step1 = ({ globalFunc, repairData, callback }) => {
           });
           let pevjson = await newpevresp.json();
           if (pevjson.res == 200) {
-            globalFunc.setSuccessSBText("New PEV Added to database");
-            globalFunc.setSuccessSB(true);
+            setSnackBar({
+              type: "success",
+              title: "Success",
+              message: "New PEV Added to database",
+              show: true,
+              icon: "check",
+            });
             //PASS TO PARENT
             callback(2, pevjson.data._id);
           } else {
-            globalFunc.setErrorSBText("An error occured while saving data, please try again");
-            globalFunc.setErrorSB(true);
+            setSnackBar({
+              type: "error",
+              title: "Error",
+              message: "An error occured while saving data, please try again",
+              show: true,
+              icon: "error",
+            });
           }
         } else {
-          globalFunc.setErrorSBText("An error occured while saving data, please try again");
-          globalFunc.setErrorSB(true);
+          setSnackBar({
+            type: "error",
+            title: "Error",
+            message: "An error occured while saving data, please try again",
+            show: true,
+            icon: "error",
+          });
         }
       } catch (e) {
-        globalFunc.setErrorSBText("An error occured while saving data, please try again");
-        globalFunc.setErrorSB(true);
+        setSnackBar({
+          type: "error",
+          title: "Error",
+          message: "An error occured while saving data, please try again",
+          show: true,
+          icon: "error",
+        });
       }
     } else if (pevBrand == 1) {
       //
@@ -184,12 +201,22 @@ const step1 = ({ globalFunc, repairData, callback }) => {
       });
       let pevjson = await newpevresp.json();
       if (pevjson.res == 200) {
-        globalFunc.setSuccessSBText("New PEV Added to database");
-        globalFunc.setSuccessSB(true);
+        setSnackBar({
+          type: "success",
+          title: "Success",
+          message: "New PEV Added to database",
+          show: true,
+          icon: "check",
+        });
         callback(2, pevjson.data._id);
       } else {
-        globalFunc.setErrorSBText("An error occured while saving data, please try again");
-        globalFunc.setErrorSB(true);
+        setSnackBar({
+          type: "error",
+          title: "Error",
+          message: "An error occured while saving data, please try again",
+          show: true,
+          icon: "error",
+        });
       }
     } else {
       callback(2, pevBrand);

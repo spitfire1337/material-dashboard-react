@@ -1,18 +1,19 @@
-import MDButton from "components/MDButton";
-import { Input, TextField, Dialog, DialogTitle, DialogContent, DialogActions } from "@mui/material";
 import { useState, useRef, useCallback } from "react";
-import Loading from "components/Loading_Dialog";
+//Global
+import { globalFuncs } from "../../../context/global";
+import MDButton from "components/MDButton";
+import { Dialog, DialogTitle, DialogContent, DialogActions } from "@mui/material";
 import vars from "../../../config";
 import Webcam from "react-webcam";
 
-function AddPhotos({ getRepair, globalFunc, open, close }) {
+function AddPhotos({ getRepair }) {
+  const { setSnackBar, setShowLoad } = globalFuncs();
   const [file, setFile] = useState(null);
   const webcamRef = useRef(null);
   const [showUpload, setShowUpload] = useState(false);
   const [repairID, setRepairId] = useState();
 
   const [description, setDescription] = useState("");
-  const { setShowLoad, LoadBox } = Loading();
   const submit = async (event) => {
     event.preventDefault();
     setShowUpload(false);
@@ -34,14 +35,24 @@ function AddPhotos({ getRepair, globalFunc, open, close }) {
     });
     const json = await response.json();
     if (!response.ok) {
-      globalFunc.setErrorSBText("Server error occured");
-      globalFunc.setErrorSB(true);
+      setSnackBar({
+        type: "error",
+        title: "Error",
+        message: "Server error occurred",
+        show: true,
+        icon: "check",
+      });
       setShowLoad(false);
       return;
     }
     if (json.res == 200) {
-      globalFunc.setSuccessSBText("Photo uploaded");
-      globalFunc.setSuccessSB(true);
+      setSnackBar({
+        type: "success",
+        title: "Success",
+        message: "Photo uploaded",
+        show: true,
+        icon: "check",
+      });
       setShowLoad(false);
       getRepair();
     }
@@ -103,7 +114,6 @@ function AddPhotos({ getRepair, globalFunc, open, close }) {
             </DialogActions>
           </form>
         </Dialog>
-        <LoadBox />
       </>
     );
   };

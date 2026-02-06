@@ -1,30 +1,24 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 
-import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 import MDButton from "components/MDButton";
 import {
-  Modal,
   FormControl,
   Select,
   MenuItem,
   InputLabel,
-  Autocomplete,
   TextField,
   Divider,
   Grid,
   FormControlLabel,
-  FormGroup,
   Checkbox,
-  NativeSelect,
 } from "@mui/material";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import "react-datepicker/dist/react-datepicker.css";
 import dayjs from "dayjs";
-import vars from "../../../config";
-const step2 = ({ globalFunc, callback }) => {
+const step2 = ({ callback }) => {
   const [warrantyData, setwarrantyData] = useState({
     serialNumber: "",
     warrantyStart: dayjs(new Date()),

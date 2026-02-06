@@ -31,7 +31,15 @@ function getStyles(name, filterVal, theme) {
 }
 
 import MDButton from "components/MDButton";
-function FilterDialog({ showFilter, filter, resetFilter, setShowFiler, repairs }) {
+function FilterDialog({
+  showFilter,
+  filter,
+  resetFilter,
+  setShowFiler,
+  repairs,
+  myFilters,
+  setmyFilters,
+}) {
   const theme = useTheme();
   const [filterVal, setfilterVal] = useState([]);
   const [filteKey, setfilterKey] = useState();
@@ -45,11 +53,11 @@ function FilterDialog({ showFilter, filter, resetFilter, setShowFiler, repairs }
     "Other",
   ]);
   const [filterData, setfilterData] = useState({
-    status: [0, 1, 2, 3, 4, 5],
+    status: [0, 1, 2, 3, 4, 5, 11, 997],
     RepairType: ["Tire Change", "Tube Change", "Power issue", "Mechanical Repair", "Other"],
   });
   const defaultFilters = {
-    status: [0, 1, 2, 3, 4, 5],
+    status: [0, 1, 2, 3, 4, 5, 11, 997],
     RepairType: ["Tire Change", "Tube Change", "Power issue", "Mechanical Repair", "Other"],
   };
   const handleChange = (event) => {
@@ -57,7 +65,7 @@ function FilterDialog({ showFilter, filter, resetFilter, setShowFiler, repairs }
       target: { value },
     } = event;
     setstatuses(typeof value === "string" ? value.split(",") : value);
-    setfilterData(
+    setmyFilters(
       // On autofill we get a stringified value.
       { status: typeof value === "string" ? value.split(",") : value }
     );
@@ -68,7 +76,7 @@ function FilterDialog({ showFilter, filter, resetFilter, setShowFiler, repairs }
       target: { value },
     } = event;
     setrepairTypes(typeof value === "string" ? value.split(",") : value);
-    setfilterData(
+    setmyFilters(
       // On autofill we get a stringified value.
       { RepairType: typeof value === "string" ? value.split(",") : value }
     );
@@ -93,7 +101,7 @@ function FilterDialog({ showFilter, filter, resetFilter, setShowFiler, repairs }
           <Select
             labelId="demo-simple-select-label"
             id="demo-simple-select"
-            value={statuses}
+            value={myFilters.status}
             label="Status"
             multiple
             input={<OutlinedInput label="Status" />}
@@ -138,7 +146,7 @@ function FilterDialog({ showFilter, filter, resetFilter, setShowFiler, repairs }
         <MDButton
           onClick={() => {
             resetFilter();
-            setfilterData(defaultFilters);
+            setmyFilters(defaultFilters);
             // setrepairTypes(defaultFilters.repairTypes);
             // setstatuses(defaultFilters.status);
             setShowFiler(false);
@@ -149,7 +157,7 @@ function FilterDialog({ showFilter, filter, resetFilter, setShowFiler, repairs }
         <MDButton onClick={() => setShowFiler(false)}>Cancel</MDButton>
         <MDButton
           onClick={() => {
-            filter(filterData);
+            //filter(myFilters);
             setShowFiler(false);
           }}
         >

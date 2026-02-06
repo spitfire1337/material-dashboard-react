@@ -12,11 +12,11 @@ Coded by www.creative-tim.com
 
 * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 */
-import { useState, useEffect, useMemo } from "react";
+import { useState } from "react";
+import { useLoginState } from "../../context/loginContext";
 
 // @mui material components
 import Grid from "@mui/material/Grid";
-import vars from "../../config";
 
 // Material Dashboard 2 React components
 import MDBox from "components/MDBox";
@@ -29,25 +29,14 @@ import ReportsBarChart from "examples/Charts/BarCharts/ReportsBarChart";
 import ReportsLineChart from "examples/Charts/LineCharts/ReportsLineChart";
 import ComplexStatisticsCard from "examples/Cards/StatisticsCards/ComplexStatisticsCard";
 
-// Data
-import reportsBarChartData from "layouts/dashboard/data/reportsBarChartData";
-import reportsLineChartData from "layouts/dashboard/data/reportsLineChartData";
-
 // Dashboard components
-import Projects from "layouts/dashboard/components/Projects";
 import OrdersOverview from "layouts/dashboard/components/OrdersOverview";
 import { useNavigate } from "react-router-dom";
-import { set } from "draft-js/lib/DefaultDraftBlockRenderMap";
 
 // eslint-disable-next-line react/prop-types
-function Dashboard({ globalFunc }) {
-  const [mysales, setSales] = useState({ lastweek: 0, thisweek: 0 });
-  const [myRepairs, setRepairs] = useState(0);
-  const [myRepairsPickup, setRepairsPickup] = useState(0);
-  const [myRepairsPaused, setRepairsPaused] = useState(0);
-  const [myRepairsParts, setRepairsParts] = useState(0);
-  const [repairChange, setRepairChange] = useState(0);
-  const [salesChange, setSalesChange] = useState(0);
+function Dashboard({ globalFunc, stats }) {
+  const { loginState, setLoginState, checkLogin } = useLoginState();
+
   const [sales, setSalesData] = useState({
     labels: [],
     datasets: { label: "Total Sales", data: [] },
@@ -65,92 +54,41 @@ function Dashboard({ globalFunc }) {
     datasets: { label: "Sales", data: [] },
   });
   let redirect = useNavigate();
-  const getSales = async () => {
-    const response = await fetch(`${vars.serverUrl}/square/getsales`, {
-      credentials: "include",
-    });
-    const res = await response.json();
-    if (res.res === 200) {
-      setSales(
-        res.sales.find((x) => x._id == -7) != undefined ? res.sales.find((x) => x._id == -7).sum : 0
-      );
-      setSalesChange(
-        res.sales.find((x) => x._id == -7) != undefined
-          ? Math.round(
-              ((res.sales.find((x) => x._id == -7).sum - res.sales.find((x) => x._id == -14).sum) /
-                res.sales.find((x) => x._id == -14).sum) *
-                100
-            )
-          : -(res.sales.find((x) => x._id == -14).sum / 100)
-      );
-      setRepairs(res.repairsTotal);
-      setRepairsPickup(res.repairsPickup);
-      setRepairsPaused(res.repairsPaused);
-      setRepairsParts(res.repairsParts);
-      setRepairChange(
-        ((res.repairs.find((x) => x._id == -30).count -
-          res.repairs.find((x) => x._id == -60).count) /
-          res.repairs.find((x) => x._id == -60).count) *
-          100
-      );
-      let monthlySales = [];
-      let saleMonths = [];
-      let mysalesVolume = [];
-      res.monthlySales.map((month) => {
-        saleMonths.push(month.Month);
-        mysalesVolume.push(month.totalsales);
-        monthlySales.push(month.sum / 100);
-      });
-      let salesItemsAll = [];
-      let salesItemAllVol = [];
-      res.topSellersAll.map((item, i) => {
-        if (item._id != "Labor" || item._id != "Gen Merch" || i < 10) {
-          salesItemsAll.push(item._id);
-          salesItemAllVol.push(item.sales);
-        }
-      });
-      let salesItemsSixty = [];
-      let salesItemAllSixty = [];
-      res.topSellersSixty.map((item, i) => {
-        if (item._id != "Labor" || item._id != "Gen Merch" || i < 10) {
-          salesItemsSixty.push(item._id);
-          salesItemAllSixty.push(item.sales);
-        }
-      });
-      settoptopSellersSixty({ labels: salesItemsSixty, datasets: { data: salesItemAllSixty } });
-      settopSellersAll({ labels: salesItemsAll, datasets: { data: salesItemAllVol } });
-      setSalesData({ labels: saleMonths, datasets: { data: monthlySales } });
-      setSalesVolume({ labels: saleMonths, datasets: { data: mysalesVolume } });
-    } else if (res.res === 401) {
-      globalFunc.logoutUser();
-      globalFunc.showAlert("Session expired. Please log in again.", "error");
-    }
-  };
-
-  useEffect(() => {
-    getSales();
-  }, []);
 
   return (
     <DashboardLayout>
       <DashboardNavbar globalFunc={globalFunc} />
       <MDBox py={3}>
         <Grid container spacing={3}>
-          {globalFunc.user.isAdmin ? (
+          {loginState.user.isAdmin ? (
             <Grid item xs={12} md={6} lg={3}>
               <MDBox mb={1.5}>
                 <ComplexStatisticsCard
                   color="dark"
                   icon="leaderboard"
                   title="Sales"
-                  count={`$${(mysales / 100)
+                  count={`$${(stats.mysales / 100)
                     .toFixed(2)
                     .toLocaleString(undefined, { minimumFractionDigits: 2 })}`}
                   percentage={{
-                    color: salesChange > 0 ? "success" : "error",
-                    amount: `${salesChange > 0 ? "+" : ""}${salesChange}%`,
-                    label: "than lask week",
+                    color: stats.salesChange > 0 ? "success" : "error",
+                    amount: `${stats.salesChange > 0 ? "+" : ""}${stats.salesChange}%`,
+                    label: "than last week",
                   }}
+                />
+              </MDBox>
+            </Grid>
+          ) : (
+            ""
+          )}
+          {loginState.user.isAdmin ? (
+            <Grid item xs={12} md={6} lg={3}>
+              <MDBox mb={1.5}>
+                <ComplexStatisticsCard
+                  color="dark"
+                  icon="shopping_bag"
+                  title="Open Orders"
+                  count={stats.openOrders}
                 />
               </MDBox>
             </Grid>
@@ -186,7 +124,7 @@ function Dashboard({ globalFunc }) {
         />
       </MDBox>
     </Grid> */}
-          {globalFunc.user.isAdmin || globalFunc.user.isTech ? (
+          {loginState.user.isAdmin || loginState.user.isTech ? (
             <Grid item xs={12} md={6} lg={3}>
               <MDBox mb={1.5}>
                 <ComplexStatisticsCard
@@ -194,14 +132,14 @@ function Dashboard({ globalFunc }) {
                   icon="handyman"
                   title="Current Repairs"
                   onClick={() => redirect(`/repairs`, { replace: false })}
-                  count={myRepairs}
+                  count={stats.repairs}
                 />
               </MDBox>
             </Grid>
           ) : (
             ""
           )}
-          {globalFunc.user.isAdmin || globalFunc.user.isTech ? (
+          {loginState.user.isAdmin || loginState.user.isTech ? (
             <Grid item xs={12} md={6} lg={3}>
               <MDBox mb={1.5}>
                 <ComplexStatisticsCard
@@ -209,14 +147,14 @@ function Dashboard({ globalFunc }) {
                   icon="check_box"
                   title="Repairs Ready for Pickup"
                   onClick={() => redirect(`/repairs/5`, { replace: false })}
-                  count={myRepairsPickup}
+                  count={stats.repairsPickup}
                 />
               </MDBox>
             </Grid>
           ) : (
             ""
           )}
-          {globalFunc.user.isAdmin || globalFunc.user.isTech ? (
+          {loginState.user.isAdmin || loginState.user.isTech ? (
             <Grid item xs={12} md={6} lg={3}>
               <MDBox mb={1.5}>
                 <ComplexStatisticsCard
@@ -224,14 +162,14 @@ function Dashboard({ globalFunc }) {
                   icon="pause_circle"
                   title="Repairs paused"
                   onClick={() => redirect(`/repairs/3`, { replace: false })}
-                  count={myRepairsPaused}
+                  count={stats.repairsPaused}
                 />
               </MDBox>
             </Grid>
           ) : (
             ""
           )}
-          {globalFunc.user.isAdmin || globalFunc.user.isTech ? (
+          {loginState.user.isAdmin || loginState.user.isTech ? (
             <Grid item xs={12} md={6} lg={3}>
               <MDBox mb={1.5}>
                 <ComplexStatisticsCard
@@ -239,7 +177,7 @@ function Dashboard({ globalFunc }) {
                   icon="alarm_pause"
                   title="Repairs awaiting parts"
                   onClick={() => redirect(`/repairs/11`, { replace: false })}
-                  count={myRepairsParts}
+                  count={stats.repairsParts}
                 />
               </MDBox>
             </Grid>
@@ -251,7 +189,7 @@ function Dashboard({ globalFunc }) {
           <Grid item xs={12} md={8}>
             <MDBox mt={4.5}>
               <Grid container spacing={3}>
-                {globalFunc.user.isAdmin ? (
+                {loginState.user.isAdmin ? (
                   <Grid item xs={12} md={6}>
                     <MDBox mb={3}>
                       <ReportsLineChart
@@ -260,9 +198,9 @@ function Dashboard({ globalFunc }) {
                         description={
                           <>
                             {(
-                              ((sales.datasets.data[sales.datasets.data.length - 1] -
-                                sales.datasets.data[sales.datasets.data.length - 2]) /
-                                sales.datasets.data[sales.datasets.data.length - 2]) *
+                              ((stats.sales.datasets.data[stats.sales.datasets.data.length - 1] -
+                                stats.sales.datasets.data[stats.sales.datasets.data.length - 2]) /
+                                stats.sales.datasets.data[stats.sales.datasets.data.length - 2]) *
                               100
                             ).toFixed(2)}
                             {"% "}
@@ -276,7 +214,7 @@ function Dashboard({ globalFunc }) {
                 ) : (
                   ""
                 )}
-                {globalFunc.user.isAdmin ? (
+                {loginState.user.isAdmin ? (
                   <Grid item xs={12} md={6}>
                     <MDBox mb={3}>
                       <ReportsLineChart
@@ -285,9 +223,15 @@ function Dashboard({ globalFunc }) {
                         description={
                           <>
                             {(
-                              ((salesVolume.datasets.data[salesVolume.datasets.data.length - 1] -
-                                salesVolume.datasets.data[salesVolume.datasets.data.length - 2]) /
-                                salesVolume.datasets.data[salesVolume.datasets.data.length - 2]) *
+                              ((stats.salesVolume.datasets.data[
+                                stats.salesVolume.datasets.data.length - 1
+                              ] -
+                                stats.salesVolume.datasets.data[
+                                  stats.salesVolume.datasets.data.length - 2
+                                ]) /
+                                stats.salesVolume.datasets.data[
+                                  stats.salesVolume.datasets.data.length - 2
+                                ]) *
                               100
                             ).toFixed(2)}
                             {"% "}
@@ -301,28 +245,28 @@ function Dashboard({ globalFunc }) {
                 ) : (
                   ""
                 )}
-                {globalFunc.user.isAdmin ? (
+                {loginState.user.isAdmin ? (
                   <Grid item xs={12} md={6}>
                     <MDBox mb={3}>
                       <ReportsBarChart
                         color="info"
                         title="top sellers"
                         description="All time top selling items"
-                        chart={topSellersAll}
+                        chart={stats.topSellersAll}
                       />
                     </MDBox>
                   </Grid>
                 ) : (
                   ""
                 )}
-                {globalFunc.user.isAdmin ? (
+                {loginState.user.isAdmin ? (
                   <Grid item xs={12} md={6}>
                     <MDBox mb={3}>
                       <ReportsBarChart
                         color="info"
                         title="top sellers"
                         description="Top selling items last 60 days"
-                        chart={topSellersSixty}
+                        chart={stats.topSellersSixty}
                       />
                     </MDBox>
                   </Grid>

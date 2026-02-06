@@ -1,13 +1,16 @@
+import { useState } from "react";
+//Global
+import { globalFuncs } from "../../../context/global";
 import MDButton from "components/MDButton";
 import { TextField, Dialog, DialogTitle, DialogContent, DialogActions } from "@mui/material";
-import { useState } from "react";
 import vars from "../../../config";
 
-function EditTime({ repairTime, setloadingOpen, getRepair, repairID, globalFunc, hide, openVar }) {
+function EditTime({ repairTime, getRepair, repairID, hide, openVar }) {
+  const { setSnackBar, setShowLoad } = globalFuncs;
   const [newMinutes, setnewMinutes] = useState(Math.round(60 * repairTime));
   const saveTime = async () => {
     hide(false);
-    setloadingOpen(true);
+    setShowLoad(true);
     const response = await fetch(`${vars.serverUrl}/repairs/adjustTime`, {
       method: "POST",
       headers: {
@@ -21,14 +24,24 @@ function EditTime({ repairTime, setloadingOpen, getRepair, repairID, globalFunc,
       }),
     });
     const json = await response.json();
-    setloadingOpen(false);
+    setShowLoad(false);
     if (json.res == 200) {
-      globalFunc.setSuccessSBText("Repair time adjusted");
-      globalFunc.setSuccessSB(true);
+      setSnackBar({
+        type: "success",
+        title: "Success",
+        message: "Repair time adjusted",
+        show: true,
+        icon: "check",
+      });
       getRepair();
     } else {
-      globalFunc.setErrorSBText("Server error occured");
-      globalFunc.setErrorSB(true);
+      setSnackBar({
+        type: "error",
+        title: "Error",
+        message: "Server error occurred",
+        show: true,
+        icon: "check",
+      });
     }
   };
   return (

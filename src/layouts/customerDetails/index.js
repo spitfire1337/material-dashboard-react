@@ -15,29 +15,17 @@ Coded by www.creative-tim.com
 // React components
 import { useState, React, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import RepairHistory from "./components/history";
-import Actions from "./components/actions";
 import moment from "moment";
-import NotesItem from "examples/Timeline/NotesItem";
-import RepairImages from "./components/images";
 // Vars
 import vars from "../../config";
 import DataTable from "examples/Tables/DataTable";
 
+//Global
+import { globalFuncs } from "../../context/global";
 // @mui material components
 import Grid from "@mui/material/Grid";
 import Card from "@mui/material/Card";
-import Button from "@mui/material/Button";
-import {
-  Modal,
-  FormControl,
-  Select,
-  MenuItem,
-  InputLabel,
-  Autocomplete,
-  TextField,
-  Divider,
-} from "@mui/material";
+import { Modal, FormControl, TextField } from "@mui/material";
 
 // Material Dashboard 2 React components
 import MDBox from "components/MDBox";
@@ -53,23 +41,8 @@ import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
-import IconButton from "@mui/material/IconButton";
-import Icon from "@mui/material/Icon";
-import Loading from "../../components/Loading_Dialog";
-import Notification from "components/Notifications";
-import CustomerData from "layouts/tables/data/customerDetails";
-import CustomerOrders from "layouts/tables/data/customerOrders";
-const iconsStyle = ({ palette: { dark, white, text }, functions: { rgba } }) => ({
-  color: () => {
-    let colorValue = dark.main;
-
-    // if (transparentNavbar) {
-    //   colorValue = darkMode ? rgba(text.main, 0.6) : text.main;
-    // }
-
-    return colorValue;
-  },
-});
+import CustomerData from "./data/customerDetails";
+import CustomerOrders from "./data/customerOrders";
 const style = {
   position: "absolute",
   top: "50%",
@@ -84,14 +57,12 @@ const style = {
 };
 // eslint-disable-next-line react/prop-types
 const CustomerDetails = ({ globalFunc }) => {
+  const { setSnackBar, setShowLoad } = globalFuncs();
   const { id } = useParams();
-  const [repairID, setrepairID] = useState(id);
   const [loading, setLoading] = useState(true);
   const [customerDetail, setcustomerDetails] = useState({});
   const [newRepairNotes, setnewRepairNotes] = useState(false);
   const [confirmOpen, toggleconfirmOpen] = useState({ removePart: false, editTime: false });
-  const { showSnackBar, RenderSnackbar } = Notification();
-  const { setShowLoad, LoadBox } = Loading();
   const [repairHistory, setRepairHistory] = useState([]);
 
   const { repairColumns, repairRows, setData } = CustomerData();
@@ -320,65 +291,80 @@ const CustomerDetails = ({ globalFunc }) => {
     const res = await response.json();
     if (res.res === 401) {
       globalFunc.setLoggedIn(false);
-      showSnackBar("error", "Unauthorized, redirecting to login");
+      setSnackBar({
+        type: "error",
+        title: "Server error occured",
+        message: "Unauthorized, redirecting to login",
+        show: true,
+        icon: "error",
+      });
     } else if (res.res === 500) {
-      showSnackBar("error", "Server error occured");
+      setSnackBar({
+        type: "error",
+        title: "Server error occured",
+        message: "An unexpected error occurred",
+        show: true,
+        icon: "error",
+      });
     } else {
-      console.log("Customer data", res.data[0].repairs);
       setcustomerDetails(res.data[0]);
       let repairs =
-        res.data[0].repairs.length > 0
-          ? res.data[0].repairs.map((repair) => {
-              return {
-                id: repair.repairID,
-                pev: (
-                  <Pev
-                    id={repair._id}
-                    title={repair.pev.Brand.name}
-                    description={repair.pev.Model}
-                  />
-                ),
-                status: <Status repairStatus={repair.status} id={repair._id} />,
-                received: (
-                  <MDTypography
-                    component="a"
-                    href="#"
-                    variant="caption"
-                    color="text"
-                    fontWeight="medium"
-                    sx={{ cursor: "pointer" }}
-                    onClick={() => redirect(`/repairs/${repair._id}`, { replace: false })}
-                  >
-                    {moment(repair.createdAt).format("MM/DD/yyyy hh:mm a")}
-                  </MDTypography>
-                ),
-                updated: (
-                  <MDTypography
-                    component="a"
-                    href={"/repairs/" + repair._id}
-                    variant="caption"
-                    color="text"
-                    fontWeight="medium"
-                  >
-                    {moment(repair.updatedAt).format("MM/DD/yyyy hh:mm a")}
-                  </MDTypography>
-                ),
-              };
-            })
+        res.data.length > 0
+          ? res.data[0].repairs.length > 0
+            ? res.data[0].repairs.map((repair) => {
+                return {
+                  id: repair.repairID,
+                  pev: (
+                    <Pev
+                      id={repair._id}
+                      title={repair.pev.Brand.name}
+                      description={repair.pev.Model}
+                    />
+                  ),
+                  status: <Status repairStatus={repair.status} id={repair._id} />,
+                  received: (
+                    <MDTypography
+                      component="a"
+                      href="#"
+                      variant="caption"
+                      color="text"
+                      fontWeight="medium"
+                      sx={{ cursor: "pointer" }}
+                      onClick={() => redirect(`/repairs/${repair._id}`, { replace: false })}
+                    >
+                      {moment(repair.createdAt).format("MM/DD/yyyy hh:mm a")}
+                    </MDTypography>
+                  ),
+                  updated: (
+                    <MDTypography
+                      component="a"
+                      href={"/repairs/" + repair._id}
+                      variant="caption"
+                      color="text"
+                      fontWeight="medium"
+                    >
+                      {moment(repair.updatedAt).format("MM/DD/yyyy hh:mm a")}
+                    </MDTypography>
+                  ),
+                };
+              })
+            : []
           : [];
       let orders =
-        res.data[0].orders.length > 0
-          ? res.data[0].orders.map((order) => {
-              return {
-                date: moment(order.created_at).format("MM/DD/yyyy hh:mm a"),
-                items: order.line_items.length,
-                status: order.state,
-                ammount: `$${order.total_money.amount / 100}`,
-              };
-            })
+        res.data.length > 0
+          ? res.data[0].orders.length > 0
+            ? res.data[0].orders.map((order) => {
+                return {
+                  date: moment(order.created_at).format("MM/DD/yyyy hh:mm a"),
+                  items: order.line_items.length,
+                  status: order.state,
+                  ammount: `$${order.total_money.amount / 100}`,
+                };
+              })
+            : []
           : [];
-      setOrderData(res.data[0].orders);
-      setData(res.data[0].repairs);
+      setOrderData(res.data.length > 0 ? res.data[0].orders : []);
+      setData(res.data.length > 0 ? res.data[0].repairs : []);
       setRepairHistory();
       setLoading(false);
       //setRepairOrderReady(true);
@@ -410,7 +396,6 @@ const CustomerDetails = ({ globalFunc }) => {
     return (
       <DashboardLayout>
         <DashboardNavbar globalFunc={globalFunc} />
-        <LoadBox />
       </DashboardLayout>
     );
   }
@@ -441,7 +426,7 @@ const CustomerDetails = ({ globalFunc }) => {
                   </MDBox>
                   <MDBox mx={2} py={3} px={2}>
                     <MDTypography variant="subtitle2">
-                      {customerDetail.given_name} {customerDetail.family_name}
+                      {customerDetail.given_name || ""} {customerDetail.family_name || ""}
                       {customerDetail.address != undefined
                         ? [<br key="" />, customerDetail.address.address_line_1]
                         : ""}
@@ -673,7 +658,6 @@ const CustomerDetails = ({ globalFunc }) => {
           </MDButton>
         </MDBox>
       </Modal>
-      <LoadBox />
       <ConfirmActionDialog
         title="Are you sure?"
         content="Do you wish to remove this item?"
@@ -681,7 +665,6 @@ const CustomerDetails = ({ globalFunc }) => {
         openState={confirmOpen.removePart}
         closeState={() => toggleconfirmOpen({ removePart: false })}
       />
-      <RenderSnackbar />
       <Footer />
     </DashboardLayout>
   );

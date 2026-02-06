@@ -7,7 +7,6 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  NativeSelect,
   Select,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
@@ -22,19 +21,8 @@ const MenuProps = {
     },
   },
 };
-function getStyles(name, filterVal, theme) {
-  return {
-    fontWeight: filterVal.includes(name)
-      ? theme.typography.fontWeightMedium
-      : theme.typography.fontWeightRegular,
-  };
-}
-
 import MDButton from "components/MDButton";
 function FilterDialog({ showFilter, filter, resetFilter, setShowFiler, repairs }) {
-  const theme = useTheme();
-  const [filterVal, setfilterVal] = useState([]);
-  const [filteKey, setfilterKey] = useState();
   const [pevBrands, setPevBrands] = useState([]);
   const [statuses, setstatuses] = useState([0, 1, 2, 3, 4, 5]);
   const [repairTypes, setrepairTypes] = useState([

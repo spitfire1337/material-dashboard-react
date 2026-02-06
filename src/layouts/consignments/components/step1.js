@@ -1,36 +1,17 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
+//Global
+import { globalFuncs } from "../../../context/global";
 
-import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 import MDButton from "components/MDButton";
-import {
-  Modal,
-  FormControl,
-  Select,
-  MenuItem,
-  InputLabel,
-  TextField,
-  Divider,
-  Grid,
-} from "@mui/material";
+import { FormControl, TextField, Divider, Grid } from "@mui/material";
 import Autocomplete, { createFilterOptions } from "@mui/material/Autocomplete";
 
 import vars from "../../../config";
-const style = {
-  position: "absolute",
-  top: "50%",
-  left: "50%",
-  transform: "translate(-50%, -50%)",
-  width: "80%",
-  bgcolor: "background.paper",
-  border: "2px solid #000",
-  boxShadow: 24,
-  p: 4,
-  borderRadius: "25px",
-};
 const filter = createFilterOptions();
 
-const step1 = ({ globalFunc, nextRepairStep }) => {
+const step1 = ({ globalFunc, nextRepairStep, setcustomerName }) => {
+  const { setSnackBar } = globalFuncs();
   const [customersSelection, setCustomersSelection] = useState([]);
   const [showCustForm, setShowCustForm] = useState(false);
   const [customers, setCustomers] = useState([]);
@@ -77,13 +58,23 @@ const step1 = ({ globalFunc, nextRepairStep }) => {
           setShowCustForm(false);
         } else if (res.res === 401) {
           globalFunc.setLoggedIn(false);
-          globalFunc.setErrorSBText("Unauthorized, redirecting to login");
-          globalFunc.setErrorSB(true);
+          setSnackBar({
+            type: "error",
+            title: "Error",
+            message: "Unauthorized, redirecting to login",
+            show: true,
+            icon: "warning",
+          });
         }
       } else if (response.status == 401) {
         globalFunc.setLoggedIn(false);
-        globalFunc.setErrorSBText("Unauthorized, redirecting to login");
-        globalFunc.setErrorSB(true);
+        setSnackBar({
+          type: "error",
+          title: "Error",
+          message: "Unauthorized, redirecting to login",
+          show: true,
+          icon: "warning",
+        });
       }
     };
     fetchData();
@@ -151,10 +142,33 @@ const step1 = ({ globalFunc, nextRepairStep }) => {
     console.log("Valid email", validateEmail(selectedcustomer.email_address || ""));
     console.log("Valid Phone", PhoneisValid(selectedcustomer.phone_number));
     if (!validateEmail(selectedcustomer.email_address)) {
-      globalFunc.setErrorSBText("A valid email address is required for consignments.");
-      globalFunc.setErrorSB(true);
+      setSnackBar({
+        type: "error",
+        title: "Error",
+        message: "A valid email address is required for consignments.",
+        show: true,
+        icon: "warning",
+      });
       return null;
     }
+    if (
+      (selectedcustomer.address != undefined && selectedcustomer.address.address_line_1 == "") ||
+      (selectedcustomer.address != undefined ? selectedcustomer.address.locality == "" : true) ||
+      (selectedcustomer.address != undefined
+        ? selectedcustomer.address.administrative_district_level_1 == ""
+        : true) ||
+      (selectedcustomer.address != undefined ? selectedcustomer.address.postal_code == "" : true)
+    ) {
+      setSnackBar({
+        type: "error",
+        title: "Error",
+        message: "Address is required for consignments.",
+        show: true,
+        icon: "warning",
+      });
+      return null;
+    }
+    console.log("Submitting customer", selectedcustomer);
     if (selectedcustomer.id == undefined || selectedcustomer.id == 0) {
       //New Customer
       try {
@@ -170,15 +184,34 @@ const step1 = ({ globalFunc, nextRepairStep }) => {
         const json = await response.json();
         //setCustomerID(json.data.customer.id);
         if (json.res == 200) {
+          setcustomerName({
+            name: `${json.data.given_name != undefined ? json.data.given_name : ""} ${
+              json.data.family_name != undefined ? json.data.family_name : ""
+            }`,
+            email: json.data.email_address != undefined ? json.data.email_address : "",
+            phone: json.data.phone_number != undefined ? json.data.phone_number : "",
+            address1: json.data.address != undefined ? json.data.address.address_line_1 : "",
+            address2: json.data.address != undefined ? json.data.address.address_line_2 : "",
+            city: json.data.address != undefined ? json.data.address.locality : "",
+            state:
+              json.data.address != undefined
+                ? json.data.address.administrative_district_level_1
+                : "",
+            zip: json.data.address != undefined ? json.data.address.postal_code : "",
+          });
           nextRepairStep(val, json.data._id);
           return null;
         } else if (json.res == 401) {
           globalFunc.setLoggedIn(false);
         }
       } catch (e) {
-        globalFunc.setErrorSBText("Error creating customer.");
-        globalFunc.setErrorSB(true);
-        // TODO: Add error notification
+        setSnackBar({
+          type: "error",
+          title: "Error",
+          message: "Error creating customer.",
+          show: true,
+          icon: "warning",
+        });
       }
     } else {
       //Existing customer, let's update square of any changes
@@ -194,10 +227,30 @@ const step1 = ({ globalFunc, nextRepairStep }) => {
         });
         const json = await response.json();
         //setCustomerID(json.data.customer.id);
+        setcustomerName({
+          name: `${json.data.given_name != undefined ? json.data.given_name : ""} ${
+            json.data.family_name != undefined ? json.data.family_name : ""
+          }`,
+          email: json.data.email_address != undefined ? json.data.email_address : "",
+          phone: json.data.phone_number != undefined ? json.data.phone_number : "",
+          address1: json.data.address != undefined ? json.data.address.address_line_1 : "",
+          address2: json.data.address != undefined ? json.data.address.address_line_2 : "",
+          city: json.data.address != undefined ? json.data.address.locality : "",
+          state:
+            json.data.address != undefined ? json.data.address.administrative_district_level_1 : "",
+          zip: json.data.address != undefined ? json.data.address.postal_code : "",
+        });
         nextRepairStep(val, json.data._id);
         return null;
       } catch (e) {
-        // TODO: Add error notification
+        setSnackBar({
+          type: "error",
+          title: "Error",
+          message: "An error occurred updating customer.",
+          show: true,
+          icon: "warning",
+        });
+        console.log("Error updating customer", e);
       }
     }
   };
@@ -233,6 +286,11 @@ const step1 = ({ globalFunc, nextRepairStep }) => {
           <FormControl fullWidth>
             <Divider fullWidth></Divider>
             <Grid container spacing={1} marginTop={1}>
+              <Grid item xs={12}>
+                <MDTypography variant="h6" color="text">
+                  Customer Information: (Enter information as displayed on their ID)
+                </MDTypography>
+              </Grid>
               <Grid item md={6} sm={12}>
                 <TextField
                   label="First Name"

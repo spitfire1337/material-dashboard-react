@@ -16,8 +16,9 @@ Coded by www.creative-tim.com
 */
 import { useState, React, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-
 import vars from "../../../config";
+//Global
+import { globalFuncs } from "../../../context/global";
 
 // Material Dashboard 2 React components
 import MDBox from "components/MDBox";
@@ -25,14 +26,15 @@ import MDTypography from "components/MDTypography";
 import MDBadge from "components/MDBadge";
 import moment from "moment";
 
-export default function data(globalFunc, contIntake, status) {
+const data = (globalFunc, status = [], tableState, setTableState) => {
+  const { setSnackBar, setShowLoad } = globalFuncs();
   let redirect = useNavigate();
   const [repairsOrig, setrepairsOrig] = useState([]);
   const [repairs, setRepairs] = useState([]);
   const [searchTerm, setsearchTerm] = useState(null);
-  console.log("repairsDataTable render, status:", status);
+
   const [myFilters, setmyFilters] = useState({
-    status: status,
+    status: [],
     RepairType: [
       "Tire Change",
       "Tube Change",
@@ -42,7 +44,9 @@ export default function data(globalFunc, contIntake, status) {
       undefined,
     ],
   });
+
   const fetchData = async (globalFunc) => {
+    setShowLoad(true);
     const response = await fetch(`${vars.serverUrl}/square/getMyData?action=getRepairs`, {
       credentials: "include",
     });
@@ -50,23 +54,41 @@ export default function data(globalFunc, contIntake, status) {
       const res = await response.json();
 
       if (res.res === 200) {
-        setrepairsOrig(res.data);
-        setRepairs(res.data);
-        doFilter();
+        setShowLoad(false);
+        setTableState((s) => ({ ...s, data: res.data, dataFiltered: res.data, loaded: true }));
+        doFilter(res.data);
       } else if (res.res === 401) {
         globalFunc.setLoggedIn(false);
-        globalFunc.setErrorSBText("Unauthorized, redirecting to login");
-        globalFunc.setErrorSB(true);
+        setSnackBar({
+          type: "error",
+          title: "Error",
+          message: "Unauthorized, redirecting to login",
+          show: true,
+          icon: "check",
+        });
       }
     } else if (response.status == 401) {
+      setShowLoad(false);
       globalFunc.setLoggedIn(false);
-      globalFunc.setErrorSBText("Unauthorized, redirecting to login");
-      globalFunc.setErrorSB(true);
+      setSnackBar({
+        type: "error",
+        title: "Error",
+        message: "Unauthorized, redirecting to login",
+        show: true,
+        icon: "check",
+      });
     }
   };
   useEffect(() => {
-    fetchData(globalFunc);
+    if (!tableState.loaded) {
+      fetchData(globalFunc);
+    } else {
+      doFilter();
+    }
   }, []);
+  useEffect(() => {
+    doFilter();
+  }, [tableState.data]);
 
   const reRender = () => {
     fetchData(globalFunc);
@@ -74,11 +96,13 @@ export default function data(globalFunc, contIntake, status) {
 
   const doFilter = (data = null) => {
     let filterData;
-    if (data == null || data == "") {
-      filterData = [...repairsOrig];
-    } else {
-      filterData = [...data];
+    if (data == null) {
+      data = tableState.data;
+      // filterData = [...tableState.data];
     }
+    filterData = [...data];
+    console.log("doFilter called with data:", data);
+
     let filtered = filterData.filter((item) => {
       for (var key in myFilters) {
         if (
@@ -90,22 +114,71 @@ export default function data(globalFunc, contIntake, status) {
       }
       return true;
     });
-    if (data == null) {
-      doSearch(filtered);
-    } else {
-      setRepairs(filtered);
-    }
+    setTableState((s) => ({ ...s, dataFiltered: filtered }));
+    console.log("Filtered data:", filtered);
   };
+
+  // const doFilter = (data = null) => {
+  //   let filterData;
+  //   if (data == null || data == "") {
+  //     filterData = [...repairsOrig];
+  //   } else {
+  //     filterData = [...data];
+  //   }
+  //   let filtered = filterData.filter((item) => {
+  //     for (var key in myFilters) {
+  //       if (
+  //         item[key] === undefined ||
+  //         myFilters[key].indexOf(item[key].constructor.name == "Array" ? item[key][0] : item[key]) <
+  //           0
+  //       )
+  //         return false;
+  //     }
+  //     return true;
+  //   });
+  //   if (data == null) {
+  //     doSearch(filtered);
+  //   } else {
+  //     setRepairs(filtered);
+  //   }
+  // };
   const filter = (filter) => {
     setmyFilters(filter);
   };
 
   useEffect(() => {
-    doSearch();
+    if (tableState.loaded) {
+      console.log("Search term changed:", searchTerm);
+      if (searchTerm == "") {
+        doFilter();
+      } else {
+        doSearch();
+      }
+    }
   }, [searchTerm, repairsOrig]);
 
+  // useEffect(() => {
+  //   if (repairs.length > 0) {
+  //     console.log("status filter changed:", status);
+  //     doFilter();
+  //   }
+  // }, [myFilters]);
+
+  useEffect(() => {
+    console.log("myFilters changed:", myFilters);
+    if (searchTerm !== "") {
+      doSearch();
+    }
+    doFilter();
+  }, [myFilters]);
+
+  // useEffect(() => {
+  //   console.log("repairs changed:", repairs);
+  //   setData();
+  // }, [repairs]);
+
   const doSearch = () => {
-    let filterData = [...repairs];
+    let filterData = [...tableState.data];
     if (searchTerm == "" || searchTerm == null) {
       //doFilter(repairsOrig);
       return;
@@ -150,7 +223,7 @@ export default function data(globalFunc, contIntake, status) {
       return false;
     });
     setRepairs(filtered);
-    //doFilter(filtered);
+    doFilter(filtered);
   };
 
   const resetFilter = () => {
@@ -186,25 +259,6 @@ export default function data(globalFunc, contIntake, status) {
       <MDTypography variant="caption">{description}</MDTypography>
     </MDBox>
   );
-
-  const Actions = ({ repairStatus, repair }) => {
-    if (repairStatus == 0) {
-      return (
-        <MDTypography
-          component="a"
-          href="#"
-          variant="caption"
-          color="text"
-          fontWeight="medium"
-          onClick={() => {
-            contIntake(repair);
-          }}
-        >
-          Continue intake
-        </MDTypography>
-      );
-    }
-  };
 
   const Status = ({ repairStatus, id }) => {
     if (repairStatus == 0) {
@@ -451,33 +505,137 @@ export default function data(globalFunc, contIntake, status) {
     }
   };
 
+  const setData = () => {
+    setTableState((s) => ({
+      ...s,
+      columns: [
+        { Header: "repair id", accessor: "id", align: "left" },
+        { Header: "customer", accessor: "customer", width: "25%", align: "left" },
+        { Header: "pev", accessor: "pev", align: "left" },
+        { Header: "status", accessor: "status", align: "center" },
+        {
+          Header: "received",
+          accessor: "received",
+          align: "center",
+          isSorted: true,
+          isSortedDesc: false,
+        },
+        { Header: "updated", accessor: "updated", align: "center" },
+      ],
+
+      rows:
+        tableState.dataFiltered.length > 0
+          ? tableState.dataFiltered.map((repair) => {
+              return {
+                id: repair.repairID,
+                customer: (
+                  <Customer
+                    id={repair._id}
+                    name={
+                      (repair.Customer != undefined && repair.Customer.given_name != undefined
+                        ? repair.Customer.given_name
+                        : "") +
+                      " " +
+                      (repair.Customer != undefined && repair.Customer.family_name != undefined
+                        ? repair.Customer.family_name
+                        : "")
+                    }
+                    email={
+                      repair.Customer != undefined
+                        ? repair.Customer.phone_number
+                        : "" || repair.Customer != undefined
+                        ? repair.Customer.email_address
+                        : ""
+                    }
+                  />
+                ),
+                pev: (
+                  <Pev
+                    id={repair._id}
+                    title={repair.pev.Brand.name}
+                    description={repair.pev.Model}
+                  />
+                ),
+                status: <Status repairStatus={repair.status} id={repair._id} />,
+                received: (
+                  <MDTypography
+                    component="a"
+                    href="#"
+                    variant="caption"
+                    color="text"
+                    fontWeight="medium"
+                    sx={{ cursor: "pointer" }}
+                    onClick={() => redirect(`/repairdetails/${repair._id}`, { replace: false })}
+                  >
+                    {moment(repair.createdAt).format("MM/DD/yyyy hh:mm a")}
+                  </MDTypography>
+                ),
+                updated: (
+                  <MDTypography
+                    component="a"
+                    href={"/repairdetails/" + repair._id}
+                    variant="caption"
+                    color="text"
+                    fontWeight="medium"
+                  >
+                    {moment(repair.updatedAt).format("MM/DD/yyyy hh:mm a")}
+                  </MDTypography>
+                ),
+              };
+            })
+          : [],
+    }));
+  };
   return {
-    repairs: repairsOrig,
+    repairs: tableState.data,
     resetFilter: resetFilter,
-    filter: filter,
+    doFilter: doFilter,
     reRender: reRender,
     setsearchTerm: setsearchTerm,
     searchTerm: searchTerm,
+    myFilters: myFilters,
+    setmyFilters: setmyFilters,
+    doFilter: doFilter,
     columns: [
-      { Header: "repair id", accessor: "id", align: "left" },
-      { Header: "customer", accessor: "customer", width: "25%", align: "left" },
-      { Header: "pev", accessor: "pev", align: "left" },
-      { Header: "status", accessor: "status", align: "center" },
+      // { Header: "repair id", accessor: "id", align: "left" },
+      // { Header: "customer", accessor: "customer", width: "25%", align: "left" },
+      // { Header: "pev", accessor: "pev", align: "left" },
+      // { Header: "status", accessor: "status", align: "center" },
+      // {
+      //   Header: "received",
+      //   accessor: "received",
+      //   align: "center",
+      //   isSorted: true,
+      //   isSortedDesc: false,
+      // },
+      // { Header: "updated", accessor: "updated", align: "center" },
+      { name: "repair id", selector: (row) => row.id, align: "left", sortable: true, width: "10%" },
       {
-        Header: "received",
-        accessor: "received",
+        name: "customer",
+        selector: (row) => row.customer,
+        width: "20%",
+        align: "left",
+        sortable: true,
+      },
+      { name: "pev", selector: (row) => row.pev, left: true, width: "140px", sortable: true },
+      { name: "status", selector: (row) => row.status, center: true, sortable: true },
+      {
+        name: "received",
+        selector: (row) => row.received,
         align: "center",
         isSorted: true,
         isSortedDesc: false,
+        sortable: true,
       },
-      { Header: "updated", accessor: "updated", align: "center" },
+      { name: "updated", selector: (row) => row.updated, align: "center", sortable: true },
     ],
 
     rows:
-      repairs.length > 0
-        ? repairs.map((repair) => {
+      tableState.dataFiltered.length > 0
+        ? tableState.dataFiltered.map((repair) => {
             return {
               id: repair.repairID,
+              allData: repair,
               customer: (
                 <Customer
                   id={repair._id}
@@ -531,4 +689,8 @@ export default function data(globalFunc, contIntake, status) {
           })
         : [],
   };
-}
+};
+
+data.whyDidYouRender = true;
+
+export default data;

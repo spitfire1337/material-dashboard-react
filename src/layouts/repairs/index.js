@@ -15,7 +15,7 @@ Coded by www.creative-tim.com
 // React components
 import { useState, React, useEffect } from "react";
 import { useParams } from "react-router-dom";
-
+import { useTableState } from "../../context/tableState";
 // Vars
 import vars from "../../config";
 
@@ -31,6 +31,7 @@ import {
   DialogContent,
   DialogActions,
   TextField,
+  Tooltip,
 } from "@mui/material";
 import { makeStyles } from "@mui/styles";
 import { Modal, Select, IconButton, Icon } from "@mui/material";
@@ -43,17 +44,19 @@ import MDButton from "components/MDButton";
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import Footer from "examples/Footer";
-import DataTable from "examples/Tables/DataTable";
-
+//import DataTable from "examples/Tables/DataTable";
+import DataTable from "react-data-table-component";
 import Step1 from "./components/step1";
 import Step2 from "./components/step2_new";
 import Step3 from "./components/step3";
 import Step4 from "./components/step4";
 
+import ExpandedComponent from "./components/expand";
 // Data
 import authorsTableData from "layouts/tables/data/repairsDataTable";
 import projectsTableData from "layouts/tables/data/projectsTableData";
 import FilterDialog from "./components/filter";
+import tab from "assets/theme/components/tabs/tab";
 
 const style = {
   position: "absolute",
@@ -90,54 +93,50 @@ const iconsStyle = ({ palette: { dark, white, text }, functions: { rgba } }) => 
 });
 // eslint-disable-next-line react/prop-types
 const Repairs = ({ globalFunc }) => {
+  const { tableState, setTableState, RepairRerender } = useTableState();
   const { repairstatus } = useParams();
   const classes = useStyles();
-  const { columns: pColumns, rows: pRows } = projectsTableData();
   const [newRepair, setNewRepair] = useState(false);
   const [repairData, setRepairData] = useState({});
   const [repairID, setrepairID] = useState(null);
   const [showFilter, setShowFiler] = useState(false);
-  const [filterVal, setfilterVal] = useState();
-  const [filteKey, setfilterKey] = useState();
 
-  const useForm = (initialValues) => {
-    const [values, setValues] = useState(initialValues);
-    return [
-      values,
-      (newValue) => {
-        setValues({
-          ...values,
-          ...newValue,
-        });
-      },
-    ];
-  };
   const [repairStep, setRepairStep] = useState(1);
 
   const updateRepairData = (val) => {
     setRepairData({ ...val });
   };
+  let statusfilter = [];
 
-  const contIntake = (repair) => {
-    setrepairID(repair._id);
-    updateRepairData({ customer: repair.Customer._id, pev: repair.pev._id });
-    setNewRepair(true);
-    setRepairStep(3);
-  };
-  console.log("Repair status param:", repairstatus);
-  let statusfilter;
-  if (repairstatus) {
-    if (repairstatus.indexOf("|") > -1) {
-      const statusParts = repairstatus.split("|");
-      statusfilter = statusParts.map((s) => parseInt(s));
+  const {
+    columns,
+    rows,
+    reRender,
+    filter,
+    resetFilter,
+    repairs,
+    setsearchTerm,
+    searchterm,
+    myFilters,
+    setmyFilters,
+    doFilter,
+  } = authorsTableData(globalFunc, statusfilter, tableState, setTableState);
+
+  useEffect(() => {
+    let statusfilter = [];
+    if (repairstatus) {
+      if (repairstatus.indexOf("|") > -1) {
+        const statusParts = repairstatus.split("|");
+        statusfilter = statusParts.map((s) => parseInt(s));
+      } else {
+        statusfilter = [parseInt(repairstatus)];
+      }
     } else {
-      statusfilter = [parseInt(repairstatus)];
+      statusfilter = [0, 1, 2, 3, 4, 5, 11, 997];
     }
-  } else {
-    statusfilter = [0, 1, 2, 3, 4, 5, 11, 997];
-  }
-  const { columns, rows, reRender, filter, resetFilter, repairs, setsearchTerm, searchterm } =
-    authorsTableData(globalFunc, contIntake, statusfilter);
+    setmyFilters((s) => ({ ...s, status: statusfilter }));
+    doFilter();
+  }, []);
 
   const nextRepairStep = async (val, customer = null) => {
     if (val == 2) {
@@ -153,7 +152,7 @@ const Repairs = ({ globalFunc }) => {
       setRepairStep(4);
     }
     if (val == 5) {
-      reRender();
+      RepairRerender(doFilter);
       setNewRepair(false);
       setRepairStep(0);
     }
@@ -164,6 +163,7 @@ const Repairs = ({ globalFunc }) => {
     setRepairStep(0);
   };
 
+  console.log("Repair table rendered");
   return (
     <DashboardLayout>
       <DashboardNavbar globalFunc={globalFunc} />
@@ -205,26 +205,53 @@ const Repairs = ({ globalFunc }) => {
                     />
                   </Grid>
                   <Grid item xs={1} alignItems="center" textAlign="right">
-                    <IconButton
-                      size="large"
-                      disableRipple
-                      color="red"
-                      onClick={() => {
-                        setShowFiler(true);
-                      }}
-                    >
-                      <Icon sx={iconsStyle}>filter_list</Icon>
-                    </IconButton>
+                    <Tooltip title="Refresh list">
+                      <IconButton
+                        size="large"
+                        disableRipple
+                        color="red"
+                        onClick={() => {
+                          RepairRerender(doFilter);
+                        }}
+                      >
+                        <Icon sx={iconsStyle}>refresh</Icon>
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title="Filter">
+                      <IconButton
+                        size="large"
+                        disableRipple
+                        color="red"
+                        onClick={() => {
+                          setShowFiler(true);
+                        }}
+                      >
+                        <Icon sx={iconsStyle}>filter_list</Icon>
+                      </IconButton>
+                    </Tooltip>
                   </Grid>
                 </Grid>
               </MDBox>
               <MDBox pt={3}>
                 <DataTable
-                  entriesPerPage={10}
-                  table={{ columns, rows }}
+                  entriesPerPage={tableState.pageSize}
+                  //table={{ columns, rows }}
+                  columns={columns}
+                  data={rows}
                   showTotalEntries={true}
                   noEndBorder
                   pagination
+                  defaultSortFieldId={5}
+                  expandableRows={true}
+                  expandableRowsComponent={(data) => (
+                    <ExpandedComponent data={data} reRender={() => RepairRerender(doFilter)} />
+                  )}
+                  paginationPerPage={tableState.pageSize}
+                  paginationDefaultPage={tableState.page + 1}
+                  onChangePage={(page) => setTableState((s) => ({ ...s, page: page - 1 }))}
+                  onChangeRowsPerPage={(newSize) =>
+                    setTableState((s) => ({ ...s, pageSize: newSize }))
+                  }
                 />
               </MDBox>
             </Card>
@@ -263,7 +290,7 @@ const Repairs = ({ globalFunc }) => {
               repairID={repairID}
               globalFunc={globalFunc}
               nextRepairStep={nextRepairStep}
-              reRender={reRender}
+              reRender={() => RepairRerender(doFilter)}
               setNewRepair={setNewRepair}
             ></Step4>
           )}
@@ -273,7 +300,7 @@ const Repairs = ({ globalFunc }) => {
             color="secondary"
             onClick={() => {
               setNewRepair(false);
-              reRender();
+              RepairRerender(doFilter);
               setRepairStep(0);
             }}
           >
@@ -286,6 +313,8 @@ const Repairs = ({ globalFunc }) => {
         showFilter={showFilter}
         resetFilter={resetFilter}
         setShowFiler={setShowFiler}
+        setmyFilters={setmyFilters}
+        myFilters={myFilters}
         repairs={repairs}
       />
     </DashboardLayout>

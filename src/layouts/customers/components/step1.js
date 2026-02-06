@@ -1,36 +1,17 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
+//Global
+import { globalFuncs } from "../../../context/global";
 
-import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 import MDButton from "components/MDButton";
-import {
-  Modal,
-  FormControl,
-  Select,
-  MenuItem,
-  InputLabel,
-  TextField,
-  Divider,
-  Grid,
-} from "@mui/material";
+import { FormControl, TextField, Divider, Grid } from "@mui/material";
 import Autocomplete, { createFilterOptions } from "@mui/material/Autocomplete";
 
 import vars from "../../../config";
-const style = {
-  position: "absolute",
-  top: "50%",
-  left: "50%",
-  transform: "translate(-50%, -50%)",
-  width: "80%",
-  bgcolor: "background.paper",
-  border: "2px solid #000",
-  boxShadow: 24,
-  p: 4,
-  borderRadius: "25px",
-};
 const filter = createFilterOptions();
 
 const step1 = ({ globalFunc, nextRepairStep }) => {
+  const { setSnackBar } = globalFuncs();
   const [customersSelection, setCustomersSelection] = useState([]);
   const [showCustForm, setShowCustForm] = useState(false);
   const [customers, setCustomers] = useState([]);
@@ -79,13 +60,23 @@ const step1 = ({ globalFunc, nextRepairStep }) => {
           setShowCustForm(false);
         } else if (res.res === 401) {
           globalFunc.setLoggedIn(false);
-          globalFunc.setErrorSBText("Unauthorized, redirecting to login");
-          globalFunc.setErrorSB(true);
+          setSnackBar({
+            type: "error",
+            title: "Error",
+            message: "Unauthorized, redirecting to login",
+            show: true,
+            icon: "warning",
+          });
         }
       } else if (response.status == 401) {
         globalFunc.setLoggedIn(false);
-        globalFunc.setErrorSBText("Unauthorized, redirecting to login");
-        globalFunc.setErrorSB(true);
+        setSnackBar({
+          type: "error",
+          title: "Error",
+          message: "Unauthorized, redirecting to login",
+          show: true,
+          icon: "warning",
+        });
       }
     };
     fetchData();
@@ -157,9 +148,13 @@ const step1 = ({ globalFunc, nextRepairStep }) => {
           globalFunc.setLoggedIn(false);
         }
       } catch (e) {
-        globalFunc.setErrorSBText("Error creating customer.");
-        globalFunc.setErrorSB(true);
-        // TODO: Add error notification
+        setSnackBar({
+          type: "error",
+          title: "Error",
+          message: "Error creating customer.",
+          show: true,
+          icon: "warning",
+        });
       }
     } else {
       //Existing customer, let's update square of any changes

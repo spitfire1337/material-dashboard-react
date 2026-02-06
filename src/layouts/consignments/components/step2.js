@@ -1,43 +1,19 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState } from "react";
+//Global
+import { globalFuncs } from "../../../context/global";
 
-import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 import MDButton from "components/MDButton";
-import { EditorState, convertToRaw } from "draft-js";
-import { Editor } from "react-draft-wysiwyg";
-import draftToHtml from "draftjs-to-html";
-import htmlToDraft from "html-to-draftjs";
 import "../../../../node_modules/react-draft-wysiwyg/dist/react-draft-wysiwyg.css";
-import {
-  Modal,
-  FormControl,
-  Select,
-  MenuItem,
-  InputLabel,
-  Autocomplete,
-  TextField,
-  Divider,
-  Grid,
-  FormControlLabel,
-  FormGroup,
-  Checkbox,
-} from "@mui/material";
+import { FormControl, Select, MenuItem, InputLabel, TextField, Divider, Grid } from "@mui/material";
 import { DemoContainer } from "@mui/x-date-pickers/internals/demo";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
-import IconButton from "@mui/material/IconButton";
-import Icon from "@mui/material/Icon";
 import NodeRSA from "node-rsa";
 import vars from "../../../config";
-import { BorderAllOutlined } from "@mui/icons-material";
-const iconsStyle = ({ palette: { dark, white, text }, functions: { rgba } }) => ({
-  color: () => {
-    let colorValue = dark.main;
-    return colorValue;
-  },
-});
 const step4 = ({ globalFunc, newConsignmentData, updateConsignmentData, nextRepairStep }) => {
+  const { setSnackBar } = globalFuncs();
   const [idNumber, setIdNumber] = useState("");
   const [issuer, setIssuer] = useState("");
   const [expirationDate, setExpirationDate] = useState(null);
@@ -100,6 +76,36 @@ const step4 = ({ globalFunc, newConsignmentData, updateConsignmentData, nextRepa
     return key.encrypt(data, "base64"); // Encrypted data in base64
   };
   const handleNext = async () => {
+    if (idNumber == "") {
+      setSnackBar({
+        type: "error",
+        title: "Error",
+        message: "Customer ID is required",
+        show: true,
+        icon: "warning",
+      });
+      return;
+    }
+    if (issuer == "") {
+      setSnackBar({
+        type: "error",
+        title: "Error",
+        message: "ID issuer is required",
+        show: true,
+        icon: "warning",
+      });
+      return;
+    }
+    if (expirationDate == null) {
+      setSnackBar({
+        type: "error",
+        title: "Error",
+        message: "Experation date is required",
+        show: true,
+        icon: "warning",
+      });
+      return;
+    }
     let encryptedId = await encryptId(idNumber);
     let consignmentData = { ...newConsignmentData };
     consignmentData.idNumber = encryptedId;
@@ -124,7 +130,7 @@ const step4 = ({ globalFunc, newConsignmentData, updateConsignmentData, nextRepa
         <FormControl fullWidth>
           <Divider fullWidth></Divider>
           <Grid container spacing={1} marginTop={1}>
-            <Grid item sm={6}>
+            <Grid item sm={12}>
               <FormControl fullWidth>
                 <InputLabel id="demo-simple-select-label">Type</InputLabel>
                 <Select

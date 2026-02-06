@@ -12,12 +12,16 @@ Coded by www.creative-tim.com
 
 * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 */
-
+import "./context/wdyr";
 import React from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
+import { TableStateProvider } from "context/tableState";
+import { LoginStateProvider } from "context/loginContext";
+import { GlobalProvider } from "context/global";
 import App from "App";
 import { registerLicense } from "@syncfusion/ej2-base";
+import { AddToHomeScreen } from "react-pwa-add-to-homescreen";
 // Material Dashboard 2 React Context Provider
 import { MaterialUIControllerProvider } from "context";
 registerLicense(
@@ -29,7 +33,14 @@ const root = createRoot(container);
 root.render(
   <BrowserRouter>
     <MaterialUIControllerProvider>
-      <App />
+      <GlobalProvider>
+        <LoginStateProvider>
+          <TableStateProvider>
+            <AddToHomeScreen />
+            <App />
+          </TableStateProvider>
+        </LoginStateProvider>
+      </GlobalProvider>
     </MaterialUIControllerProvider>
   </BrowserRouter>
 );

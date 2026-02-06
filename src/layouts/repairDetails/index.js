@@ -21,6 +21,7 @@ import NotesItem from "examples/Timeline/NotesItem";
 import RepairImages from "./components/images";
 import AddNotes from "layouts/repairs/components/addnotes";
 import parse from "html-react-parser";
+import { globalFuncs } from "../../context/global";
 
 // Vars
 import vars from "../../config";
@@ -28,17 +29,7 @@ import vars from "../../config";
 // @mui material components
 import Grid from "@mui/material/Grid";
 import Card from "@mui/material/Card";
-import Button from "@mui/material/Button";
-import {
-  Modal,
-  FormControl,
-  Select,
-  MenuItem,
-  InputLabel,
-  Autocomplete,
-  TextField,
-  Divider,
-} from "@mui/material";
+import { Divider } from "@mui/material";
 
 // Material Dashboard 2 React components
 import MDBox from "components/MDBox";
@@ -53,15 +44,13 @@ import Footer from "examples/Footer";
 import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
-import DialogContentText from "@mui/material/DialogContentText";
 import DialogActions from "@mui/material/DialogActions";
-import CircularProgress from "@mui/material/CircularProgress";
 import IconButton from "@mui/material/IconButton";
 import Icon from "@mui/material/Icon";
 import PartsAdd from "./components/addParts";
-import Loading from "../../components/Loading_Dialog";
 import AddPhotos from "./components/addPhoto";
-import Notification from "components/Notifications";
+import { useTableState } from "../../context/tableState";
+
 const iconsStyle = ({ palette: { dark, white, text }, functions: { rgba } }) => ({
   color: () => {
     let colorValue = dark.main;
@@ -73,20 +62,11 @@ const iconsStyle = ({ palette: { dark, white, text }, functions: { rgba } }) => 
     return colorValue;
   },
 });
-const style = {
-  position: "absolute",
-  top: "50%",
-  left: "50%",
-  transform: "translate(-50%, -50%)",
-  width: "80%",
-  bgcolor: "background.paper",
-  border: "2px solid #000",
-  boxShadow: 24,
-  p: 4,
-  borderRadius: "25px",
-};
+
 // eslint-disable-next-line react/prop-types
 const RepairDetails = ({ globalFunc }) => {
+  const { setSnackBar, setShowLoad } = globalFuncs();
+  const { RepairRerender } = useTableState();
   const { id } = useParams();
   const [repairID, setrepairID] = useState(id);
   const [loading, setLoading] = useState(true);
@@ -105,8 +85,6 @@ const RepairDetails = ({ globalFunc }) => {
   const [partId, setPartid] = useState();
   const [partName, setPartName] = useState();
   const [newMinutes, setnewMinutes] = useState();
-  const { showSnackBar, RenderSnackbar } = Notification();
-  const { setShowLoad, LoadBox } = Loading();
   const getRepair = async () => {
     setShowLoad(true);
     createInvoice();
@@ -123,17 +101,31 @@ const RepairDetails = ({ globalFunc }) => {
     const res = await response.json();
     if (res.res === 401) {
       globalFunc.setLoggedIn(false);
-      showSnackBar("error", "Unauthorized, redirecting to login");
+      setSnackBar({
+        type: "error",
+        title: "Unauthorized",
+        message: "redirecting to login",
+        show: true,
+        icon: "warning",
+      });
     } else if (res.res === 500) {
-      showSnackBar("error", "Server error occured");
+      setSnackBar({
+        type: "error",
+        title: "Server error occured",
+        message: "Please try again later",
+        show: true,
+        icon: "error",
+      });
     } else {
       setLoading(false);
+      setShowLoad(false);
       setnewMinutes(Math.round(res.data.repairTime * 60));
       setrepairDetails(res.data);
       setrepairHistory(res.history);
       setrepairImages(res.images);
       setAllRepairNotes(res.notes);
       setAllParts(res.parts);
+      RepairRerender();
       //setRepairOrderReady(true);
     }
     setShowLoad(false);
@@ -155,7 +147,13 @@ const RepairDetails = ({ globalFunc }) => {
       setRepairOrder(json.data[0]);
       setRepairOrderReady(true);
     } else {
-      showSnackBar("error", "Server error occured");
+      setSnackBar({
+        type: "error",
+        title: "Server error occured",
+        message: "Please try again later",
+        show: true,
+        icon: "error",
+      });
     }
     setShowLoad(false);
   };
@@ -174,13 +172,31 @@ const RepairDetails = ({ globalFunc }) => {
     const res = await response.json();
     if (res.res === 401) {
       globalFunc.setLoggedIn(false);
-      showSnackBar("error", "Unauthorized, redirecting to login");
+      setSnackBar({
+        type: "error",
+        title: "Unauthorized",
+        message: "redirecting to login",
+        show: true,
+        icon: "warning",
+      });
     } else if (res.res === 500) {
-      showSnackBar("error", "Server error occured");
+      setSnackBar({
+        type: "error",
+        title: "Server error occured",
+        message: "Please try again later",
+        show: true,
+        icon: "error",
+      });
     } else {
       setnewRepairNotes(false);
       getRepair();
-      showSnackBar("success", "Notes saved");
+      setSnackBar({
+        type: "success",
+        title: "Notes saved",
+        message: "Your notes have been saved successfully",
+        show: true,
+        icon: "check",
+      });
     }
     setShowLoad(false);
   };
@@ -263,13 +279,25 @@ const RepairDetails = ({ globalFunc }) => {
     const json = await response.json();
     setShowLoad(false);
     if (json.res == 200) {
-      showSnackBar("success", "Part removed from repair");
+      setSnackBar({
+        type: "success",
+        title: "Part removed from repair",
+        message: "The part has been successfully removed from the repair",
+        show: true,
+        icon: "check",
+      });
       getRepair();
       if (status == 4) {
         createInvoice();
       }
     } else {
-      showSnackBar("error", "Server error occured");
+      setSnackBar({
+        type: "error",
+        title: "Server error occured",
+        message: "Please try again later",
+        show: true,
+        icon: "error",
+      });
     }
   };
 
@@ -291,10 +319,22 @@ const RepairDetails = ({ globalFunc }) => {
     const json = await response.json();
     setShowLoad(false);
     if (json.res == 200) {
-      showSnackBar("success", "Repair time adjusted");
+      setSnackBar({
+        type: "success",
+        title: "Repair time adjusted",
+        message: "The repair time has been successfully adjusted",
+        show: true,
+        icon: "check",
+      });
       getRepair();
     } else {
-      showSnackBar("error", "Server error occured");
+      setSnackBar({
+        type: "error",
+        title: "Server error occured",
+        message: "Please try again later",
+        show: true,
+        icon: "error",
+      });
     }
   };
 
@@ -304,17 +344,17 @@ const RepairDetails = ({ globalFunc }) => {
   });
 
   useEffect(() => {
+    setShowLoad(true);
     setrepairID(repairID);
     setRepairId(repairID);
     getRepair();
     createInvoice();
-  }, []);
+  }, [id]);
 
   if (loading) {
     return (
       <DashboardLayout>
         <DashboardNavbar globalFunc={globalFunc} />
-        <LoadBox />
       </DashboardLayout>
     );
   }
@@ -796,7 +836,6 @@ const RepairDetails = ({ globalFunc }) => {
                     repairID={repairDetails._id}
                     globalFunc={globalFunc}
                     setShowLoad={setShowLoad}
-                    setloadingOpen={setShowLoad}
                   />
                 </MDBox>
               </Card>
@@ -861,8 +900,6 @@ const RepairDetails = ({ globalFunc }) => {
         saveNotes={saveNotes}
         globalFunc={globalFunc}
         getRepair={getRepair}
-        showSnackBar={showSnackBar}
-        setShowLoad={setShowLoad}
         repairId={repairID}
       />
       <PartsAdd
@@ -877,7 +914,6 @@ const RepairDetails = ({ globalFunc }) => {
         repairID={repairID}
         getRepair={getRepair}
       />
-      <LoadBox />
       <AddPhotoModal repairID={repairID} getRepair={getRepair} globalFunc={globalFunc} />
       <ConfirmActionDialog
         title="Are you sure?"
@@ -886,7 +922,6 @@ const RepairDetails = ({ globalFunc }) => {
         openState={confirmOpen.removePart}
         closeState={() => toggleconfirmOpen({ removePart: false })}
       />
-      <RenderSnackbar />
       <Footer />
     </DashboardLayout>
   );

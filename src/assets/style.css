@@ -35,5 +35,14 @@
 .signature-canvas {
     border: 1px solid #c4c4c4;
     border-radius: 10px;
-    width: 95vw;
+    width: 100%;
+}
+.sigContainer {
+  width: 99%;
+  background-color: #fff;
+}
+.container {
+  width: 100%;
+  top: 10%;
+  left: 10%;
 }

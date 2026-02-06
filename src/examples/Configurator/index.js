@@ -16,41 +16,29 @@ Coded by www.creative-tim.com
 import { useState, useEffect } from "react";
 import vars from "../../config";
 
-// react-github-btn
-import GitHubButton from "react-github-btn";
+//Global
+import { globalFuncs } from "../../context/global";
 
 // @mui material components
 import Divider from "@mui/material/Divider";
-import Switch from "@mui/material/Switch";
-import IconButton from "@mui/material/IconButton";
-import Link from "@mui/material/Link";
 import Icon from "@mui/material/Icon";
-import MDSnackbar from "components/MDSnackbar";
-import Notification from "components/Notifications";
 // @mui icons
-import TwitterIcon from "@mui/icons-material/Twitter";
-import FacebookIcon from "@mui/icons-material/Facebook";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
-import { renderTimeViewClock } from "@mui/x-date-pickers/timeViewRenderers";
 // Material Dashboard 2 React components
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 import MDButton from "components/MDButton";
-import TimePicker from "react-time-picker";
 import {
-  Modal,
   FormGroup,
   FormControlLabel,
   Checkbox,
-  InputLabel,
   Autocomplete,
   TextField,
   Grid,
 } from "@mui/material";
 // Custom styles for the Configurator
 import ConfiguratorRoot from "examples/Configurator/ConfiguratorRoot";
-import moment from "moment";
 // Material Dashboard 2 React context
 import {
   useMaterialUIController,
@@ -58,38 +46,22 @@ import {
   setTransparentSidenav,
   setWhiteSidenav,
   setFixedNavbar,
-  setSidenavColor,
   setDarkMode,
 } from "context";
 import "react-time-picker/dist/TimePicker.css";
 import "react-clock/dist/Clock.css";
-const TPStyle = {
-  input: { fontSize: "0.7rem", paddingRight: "1px", width: "90%" },
-  "& .MuiSvgIcon-root": {
-    color: "white",
-  },
-};
+
 // eslint-disable-next-line react/prop-types
 function Configurator({ globalFunc }) {
   const [controller, dispatch] = useMaterialUIController();
-  const {
-    openConfigurator,
-    fixedNavbar,
-    sidenavColor,
-    transparentSidenav,
-    whiteSidenav,
-    darkMode,
-  } = controller;
+  const { openConfigurator, fixedNavbar, darkMode } = controller;
   const [disabled, setDisabled] = useState(false);
   const [availablePrinters, setAvailablePrinters] = useState([]);
   const [eightXelevenPrinter, seteightXelevenPrinter] = useState();
   const [twoXonePrinter, settwoXonePrinter] = useState();
   const [businessHours, setBusinessHours] = useState([]);
   const [myAvailability, setMyAvailabilty] = useState([]);
-  const sidenavColors = ["primary", "dark", "info", "success", "warning", "error"];
-
-  const { showSnackBar, RenderSnackbar } = Notification();
-
+  const { setSnackBar } = globalFuncs();
   // Use the useEffect hook to change the button state for the sidenav type based on window size.
   useEffect(() => {
     const fetchPrinters = async () => {
@@ -126,7 +98,13 @@ function Configurator({ globalFunc }) {
         setBusinessHours(res.data);
       } else if (res.res === 401) {
         globalFunc.setLoggedIn(false);
-        showSnackBar("error", "Unauthorized");
+        setSnackBar({
+          type: "error",
+          title: "Server error occured",
+          message: "Unauthorized",
+          show: true,
+          icon: "error",
+        });
       }
     };
     const fetchMyAvailability = async () => {
@@ -138,7 +116,13 @@ function Configurator({ globalFunc }) {
         setMyAvailabilty(res.data);
       } else if (res.res === 401) {
         globalFunc.setLoggedIn(false);
-        showSnackBar("error", "Unauthorized");
+        setSnackBar({
+          type: "error",
+          title: "Server error occured",
+          message: "Unauthorized",
+          show: true,
+          icon: "error",
+        });
       }
     };
     fetchMyAvailability();
@@ -243,11 +227,23 @@ function Configurator({ globalFunc }) {
     });
     const res = await response.json();
     if (res.res == 200) {
-      showSnackBar("success", "Config saved");
+      setSnackBar({
+        type: "success",
+        title: "Config saved",
+        message: "Configuration settings have been successfully saved.",
+        show: true,
+        icon: "check_circle",
+      });
       return null;
     } else if (res.res == 401) {
       globalFunc.setLoggedIn(false);
-      showSnackBar("error", "Unauthorized");
+      setSnackBar({
+        type: "error",
+        title: "Server error occured",
+        message: "Unauthorized",
+        show: true,
+        icon: "error",
+      });
     }
   };
 
@@ -265,11 +261,23 @@ function Configurator({ globalFunc }) {
     });
     const res = await response.json();
     if (res.res == 200) {
-      showSnackBar("success", "Availability saved");
+      setSnackBar({
+        type: "success",
+        title: "Availability saved",
+        message: "Your availability has been successfully saved.",
+        show: true,
+        icon: "check_circle",
+      });
       return null;
     } else if (res.res == 401) {
       globalFunc.setLoggedIn(false);
-      showSnackBar("error", "Unauthorized");
+      setSnackBar({
+        type: "error",
+        title: "Server error occured",
+        message: "Unauthorized",
+        show: true,
+        icon: "error",
+      });
     }
   };
 
@@ -738,7 +746,6 @@ function Configurator({ globalFunc }) {
             </MDButton>
           </MDBox>
         </MDBox>
-        <RenderSnackbar />
       </MDBox>
     </ConfiguratorRoot>
   );

@@ -1,42 +1,19 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState } from "react";
+//Global
+import { globalFuncs } from "../../../context/global";
 
-import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 import MDButton from "components/MDButton";
 import { EditorState, convertToRaw } from "draft-js";
 import { Editor } from "react-draft-wysiwyg";
 import draftToHtml from "draftjs-to-html";
-import htmlToDraft from "html-to-draftjs";
 import "../../../../node_modules/react-draft-wysiwyg/dist/react-draft-wysiwyg.css";
-import {
-  Modal,
-  FormControl,
-  Select,
-  MenuItem,
-  InputLabel,
-  Autocomplete,
-  TextField,
-  Divider,
-  Grid,
-  FormControlLabel,
-  FormGroup,
-  Checkbox,
-} from "@mui/material";
-import IconButton from "@mui/material/IconButton";
-import Icon from "@mui/material/Icon";
+import { FormControl, Select, MenuItem, InputLabel, TextField, Divider, Grid } from "@mui/material";
 import vars from "../../../config";
-import { BorderAllOutlined } from "@mui/icons-material";
-const iconsStyle = ({ palette: { dark, white, text }, functions: { rgba } }) => ({
-  color: () => {
-    let colorValue = dark.main;
-    return colorValue;
-  },
-});
 const step4 = ({ globalFunc, newConsignmentData, updateConsignmentData, nextRepairStep }) => {
+  const { setSnackBar } = globalFuncs();
   const [mileage, setMileage] = useState("0");
-  const [serialNumber, setSerialNumber] = useState();
-  const [warranty, setWarranty] = useState(false);
-  const [accessories, setAccessories] = useState([]);
+  const [serialNumber, setSerialNumber] = useState("");
   const [salePrice, setSalePrice] = useState(0);
   const [condition, setCondition] = useState("");
   const [value, setValue] = useState({ editorState: EditorState.createEmpty() });
@@ -58,36 +35,46 @@ const step4 = ({ globalFunc, newConsignmentData, updateConsignmentData, nextRepa
     ];
   };
   const updateRepair = async (pev) => {
-    // try {
-    //   let postData = {
-    //     _id: repairID,
-    //     Details: draftToHtml(convertToRaw(value.editorState.getCurrentContent())),
-    //     RepairType: repairType,
-    //     warranty: warranty,
-    //     accessories: accessories,
-    //   };
-    //   const response = await fetch(`${vars.serverUrl}/repairs/updateRepair`, {
-    //     method: "POST",
-    //     headers: {
-    //       Accept: "application/json",
-    //       "Content-Type": "application/json",
-    //     },
-    //     body: JSON.stringify(postData),
-    //     credentials: "include",
-    //   });
-    //   const json = await response.json();
-    //   //setCustomerID(json.data.customer.id);
-    //   if (json.res == 200) {
-    //     nextRepairStep(4);
-    //   } else {
-    //     globalFunc.setErrorSBText("Error occurred saving repair progress.");
-    //     globalFunc.setErrorSB(true);
-    //   }
-    // } catch (e) {
-    //   globalFunc.setErrorSBText("Error occurred saving repair progress.");
-    //   globalFunc.setErrorSB(true);
-    //   // TODO: Add error notification
-    // }
+    if (serialNumber == "") {
+      setSnackBar({
+        type: "error",
+        title: "Error",
+        message: "Serial number/Motor code is required",
+        show: true,
+        icon: "warning",
+      });
+      return;
+    }
+    if (mileage == 0) {
+      setSnackBar({
+        type: "error",
+        title: "Error",
+        message: "Mileage is required",
+        show: true,
+        icon: "warning",
+      });
+      return;
+    }
+    if (condition == "") {
+      setSnackBar({
+        type: "error",
+        title: "Error",
+        message: "PEV Condition is required",
+        show: true,
+        icon: "warning",
+      });
+      return;
+    }
+    if (salePrice == 0) {
+      setSnackBar({
+        type: "error",
+        title: "Error",
+        message: "Sale price is required",
+        show: true,
+        icon: "warning",
+      });
+      return;
+    }
     const response = await fetch(`${vars.serverUrl}/square/getNextSku`, {
       method: "POST",
       headers: {
@@ -104,9 +91,7 @@ const step4 = ({ globalFunc, newConsignmentData, updateConsignmentData, nextRepa
       console.log("New Repair Data: ", newRepairData);
       newRepairData.PEVSerialNumber = serialNumber;
       newRepairData.itemData.variations[0].itemVariationData.name = "";
-      newRepairData.itemData.variations[0].itemVariationData.priceMoney.amount = BigInt(
-        salePrice * 100
-      );
+      newRepairData.itemData.variations[0].itemVariationData.priceMoney.amount = salePrice * 100;
       newRepairData.itemData.variations[0].itemVariationData.sku = Number(json.data);
       newRepairData.itemData.descriptionHtml = `Mileage: ${mileage}<br/>Condition: ${condition}<br/>Details: ${draftToHtml(
         convertToRaw(value.editorState.getCurrentContent())
@@ -114,8 +99,13 @@ const step4 = ({ globalFunc, newConsignmentData, updateConsignmentData, nextRepa
       updateConsignmentData(newRepairData);
       nextRepairStep(5);
     } else {
-      globalFunc.setErrorSBText("Error occurred creating new consignment.");
-      globalFunc.setErrorSB(true);
+      setSnackBar({
+        type: "error",
+        title: "Error",
+        message: "Error occurred creating new consignment.",
+        show: true,
+        icon: "warning",
+      });
     }
   };
 

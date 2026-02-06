@@ -14,29 +14,15 @@ Coded by www.creative-tim.com
 */
 // React components
 import { useState, React, useEffect } from "react";
-import { useParams } from "react-router-dom";
-
-// Vars
-import vars from "../../config";
 
 // @mui material components
 import Grid from "@mui/material/Grid";
 import Card from "@mui/material/Card";
-import {
-  FormControl,
-  InputLabel,
-  MenuItem,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
-} from "@mui/material";
+import { TextField } from "@mui/material";
 import { makeStyles } from "@mui/styles";
-import { Modal, Select, IconButton, Icon } from "@mui/material";
+import { Modal, IconButton, Icon } from "@mui/material";
 // Material Dashboard 2 React components
 import MDBox from "components/MDBox";
-import MDTypography from "components/MDTypography";
 import MDButton from "components/MDButton";
 
 // Material Dashboard 2 React example components
@@ -50,11 +36,9 @@ import Step2 from "./components/step2";
 import Step3 from "./components/step3";
 import Step4 from "./components/step4";
 import Step5 from "./components/step5";
-
+import Step6 from "./components/step6";
 // Data
-import authorsTableData from "layouts/tables/data/repairsDataTable";
-import projectsTableData from "layouts/tables/data/projectsTableData";
-import FilterDialog from "./components/filter";
+import consignmentTableData from "./data/consignmentDataTable";
 
 const style = {
   position: "absolute",
@@ -106,28 +90,34 @@ const iconsStyle = ({ palette: { dark, white, text }, functions: { rgba } }) => 
 });
 // eslint-disable-next-line react/prop-types
 const Consignments = ({ globalFunc }) => {
-  const { repairstatus } = useParams();
   const classes = useStyles();
-  const { columns: pColumns, rows: pRows } = projectsTableData();
   const [newConsigment, setshowNewConsignment] = useState(false);
-  const [repairData, setRepairData] = useState({});
+  const [customer, setcustomer] = useState({
+    name: "",
+    phone: "",
+    Email: "",
+    address1: "",
+    address2: "",
+    city: "",
+    state: "",
+    zip: "",
+  });
   const [repairID, setrepairID] = useState(null);
   const [showFilter, setShowFiler] = useState(false);
-  const [filterVal, setfilterVal] = useState();
-  const [filteKey, setfilterKey] = useState();
   const [newConsignmentData, setNewConsignmentData] = useState({
-    Customer: "",
+    customer: "",
     customerID: {
       type: "",
       id: "",
       issuer: "",
       expiration: "",
     },
+    pev: "",
+    customerSignature: "",
     PEVSerialNumber: "",
     type: "ITEM",
     presentAtAllLocations: true,
-    id: "123",
-    isDeleted: false,
+    id: "#123",
     itemData: {
       variations: [
         {
@@ -151,7 +141,25 @@ const Consignments = ({ globalFunc }) => {
       ],
       name: "aaaa",
       descriptionHtml: "asdsads",
+      channels: [
+        "CH_H4IoIeg6M89glFj20lz6knpNfKJnoMMuQIufYRlQuYC",
+        "CH_fr9ETSP8DReeUzfwezEpcubcIK5rvwdkPhq0OVR29945o",
+        "CH_c7XGG0TI7Gznhr1yymz6knpNfKJnoMMuQIufYRlQuYC",
+        "CH_BabvWVJQvJuH1b1Txmz6knpNfKJnoMMuQIufYRlQuYC",
+      ],
+      categories: [
+        {
+          id: "3O2Q3CMJDMHCM5WEU3MD7K7Y",
+        },
+      ],
+      imageIds: ["74MOH4HQWPKFDDR3LDUNGJS7"],
+      productType: "REGULAR",
+      reportingCategory: {
+        id: "3O2Q3CMJDMHCM5WEU3MD7K7Y",
+      },
+      isTaxable: true,
     },
+    isDeleted: false,
   });
 
   const [repairStep, setRepairStep] = useState(1);
@@ -167,12 +175,12 @@ const Consignments = ({ globalFunc }) => {
   }, [newConsignmentData]);
 
   const { columns, rows, reRender, filter, resetFilter, repairs, setsearchTerm, searchterm } =
-    authorsTableData(globalFunc);
+    consignmentTableData(globalFunc);
 
   const nextRepairStep = async (val, customer = null) => {
     if (val == 2) {
       setRepairStep(2);
-      setNewConsignmentData({ ...newConsignmentData, Customer: customer });
+      setNewConsignmentData({ ...newConsignmentData, customer: customer });
     }
     if (val == 3) {
       //Show step 3
@@ -184,6 +192,9 @@ const Consignments = ({ globalFunc }) => {
     }
     if (val == 5) {
       setRepairStep(5);
+    }
+    if (val == 6) {
+      setRepairStep(6);
     }
     if (val == 7) {
       reRender();
@@ -275,7 +286,11 @@ const Consignments = ({ globalFunc }) => {
       >
         <MDBox sx={repairStep != 5 ? style : styleCustomerInput}>
           {repairStep == 0 ? (
-            <Step1 nextRepairStep={nextRepairStep} globalFunc={globalFunc}></Step1>
+            <Step1
+              nextRepairStep={nextRepairStep}
+              setcustomerName={setcustomer}
+              globalFunc={globalFunc}
+            ></Step1>
           ) : repairStep == 2 ? (
             <Step2
               nextRepairStep={nextRepairStep}
@@ -300,14 +315,28 @@ const Consignments = ({ globalFunc }) => {
               updateConsignmentData={updateConsignmentData}
               nextRepairStep={nextRepairStep}
             ></Step4>
-          ) : (
+          ) : repairStep == 5 ? (
             <Step5
               repairID={repairID}
               globalFunc={globalFunc}
               nextRepairStep={nextRepairStep}
+              newConsignmentData={newConsignmentData}
+              updateConsignmentData={updateConsignmentData}
               reRender={reRender}
+              customerName={customer}
               setNewRepair={setshowNewConsignment}
             ></Step5>
+          ) : (
+            <Step6
+              repairID={repairID}
+              globalFunc={globalFunc}
+              nextRepairStep={nextRepairStep}
+              newConsignmentData={newConsignmentData}
+              updateConsignmentData={updateConsignmentData}
+              reRender={reRender}
+              customerName={customer}
+              setNewRepair={setshowNewConsignment}
+            ></Step6>
           )}
           <MDButton
             sx={{ marginTop: "2px" }}
@@ -323,13 +352,6 @@ const Consignments = ({ globalFunc }) => {
           </MDButton>
         </MDBox>
       </Modal>
-      <FilterDialog
-        filter={filter}
-        showFilter={showFilter}
-        resetFilter={resetFilter}
-        setShowFiler={setShowFiler}
-        repairs={repairs}
-      />
     </DashboardLayout>
   );
 };

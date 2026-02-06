@@ -1,6 +1,3 @@
-import { useState, React, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-
 //Global
 import { globalFuncs } from "../../../context/global";
 
@@ -8,7 +5,7 @@ import MDButton from "components/MDButton";
 import MDBox from "components/MDBox";
 import { Grid } from "@mui/material";
 import vars from "../../../config";
-
+import { useState, React, useEffect, useMemo, useDebugValue } from "react";
 import MDTypography from "components/MDTypography";
 import {
   Modal,
@@ -24,8 +21,10 @@ import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
-
-import PartsAdd from "../components/addParts";
+import PartsOrder from "./partsOrder";
+// import PartsAdd from "../components/addParts";
+import Loading from "../../../components/Loading_Dialog";
+import AddNotes from "layouts/repairs/components/addnotes";
 
 const style = {
   position: "absolute",
@@ -48,10 +47,9 @@ function Actions({
   repairOrder,
   repairOrderReady,
   createInvoice,
-  setnewRepairNotes,
+  reRender,
 }) {
-  let redirect = useNavigate();
-  const { setSnackBar, setShowLoad } = globalFuncs();
+  const { setSnackBar } = globalFuncs();
   const [Labor, setLabor] = useState(100);
   const [Tax, setTax] = useState(0);
   const [TaxRate, setTaxRate] = useState(7);
@@ -59,10 +57,11 @@ function Actions({
   const [subTotal, setSubtotal] = useState(0);
   const [Total, setTotal] = useState(0);
   const [parts, setParts] = useState([]);
+  const [showNotes, setShowNotes] = useState(false);
   const [allparts, setAllParts] = useState();
   const [partDetails, setPartDetails] = useState({ cost: 0, name: "", qty: 0 });
   const [part, setPart] = useState();
-  const [activeRepair, setActiveRepair] = useState();
+  const [searchedpart, setSearchedpart] = useState();
   const [partCost, setPartCost] = useState((0).toFixed(2));
   const [partName, setPartName] = useState();
   const [PartDetail, setPartDetail] = useState();
@@ -75,32 +74,44 @@ function Actions({
   const [dialogOpen, toggleDialogOpen] = useState(false);
   const [printDialogOpen, toggleprintDialogOpen] = useState(false);
   const [documents, setDocuments] = useState([]);
+  //     {
+  //       id: 0,
+  //       vendor: "",
+  //       part: "",
+  //       cost: 0,
+  //       price: 0,
+  //       tracking: "",
+  //     },
+  //   ]);
+  const [partsCount, setPartsCount] = useState(0);
 
   const [confirmOpen, toggleconfirmOpen] = useState({ cancelInvoice: false });
   const [showUpload, showUploadFunc] = useState(false);
-  // const { setShowLoad, LoadBox } = Loading();
 
-  useEffect(() => {
-    if (repairOrderReady == true) {
-      let mySubTotal = timeUsed * Labor;
-      repairOrder.lineItems.map((item) => {
-        mySubTotal = mySubTotal + (item.basePriceMoney.amount * item.quantity) / 100;
-      });
-      setSubtotal(mySubTotal);
-      let mytax = 0;
-      if (Taxable) {
-        mytax = subTotal * (TaxRate / 100);
-        setTax(mytax);
-      } else {
-        mytax = 0;
-        setTax(0);
-      }
-      setTotal(mySubTotal + mytax);
-    }
-  }, [repairOrderReady, Labor, Taxable, TaxRate, timeUsed]);
-  useEffect(() => {
-    setLaborTime(repairTime.toFixed(2));
-  }, [repairTime]);
+  const { setShowLoad, LoadBox } = Loading();
+
+  const { PartsOrderDialog, togglePartsOrderOpen } = PartsOrder();
+  //   useEffect(() => {
+  //     if (repairOrderReady == true) {
+  //       let mySubTotal = timeUsed * Labor;
+  //       repairOrder.lineItems.map((item) => {
+  //         mySubTotal = mySubTotal + (item.basePriceMoney.amount * item.quantity) / 100;
+  //       });
+  //       setSubtotal(mySubTotal);
+  //       let mytax = 0;
+  //       if (Taxable) {
+  //         mytax = subTotal * (TaxRate / 100);
+  //         setTax(mytax);
+  //       } else {
+  //         mytax = 0;
+  //         setTax(0);
+  //       }
+  //       setTotal(mySubTotal + mytax);
+  //     }
+  //   }, [repairOrderReady, Labor, Taxable, TaxRate, timeUsed]);
+  //   useEffect(() => {
+  //     setLaborTime(repairTime.toFixed(2));
+  //   }, [repairTime]);
   const dialogHandleClose = () => {
     // setPartCost(0);
     // setPartQuantity(1);
@@ -230,14 +241,12 @@ function Actions({
       setSnackBar({
         type: "success",
         title: "Repair Updated",
-        message: "Repair status updated successfully",
+        message: "Repair status Updated",
         show: true,
         icon: "check",
       });
-      getRepair();
-    } else if (json.res == 501) {
-      setActiveRepair(json.repairId);
-      toggleDialogOpen(true);
+      reRender();
+      setShowLoad(false);
     } else {
       setSnackBar({
         type: "error",
@@ -246,6 +255,7 @@ function Actions({
         show: true,
         icon: "error",
       });
+      setShowLoad(false);
     }
     setShowLoad(false);
     return null;
@@ -277,8 +287,8 @@ function Actions({
     if (json.res == 200) {
       setSnackBar({
         type: "success",
-        title: "Part added to repair",
-        message: "Part added to repair successfully",
+        title: "Repair Updated",
+        message: "Part added to repair",
         show: true,
         icon: "check",
       });
@@ -291,7 +301,7 @@ function Actions({
       setSnackBar({
         type: "error",
         title: "Server error occured",
-        message: "Server error occured",
+        message: json.message,
         show: true,
         icon: "error",
       });
@@ -340,7 +350,7 @@ function Actions({
       setSnackBar({
         type: "success",
         title: "Invoice created",
-        message: "Invoice created successfully",
+        message: "Invoice created",
         show: true,
         icon: "check",
       });
@@ -350,7 +360,7 @@ function Actions({
       setSnackBar({
         type: "error",
         title: "Server error occured",
-        message: "Server error occured",
+        message: json.message,
         show: true,
         icon: "error",
       });
@@ -377,7 +387,7 @@ function Actions({
       setSnackBar({
         type: "success",
         title: "Invoice Cancelled",
-        message: "Invoice cancelled successfully",
+        message: "Invoice Cancelled",
         show: true,
         icon: "check",
       });
@@ -385,7 +395,7 @@ function Actions({
       setSnackBar({
         type: "error",
         title: "Server error occured",
-        message: "Server error occured",
+        message: json.message,
         show: true,
         icon: "error",
       });
@@ -423,7 +433,7 @@ function Actions({
         setSnackBar({
           type: "success",
           title: "Sent to printer",
-          message: "Document sent to printer successfully",
+          message: "Sent to printer",
           show: true,
           icon: "check",
         });
@@ -431,7 +441,7 @@ function Actions({
         setSnackBar({
           type: "error",
           title: "Error occured during printing",
-          message: "Error occured during printing",
+          message: json.message,
           show: true,
           icon: "error",
         });
@@ -444,6 +454,7 @@ function Actions({
         show: true,
         icon: "error",
       });
+      // TODO: Add error notification
     }
     setShowLoad(false);
   };
@@ -465,16 +476,20 @@ function Actions({
 
   const NotesButton = () => {
     return (
-      <Tooltip title="Add Notes">
-        <MDButton
-          fullwidth
-          color="dark"
-          variant="contained"
-          onClick={() => setnewRepairNotes(true)}
-        >
-          <Icon>note_add</Icon>
-        </MDButton>
-      </Tooltip>
+      <>
+        <Tooltip title="Add Notes">
+          <MDButton fullwidth color="dark" variant="contained" onClick={() => setShowNotes(true)}>
+            <Icon>note_add</Icon>
+          </MDButton>
+        </Tooltip>
+        <AddNotes
+          setnewRepairNotes={setShowNotes}
+          newRepairNotes={showNotes}
+          getRepair={reRender}
+          setShowLoad={setShowLoad}
+          repairId={repairID}
+        />
+      </>
     );
   };
 
@@ -493,9 +508,6 @@ function Actions({
     );
   };
 
-  useEffect(() => {
-    //getDocuments();
-  }, []);
   const PrintDocsDialog = () => {
     return (
       <Dialog open={printDialogOpen}>
@@ -529,22 +541,22 @@ function Actions({
       </Dialog>
     );
   };
-  const PartsModal = () => {
-    return (
-      <PartsAdd
-        globalFunc={globalFunc}
-        showPartsModal={newRepairPart}
-        setshowPartsModal={setnewRepairPart}
-        toggleloadingOpen={setShowLoad}
-        createInvoice={createInvoice}
-        dialogOpen={dialogOpen}
-        toggleDialogOpen={toggleDialogOpen}
-        repairID={repairID}
-        getRepair={getRepair}
-        status={status}
-      />
-    );
-  };
+  //   const PartsModal = () => {
+  //     return (
+  //       <PartsAdd
+  //         globalFunc={globalFunc}
+  //         showPartsModal={newRepairPart}
+  //         setshowPartsModal={setnewRepairPart}
+  //         toggleloadingOpen={setShowLoad}
+  //         createInvoice={createInvoice}
+  //         dialogOpen={dialogOpen}
+  //         toggleDialogOpen={toggleDialogOpen}
+  //         repairID={repairID}
+  //         getRepair={getRepair}
+  //         status={status}
+  //       />
+  //     );
+  //   };
 
   const ReprintButton = () => {
     return (
@@ -559,31 +571,17 @@ function Actions({
 
   const StartRepairButton = () => {
     return (
-      <>
-        <Tooltip title="Start Repair">
-          <MDButton
-            fullwidth
-            color="success"
-            variant="contained"
-            pb={3}
-            onClick={() => repairAction(2, "Repair started", "construction", "success", globalFunc)}
-          >
-            <Icon>play_circle</Icon>
-          </MDButton>
-        </Tooltip>
-        <ConfirmActionDialog
-          title={"Current repair in progress"}
-          content={
-            "You must pause the current repair before starting a new one. Would you like to go to the current repair"
-          }
-          action={() => {
-            redirect(`/repairdetails/${activeRepair}`);
-            toggleDialogOpen(false);
-          }}
-          openState={dialogOpen}
-          closeState={() => toggleDialogOpen(false)}
-        />
-      </>
+      <Tooltip title="Start Repair">
+        <MDButton
+          fullwidth
+          color="success"
+          variant="contained"
+          pb={3}
+          onClick={() => repairAction(2, "Repair started", "construction", "success", globalFunc)}
+        >
+          <Icon>play_circle</Icon>
+        </MDButton>
+      </Tooltip>
     );
   };
 
@@ -637,20 +635,88 @@ function Actions({
 
   const PauseRepairPartsButton = () => {
     return (
-      <Tooltip title="Pause Repair - Awaiting parts">
-        <MDButton
-          fullwidth
-          color="info"
-          variant="contained"
-          onClick={() =>
-            repairAction(11, "Repair paused - Awaiting parts", "pause", "info", globalFunc)
-          }
-        >
-          <Icon>alarm_pause</Icon>
-        </MDButton>
-      </Tooltip>
+      <>
+        <Tooltip title="Pause Repair - Awaiting parts">
+          <MDButton
+            fullwidth
+            color="info"
+            variant="contained"
+            onClick={
+              () => togglePartsOrderOpen(true)
+              //repairAction(11, "Repair paused - Awaiting parts", "pause", "info", globalFunc)
+            }
+          >
+            <Icon>alarm_pause</Icon>
+          </MDButton>
+        </Tooltip>
+        <PartsOrderDialog />
+      </>
     );
   };
+
+  //   const PartsOrderDialog = () => {
+  //     return (
+  //       <Dialog open={partsOrderOpen}>
+  //         <DialogTitle>Enter parts on order</DialogTitle>
+  //         <DialogContent>
+  //           <Grid container spacing={1} marginTop={1}>
+  //             {partsOrder.map((part, i) => {
+  //               return (
+  //                 // eslint-disable-next-line react/jsx-key
+  //                 <>
+  //                   <Grid item key={part.id} sm={11}>
+  //                     <TextField
+  //                       fullWidth
+  //                       value={part.part}
+  //                       onChange={(e) => {
+  //                         let oldPart = [...partsOrder];
+  //                         oldPart[i].part = e.currentTarget.value;
+  //                         setPartsOrder(oldPart);
+  //                       }}
+  //                     />
+  //                   </Grid>
+  //                   <Grid item key={part.id} sm={1}>
+  //                     <IconButton
+  //                       size="small"
+  //                       disableRipple
+  //                       color="red"
+  //                       style={i === partsOrder.length - 1 ? { visibility: "hidden" } : {}}
+  //                       onClick={() => {
+  //                         let oldPart = [...partsOrder];
+  //                         oldPart.splice(i, 1);
+  //                         setPartsOrder(oldPart);
+  //                       }}
+  //                     >
+  //                       <Icon sx={iconsStyle}>clear</Icon>
+  //                     </IconButton>
+  //                   </Grid>
+  //                 </>
+  //               );
+  //             })}
+  //             <Grid item sm={12}>
+  //               <MDButton variant="outlined" color="secondary" onClick={() => addPartsOrder()}>
+  //                 Add part
+  //               </MDButton>
+  //             </Grid>
+  //           </Grid>
+  //         </DialogContent>
+  //         <DialogActions>
+  //           <MDButton color="error" fullWidth onClick={() => togglePartsOrderOpen(false)}>
+  //             Cancel
+  //           </MDButton>
+  //           <MDButton
+  //             color="success"
+  //             fullWidth
+  //             onClick={() => {
+  //               togglePartsOrderOpen(false);
+  //             }}
+  //           >
+  //             Submit
+  //           </MDButton>
+  //         </DialogActions>
+  //       </Dialog>
+  //     );
+  //   };
 
   const AddPartsButton = () => {
     return (
@@ -679,31 +745,17 @@ function Actions({
 
   const RestartRepairButton = () => {
     return (
-      <>
-        <Tooltip title="Restart Repair">
-          <MDButton
-            fullwidth
-            color="success"
-            variant="contained"
-            p={3}
-            onClick={() => repairAction(2, "Repair resumed", "construction", "success", globalFunc)}
-          >
-            <Icon>restart_alt</Icon>
-          </MDButton>
-        </Tooltip>
-        <ConfirmActionDialog
-          title={"Current repair in progress"}
-          content={
-            "You must pause the current repair before starting a new one. Would you like to go to the current repair"
-          }
-          action={() => {
-            redirect(`/repairdetails/${activeRepair}`);
-            toggleDialogOpen(false);
-          }}
-          openState={dialogOpen}
-          closeState={() => toggleDialogOpen(false)}
-        />
-      </>
+      <Tooltip title="Restart Repair">
+        <MDButton
+          fullwidth
+          color="success"
+          variant="contained"
+          p={3}
+          onClick={() => repairAction(2, "Repair resumed", "construction", "success", globalFunc)}
+        >
+          <Icon>restart_alt</Icon>
+        </MDButton>
+      </Tooltip>
     );
   };
 
@@ -755,34 +807,35 @@ function Actions({
       </Tooltip>
     );
   };
-
+  console.log("Quick Actions Rendered");
   if (status == 1) {
     return (
       <>
         <Grid container spacing={2} mb={3}>
-          <Grid item xs={4} md={2}>
+          <Grid item xs={6} lg={3}>
             <StartRepairButton />
           </Grid>
-          <Grid item xs={4} md={2}>
+          <Grid item xs={6} lg={3}>
             <PauseRepairPartsButton />
           </Grid>
-          <Grid item xs={4} md={2}>
+          {/* <Grid item xs={4} md={2}>
             <AddPartsButton />
-          </Grid>
-          <Grid item xs={4} md={2}>
+          </Grid> */}
+          <Grid item xs={6} lg={3}>
             <ReturnToCustomerButton />
           </Grid>
-          <Grid item xs={4} md={2}>
+          <Grid item xs={6} lg={3}>
             <CancelRepairButton />
           </Grid>
-          <Grid item xs={4} md={2}>
+          <Grid item xs={6} lg={3}>
             <NotesButton />
           </Grid>
-          <Grid item xs={4} md={2}>
+          <Grid item xs={6} lg={3}>
             <ReprintButton />
           </Grid>
         </Grid>
-        <PartsModal />
+        <LoadBox />
+        {/* <PartsModal /> */}
       </>
     );
   }
@@ -790,32 +843,33 @@ function Actions({
     return (
       <>
         <Grid container spacing={2} mb={3}>
-          <Grid item xs={4} md={2}>
+          <Grid item xs={6} lg={3}>
             <PauseRepairButton />
           </Grid>
-          <Grid item xs={4} md={2}>
+          <Grid item xs={6} lg={3}>
             <PauseRepairPartsButton />
           </Grid>
-          <Grid item xs={4} md={2}>
+          {/* <Grid item xs={4} md={2}>
             <AddPartsButton />
-          </Grid>
-          <Grid item xs={4} md={2}>
+          </Grid> */}
+          <Grid item xs={6} lg={3}>
             <CompleteRepairButton />
           </Grid>
-          <Grid item xs={4} md={2}>
+          <Grid item xs={6} lg={3}>
             <ReturnToCustomerButton />
           </Grid>
-          <Grid item xs={4} md={2}>
+          <Grid item xs={6} lg={3}>
             <CancelRepairButton />
           </Grid>
-          <Grid item xs={4} md={2}>
+          <Grid item xs={6} lg={3}>
             <NotesButton />
           </Grid>
-          <Grid item xs={4} md={2}>
+          <Grid item xs={6} lg={3}>
             <ReprintButton />
           </Grid>
         </Grid>
-        <PartsModal />
+        {/* <PartsModal /> */}
+        <LoadBox />
       </>
     );
   }
@@ -823,23 +877,23 @@ function Actions({
     return (
       <>
         <Grid container spacing={2} mb={3}>
-          <Grid item xs={4} md={2}>
+          <Grid item xs={6} lg={3}>
             <RestartRepairButton />
           </Grid>
 
-          <Grid item xs={4} md={2}>
+          <Grid item xs={6} lg={3}>
             <CompleteRepairButton />
           </Grid>
-          <Grid item xs={4} md={2}>
+          <Grid item xs={6} lg={3}>
             <ReturnToCustomerButton />
           </Grid>
-          <Grid item xs={4} md={2}>
+          <Grid item xs={6} lg={3}>
             <CancelRepairButton />
           </Grid>
-          <Grid item xs={4} md={2}>
+          <Grid item xs={6} lg={3}>
             <NotesButton />
           </Grid>
-          <Grid item xs={4} md={2}>
+          <Grid item xs={6} lg={3}>
             <ReprintButton />
           </Grid>
         </Grid>
@@ -851,16 +905,16 @@ function Actions({
     return (
       <>
         <Grid container spacing={2} mb={3}>
-          <Grid item xs={4} md={2}>
+          <Grid item xs={6} lg={3}>
             <RestartRepairButton />
           </Grid>
-          <Grid item xs={4} md={2}>
+          <Grid item xs={6} lg={3}>
             <ArchiveRepairButton />
           </Grid>
-          <Grid item xs={4} md={2}>
+          <Grid item xs={6} lg={3}>
             <NotesButton />
           </Grid>
-          <Grid item xs={4} md={2}>
+          <Grid item xs={6} lg={3}>
             <ReprintButton />
           </Grid>
         </Grid>
@@ -873,25 +927,26 @@ function Actions({
     return (
       <>
         <Grid container spacing={2} mb={3}>
-          <Grid item xs={4} md={2}>
+          {/* <Grid item xs={4} md={2}>
             <AddPartsButton />
-          </Grid>
-          <Grid item xs={4} md={2}>
+          </Grid> */}
+          <Grid item xs={6} lg={3}>
             <CreateInvoiceButton />
           </Grid>
-          <Grid item xs={4} md={2}>
+          <Grid item xs={6} lg={3}>
             <RestartRepairButton />
           </Grid>
-          <Grid item xs={4} md={2}>
+          <Grid item xs={6} lg={3}>
             <CancelRepairButton />
           </Grid>
-          <Grid item xs={4} md={2}>
+          <Grid item xs={6} lg={3}>
             <NotesButton />
           </Grid>
-          <Grid item xs={4} md={2}>
+          <Grid item xs={6} lg={3}>
             <ReprintButton />
           </Grid>
         </Grid>
+        <LoadBox />
         {repairOrderReady ? (
           <Modal
             open={showInvoice}
@@ -1067,7 +1122,7 @@ function Actions({
             </MDBox>
           </Modal>
         ) : null}
-        <PartsModal />
+        {/* <PartsModal /> */}
       </>
     );
   }
@@ -1075,16 +1130,17 @@ function Actions({
     return (
       <>
         <Grid container spacing={2} mb={3}>
-          <Grid item xs={4} md={2}>
+          <Grid item xs={6} lg={3}>
             <CancelInvoiceButton />
           </Grid>
-          <Grid item xs={4} md={2}>
+          <Grid item xs={6} lg={3}>
             <NotesButton />
           </Grid>
-          <Grid item xs={4} md={2}>
+          <Grid item xs={6} lg={3}>
             <ReprintButton />
           </Grid>
         </Grid>
+        <LoadBox />
         <ConfirmActionDialog
           title="Are you sure?"
           content="Do you wish to cancel this invoice?"
@@ -1106,5 +1162,5 @@ function Actions({
     );
   }
 }
-
+Actions.whyDidYouRender = true;
 export default Actions;

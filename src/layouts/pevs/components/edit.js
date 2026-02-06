@@ -1,19 +1,15 @@
 import { useState, React, useEffect } from "react";
+//Global
+import { globalFuncs } from "../../../context/global";
 
 // Vars
 import vars from "../../../config";
 
 // @mui material components
 import Grid from "@mui/material/Grid";
-import Card from "@mui/material/Card";
 import {
   FormControl,
   InputLabel,
-  MenuItem,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   TextField,
   Autocomplete,
   Checkbox,
@@ -21,8 +17,7 @@ import {
   FormGroup,
   FormControlLabel,
 } from "@mui/material";
-import { makeStyles } from "@mui/styles";
-import { Modal, Select, IconButton, Icon } from "@mui/material";
+import { Modal } from "@mui/material";
 // Material Dashboard 2 React components
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
@@ -45,22 +40,11 @@ const style = {
 };
 
 const PEVEdit = ({ pev = undefined, open, brands, close, globalFunc, reRender }) => {
+  const { setSnackBar } = globalFuncs();
   const [brandDisable, setBrandDisable] = useState(true);
   const [selectedPEV, setSelectedPEV] = useState(null);
   const [showNewPev, setShowNewPev] = useState(false);
 
-  const useForm = (initialValues) => {
-    const [values, setValues] = useState(initialValues);
-    return [
-      values,
-      (newValue) => {
-        setValues({
-          ...values,
-          ...newValue,
-        });
-      },
-    ];
-  };
   const newPevData = (value) => {
     if (value.Brand._id == 0) {
       setBrandDisable(false);
@@ -101,20 +85,40 @@ const PEVEdit = ({ pev = undefined, open, brands, close, globalFunc, reRender })
           });
           let pevjson = await newpevresp.json();
           if (pevjson.res == 200) {
-            globalFunc.setSuccessSBText("PEV Database Updated");
-            globalFunc.setSuccessSB(true);
+            setSnackBar({
+              type: "success",
+              title: "Success",
+              message: "PEV Database Updated",
+              show: true,
+              icon: "check",
+            });
             reRender();
           } else {
-            globalFunc.setErrorSBText("An error occured while saving data, please try again");
-            globalFunc.setErrorSB(true);
+            setSnackBar({
+              type: "error",
+              title: "Error",
+              message: "An error occurred while saving data, please try again",
+              show: true,
+              icon: "check",
+            });
           }
         } else {
-          globalFunc.setErrorSBText("An error occured while saving data, please try again");
-          globalFunc.setErrorSB(true);
+          setSnackBar({
+            type: "error",
+            title: "Error",
+            message: "An error occurred while saving data, please try again",
+            show: true,
+            icon: "check",
+          });
         }
       } catch (e) {
-        globalFunc.setErrorSBText("An error occured while saving data, please try again");
-        globalFunc.setErrorSB(true);
+        setSnackBar({
+          type: "error",
+          title: "Error",
+          message: "An error occurred while saving data, please try again",
+          show: true,
+          icon: "check",
+        });
       }
     } else {
       //
@@ -130,15 +134,24 @@ const PEVEdit = ({ pev = undefined, open, brands, close, globalFunc, reRender })
       });
       let pevjson = await newpevresp.json();
       if (pevjson.res == 200) {
-        globalFunc.setSuccessSBText("PEV Database Updated");
-        globalFunc.setSuccessSB(true);
+        setSnackBar({
+          type: "success",
+          title: "Success",
+          message: "PEV Database Updated",
+          show: true,
+          icon: "check",
+        });
         reRender();
       } else {
-        globalFunc.setErrorSBText("An error occured while saving data, please try again");
-        globalFunc.setErrorSB(true);
+        setSnackBar({
+          type: "error",
+          title: "Error",
+          message: "An error occurred while saving data, please try again",
+          show: true,
+          icon: "check",
+        });
       }
     }
-    //setShowLoad(true);
   };
 
   useEffect(() => {

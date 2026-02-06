@@ -14,6 +14,8 @@ Coded by www.creative-tim.com
 */
 // React components
 import { useState, React, useEffect } from "react";
+//Global
+import { globalFuncs } from "../../context/global";
 
 // Vars
 import vars from "../../config";
@@ -34,13 +36,11 @@ import {
   Checkbox,
 } from "@mui/material";
 import { makeStyles } from "@mui/styles";
-import { Modal, Select, IconButton, Icon } from "@mui/material";
+import { Modal, Select } from "@mui/material";
 // Material Dashboard 2 React components
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 import MDButton from "components/MDButton";
-import Loading from "../../components/Loading_Dialog";
-import moment from "moment";
 // Material Dashboard 2 React example components
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
@@ -51,8 +51,6 @@ const filter = createFilterOptions();
 
 // Data
 import authorsTableData from "layouts/tables/data/eTagsData";
-import { CheckBox } from "@mui/icons-material";
-import { use } from "react";
 
 const style = {
   position: "absolute",
@@ -76,30 +74,13 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const iconsStyle = ({ palette: { dark, white, text }, functions: { rgba } }) => ({
-  color: () => {
-    let colorValue = dark.main;
-
-    // if (transparentNavbar) {
-    //   colorValue = darkMode ? rgba(text.main, 0.6) : text.main;
-    // }
-
-    return colorValue;
-  },
-});
 // eslint-disable-next-line react/prop-types
 const ETags = ({ globalFunc }) => {
+  const { setShowLoad } = globalFuncs();
   const classes = useStyles();
-  const [updateLoc, setUpdateLoc] = useState(false);
-  const [updateItem, setUpdateItem] = useState();
-  const [currentLoc, setCurrentLoc] = useState("");
-  const { setShowLoad, LoadBox } = Loading();
   const [parts, setParts] = useState([]);
   const [allparts, setAllParts] = useState();
-  const [partDetails, setPartDetails] = useState({ cost: 0, name: "", qty: 0 });
-  const [part, setPart] = useState();
   const [searchedpart, setSearchedpart] = useState();
-  const [PartDetail, setPartDetail] = useState();
   const [screenSize, setscreenSize] = useState("");
   const [colorProfile, setColorProfile] = useState("");
   const [customDataEnabled, setUseCustomData] = useState(false);
@@ -459,7 +440,6 @@ const ETags = ({ globalFunc }) => {
           </MDButton>
         </DialogActions>
       </Dialog>
-      <LoadBox />
       <Footer />
     </DashboardLayout>
   );
