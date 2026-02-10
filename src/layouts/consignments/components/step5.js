@@ -44,7 +44,6 @@ const step5 = ({
       ...newConsignmentData,
       customerSignature: signatureImage,
     });
-    console.log("Signature ", signatureImage);
     nextRepairStep(6);
   };
   const submitConsignment = async (pev) => {

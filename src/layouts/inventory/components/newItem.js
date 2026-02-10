@@ -110,7 +110,6 @@ const NewItem = ({ showNewItem, setShowNewItem, setShowLoad }) => {
 
       if (res.res === 200) {
         let cats = [];
-        console.log("Categories for new item:", res.categories);
         res.categories.map((item) => {
           cats.push({
             label: `${
@@ -160,10 +159,6 @@ const NewItem = ({ showNewItem, setShowNewItem, setShowLoad }) => {
     }
   };
   let variationEl = [VariationTemplate()];
-  const addVarination = () => {
-    console.log("add variation");
-    variationEl.push(VariationTemplate());
-  };
 
   const NumericFormatCustom = forwardRef(function NumericFormatCustom(props, ref) {
     const { onChange, startAdornment, ...other } = props;
@@ -224,7 +219,6 @@ const NewItem = ({ showNewItem, setShowNewItem, setShowLoad }) => {
         updatedFields["itemData"]["variations"][index]["itemVariationData"]["sku"] =
           Number(json.data) + 1;
         setNewItemData(updatedFields);
-        console.log("Next Sku:", json.data);
       } else {
         setSnackBar({
           type: "error",
@@ -249,7 +243,6 @@ const NewItem = ({ showNewItem, setShowNewItem, setShowLoad }) => {
         event.target.value;
     }
     setNewItemData(updatedFields);
-    console.log(newItemData);
   };
 
   const addField = () => {
@@ -276,12 +269,10 @@ const NewItem = ({ showNewItem, setShowNewItem, setShowLoad }) => {
     const updatedFields = newItemData.itemData.variations.filter((_, i) => i !== index);
     newItemData.itemData.variations = updatedFields;
     setNewItemData(fields);
-    console.log(fields);
   };
 
   const handleSubmit = (event) => {
     event.preventDefault();
-    console.log(updatedFields);
   };
   return (
     <Modal
@@ -454,7 +445,6 @@ const NewItem = ({ showNewItem, setShowNewItem, setShowLoad }) => {
                         //setNewCategoryData(catdata);
                         setNextSku(null);
                         setCatSku(newValue.sku);
-                        console.log("Selected category sku:", newValue.sku);
                       } else {
                         //let catdata = { ...newCategoryData };
                         //delete catdata.parentCategory;

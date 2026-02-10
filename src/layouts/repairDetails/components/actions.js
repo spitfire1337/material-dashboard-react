@@ -25,8 +25,7 @@ import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
 import PartsButton from "../../../components/PartsButton";
-
-import PartsAdd from "../components/addParts";
+import AddNotes from "../../../components/NotesButton";
 
 const style = {
   position: "absolute",
@@ -40,106 +39,44 @@ const style = {
   p: 4,
   borderRadius: "25px",
 };
-function Actions({
-  status,
-  getRepair,
-  repairID,
-  repairTime,
-  repairOrder,
-  repairOrderReady,
-  createInvoice,
-  setnewRepairNotes,
-}) {
+function Actions({ status, getRepair, repairID, repairTime, repairOrder, repairOrderReady }) {
   let redirect = useNavigate();
+  const [state, setState] = useState({
+    Labor: 100,
+    Tax: 0,
+    TaxRate: 7,
+    Taxable: false,
+    subTotal: 0,
+    Total: 0,
+    activeRepair: "",
+    showInvoice: false,
+    timeUsed: repairTime.toFixed(2),
+    dialogOpen: false,
+    printDialogOpen: false,
+    documents: [],
+    confirmOpen: { cancelInvoice: false },
+  });
   const { setSnackBar, setShowLoad } = globalFuncs();
-  const [Labor, setLabor] = useState(100);
-  const [Tax, setTax] = useState(0);
-  const [TaxRate, setTaxRate] = useState(7);
-  const [Taxable, setTaxable] = useState(false);
-  const [subTotal, setSubtotal] = useState(0);
-  const [Total, setTotal] = useState(0);
-  const [parts, setParts] = useState([]);
-  const [allparts, setAllParts] = useState();
-  const [partDetails, setPartDetails] = useState({ cost: 0, name: "", qty: 0 });
-  const [part, setPart] = useState();
-  const [activeRepair, setActiveRepair] = useState();
-  const [partCost, setPartCost] = useState((0).toFixed(2));
-  const [partName, setPartName] = useState();
-  const [PartDetail, setPartDetail] = useState();
-  // const [repairOrder, setRepairOrder] = useState();
-  // const [repairOrderReady, setRepairOrderReady] = useState(false);
-  const [showInvoice, setShowInvoice] = useState(false);
-  const [timeUsed, setLaborTime] = useState(repairTime.toFixed(2));
-
-  const [newRepairPart, setnewRepairPart] = useState(false);
-  const [dialogOpen, toggleDialogOpen] = useState(false);
-  const [printDialogOpen, toggleprintDialogOpen] = useState(false);
-  const [documents, setDocuments] = useState([]);
-
-  const [confirmOpen, toggleconfirmOpen] = useState({ cancelInvoice: false });
-  const [showUpload, showUploadFunc] = useState(false);
-  // const { setShowLoad, LoadBox } = Loading();
 
   useEffect(() => {
     if (repairOrderReady == true) {
-      let mySubTotal = timeUsed * Labor;
+      let mySubTotal = state.timeUsed * state.Labor;
       repairOrder.lineItems.map((item) => {
         mySubTotal = mySubTotal + (item.basePriceMoney.amount * item.quantity) / 100;
       });
-      setSubtotal(mySubTotal);
       let mytax = 0;
-      if (Taxable) {
-        mytax = subTotal * (TaxRate / 100);
-        setTax(mytax);
+      if (state.Taxable) {
+        mytax = mySubTotal * (state.TaxRate / 100);
+        setState((s) => ({ ...s, Tax: mytax, subTotal: mySubTotal, Total: mySubTotal + mytax }));
       } else {
         mytax = 0;
-        setTax(0);
+        setState((s) => ({ ...s, Tax: 0, Total: mySubTotal + mytax }));
       }
-      setTotal(mySubTotal + mytax);
     }
-  }, [repairOrderReady, Labor, Taxable, TaxRate, timeUsed]);
+  }, [repairOrderReady, state.Labor, state.Taxable, state.TaxRate, state.timeUsed]);
   useEffect(() => {
-    setLaborTime(repairTime.toFixed(2));
+    setState((s) => ({ ...s, repairTime: repairTime.toFixed(2) }));
   }, [repairTime]);
-
-  const getParts = async () => {
-    setShowLoad(true);
-    const response = await fetch(`${vars.serverUrl}/repairs/getParts`, {
-      method: "POST",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-    });
-    const json = await response.json();
-    if (json.res == 200) {
-      let itemList = [];
-      setAllParts(json.data);
-      json.data.map((item) => {
-        item.itemData.variations.map((variant) => {
-          itemList.push({
-            label: `${item.itemData.name} - ${variant.itemVariationData.name} ${
-              variant.itemVariationData != undefined &&
-              variant.itemVariationData.priceMoney != undefined
-                ? `- $${(Number(variant.itemVariationData.priceMoney.amount) / 100).toFixed(2)}`
-                : ""
-            }`,
-            id: variant.id,
-          });
-        });
-      });
-      setParts(itemList);
-      setPartDetails({
-        qty: 1,
-        cost: 0,
-        name: "",
-      });
-      setPartDetail(false);
-      setnewRepairPart(true);
-      setShowLoad(false);
-    }
-  };
 
   const getDocuments = async () => {
     const response = await fetch(`${vars.serverUrl}/repairs/documents`, {
@@ -153,10 +90,9 @@ function Actions({
     });
     const json = await response.json();
     if (json.res == 200) {
-      setDocuments(json.data);
-      toggleprintDialogOpen(true);
+      setState((s) => ({ ...s, printDialogOpen: true, documents: json.data }));
     } else {
-      setDocuments([]);
+      setState((s) => ({ ...s, documents: [] }));
     }
   };
 
@@ -192,8 +128,7 @@ function Actions({
       });
       getRepair();
     } else if (json.res == 501) {
-      setActiveRepair(json.repairId);
-      toggleDialogOpen(true);
+      setState((s) => ({ ...s, activeRepair: json.repairID, dialogOpen: true }));
     } else {
       setSnackBar({
         type: "error",
@@ -207,65 +142,16 @@ function Actions({
     return null;
   };
 
-  const addParts = async () => {
-    setShowLoad(true);
-    const response = await fetch(`${vars.serverUrl}/repairs/addParts`, {
-      method: "POST",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-      body: JSON.stringify({
-        id: repairID,
-        parts: {
-          quantity: partDetails.qty,
-          name: partDetails.name,
-          basePriceMoney: {
-            amount: Math.round(partDetails.cost * 100),
-          },
-          catalogObjectId: part,
-        },
-      }),
-    });
-    const json = await response.json();
-    setShowLoad(false);
-    if (json.res == 200) {
-      setSnackBar({
-        type: "success",
-        title: "Part added to repair",
-        message: "Part added to repair successfully",
-        show: true,
-        icon: "check",
-      });
-      getRepair();
-      if (status == 4) {
-        createInvoice();
-      }
-      setnewRepairPart(false);
-    } else {
-      setSnackBar({
-        type: "error",
-        title: "Server error occured",
-        message: "Server error occured",
-        show: true,
-        icon: "error",
-      });
-    }
-  };
-
-  //const selectedValues = useMemo(() => parts.filter((v) => v.selected), [parts]);
-
   const doCreateInvoice = async () => {
     setShowLoad(true);
     let dueTaxes;
-    if (Taxable) {
+    if (state.Taxable) {
       dueTaxes = {
         taxes: [
           {
             type: "ADDITIVE",
             name: "FL Sales Tax",
-            percentage: TaxRate.toString(),
+            percentage: state.TaxRate.toString(),
             scope: "ORDER",
           },
         ],
@@ -283,9 +169,9 @@ function Actions({
         parts: {
           quantity: 1,
           name: "Labor",
-          note: `${timeUsed} hours @ $${Labor}/hr`,
+          note: `${state.timeUsed} hours @ $${state.Labor}/hr`,
           basePriceMoney: {
-            amount: Math.round(Labor * timeUsed) * 100,
+            amount: Math.round(state.Labor * state.timeUsed) * 100,
           },
         },
         tax: dueTaxes,
@@ -300,7 +186,7 @@ function Actions({
         show: true,
         icon: "check",
       });
-      setShowInvoice(false);
+      setState((s) => ({ ...s, showInvoice: false }));
       getRepair();
     } else {
       setSnackBar({
@@ -315,7 +201,7 @@ function Actions({
   };
 
   const doCancelInvoice = async () => {
-    toggleconfirmOpen({ cancelInvoice: false });
+    setState((s) => ({ ...s, confirmOpen: { cancelInvoice: false } }));
     setShowLoad(true);
     const response = await fetch(`${vars.serverUrl}/repairs/cancelInvoice`, {
       method: "POST",
@@ -351,7 +237,7 @@ function Actions({
   };
 
   const reprintPaperwork = async (docid = null) => {
-    toggleprintDialogOpen(false);
+    setState((s) => ({ ...s, printDialogOpen: false }));
     setShowLoad(true);
     try {
       let postData;
@@ -404,36 +290,6 @@ function Actions({
     setShowLoad(false);
   };
 
-  const PhotoButton = () => {
-    return (
-      <Grid item xs={12} md={6}>
-        <MDButton
-          fullwidth
-          color="warning"
-          variant="contained"
-          onClick={() => showUploadFunc(true)}
-        >
-          Add Photo
-        </MDButton>
-      </Grid>
-    );
-  };
-
-  const NotesButton = () => {
-    return (
-      <Tooltip title="Add Notes">
-        <MDButton
-          fullwidth
-          color="dark"
-          variant="contained"
-          onClick={() => setnewRepairNotes(true)}
-        >
-          <Icon>note_add</Icon>
-        </MDButton>
-      </Tooltip>
-    );
-  };
-
   const ConfirmActionDialog = ({ title, content, action, openState, closeState }) => {
     return (
       <Dialog open={openState}>
@@ -449,15 +305,12 @@ function Actions({
     );
   };
 
-  useEffect(() => {
-    //getDocuments();
-  }, []);
   const PrintDocsDialog = () => {
     return (
-      <Dialog open={printDialogOpen}>
+      <Dialog open={state.printDialogOpen}>
         <DialogTitle>Reprint Paperwork</DialogTitle>
         <DialogContent>
-          {documents.map((doc) => {
+          {state.documents.map((doc) => {
             return (
               // eslint-disable-next-line react/jsx-key
               <>
@@ -478,26 +331,15 @@ function Actions({
           </MDButton>
         </DialogContent>
         <DialogActions>
-          <MDButton color="error" fullWidth onClick={() => toggleprintDialogOpen(false)}>
+          <MDButton
+            color="error"
+            fullWidth
+            onClick={() => setState((s) => ({ ...s, printDialogOpen: false }))}
+          >
             Close
           </MDButton>
         </DialogActions>
       </Dialog>
-    );
-  };
-  const PartsModal = () => {
-    return (
-      <PartsAdd
-        showPartsModal={newRepairPart}
-        setshowPartsModal={setnewRepairPart}
-        toggleloadingOpen={setShowLoad}
-        createInvoice={createInvoice}
-        dialogOpen={dialogOpen}
-        toggleDialogOpen={toggleDialogOpen}
-        repairID={repairID}
-        getRepair={getRepair}
-        status={status}
-      />
     );
   };
 
@@ -531,11 +373,11 @@ function Actions({
             "You must pause the current repair before starting a new one. Would you like to go to the current repair"
           }
           action={() => {
-            redirect(`/repairdetails/${activeRepair}`);
-            toggleDialogOpen(false);
+            redirect(`/repairdetails/${state.activeRepair}`);
+            setState((s) => ({ ...s, dialogOpen: false }));
           }}
-          openState={dialogOpen}
-          closeState={() => toggleDialogOpen(false)}
+          openState={state.dialogOpen}
+          closeState={() => setState((s) => ({ ...s, dialogOpen: false }))}
         />
       </>
     );
@@ -637,11 +479,11 @@ function Actions({
             "You must pause the current repair before starting a new one. Would you like to go to the current repair"
           }
           action={() => {
-            redirect(`/repairdetails/${activeRepair}`);
-            toggleDialogOpen(false);
+            redirect(`/repairdetails/${state.activeRepair}`);
+            setState((s) => ({ ...s, dialogOpen: false }));
           }}
-          openState={dialogOpen}
-          closeState={() => toggleDialogOpen(false)}
+          openState={state.dialogOpen}
+          closeState={() => setState((s) => ({ ...s, dialogOpen: false }))}
         />
       </>
     );
@@ -656,7 +498,7 @@ function Actions({
           variant="contained"
           p={3}
           disabled={!repairOrderReady}
-          onClick={() => setShowInvoice(true)}
+          onClick={() => setState((s) => ({ ...s, showInvoice: true }))}
         >
           <Icon>receipt</Icon>
         </MDButton>
@@ -672,7 +514,7 @@ function Actions({
           color="success"
           variant="contained"
           p={3}
-          onClick={() => toggleconfirmOpen({ cancelInvoice: true })}
+          onClick={() => setState((s) => ({ ...s, confirmOpen: { cancelInvoice: true } }))}
         >
           <Icon>credit_card_off</Icon>
         </MDButton>
@@ -707,7 +549,7 @@ function Actions({
             <PauseRepairPartsButton />
           </Grid>
           <Grid item xs={4} md={2}>
-            <PartsButton size="icon" status={status} getRepair={getRepair} repairID={repairID} />
+            <PartsButton size="icon" status={status} getRepair={getRepair} repairId={repairID} />
           </Grid>
           <Grid item xs={4} md={2}>
             <ReturnToCustomerButton />
@@ -716,13 +558,12 @@ function Actions({
             <CancelRepairButton />
           </Grid>
           <Grid item xs={4} md={2}>
-            <NotesButton />
+            <AddNotes repairId={repairID} size="icon" callback={getRepair} />
           </Grid>
           <Grid item xs={4} md={2}>
             <ReprintButton />
           </Grid>
         </Grid>
-        <PartsModal />
       </>
     );
   }
@@ -737,7 +578,7 @@ function Actions({
             <PauseRepairPartsButton />
           </Grid>
           <Grid item xs={4} md={2}>
-            <PartsButton size="icon" status={status} getRepair={getRepair} repairID={repairID} />
+            <PartsButton size="icon" status={status} getRepair={getRepair} repairId={repairID} />
           </Grid>
           <Grid item xs={4} md={2}>
             <CompleteRepairButton />
@@ -749,13 +590,12 @@ function Actions({
             <CancelRepairButton />
           </Grid>
           <Grid item xs={4} md={2}>
-            <NotesButton />
+            <AddNotes repairId={repairID} size="icon" callback={getRepair} />
           </Grid>
           <Grid item xs={4} md={2}>
             <ReprintButton />
           </Grid>
         </Grid>
-        <PartsModal />
       </>
     );
   }
@@ -767,7 +607,7 @@ function Actions({
             <RestartRepairButton />
           </Grid>
           <Grid item xs={4} md={2}>
-            <PartsButton size="icon" status={status} getRepair={getRepair} repairID={repairID} />
+            <PartsButton size="icon" status={status} getRepair={getRepair} repairId={repairID} />
           </Grid>
           <Grid item xs={4} md={2}>
             <CompleteRepairButton />
@@ -779,7 +619,7 @@ function Actions({
             <CancelRepairButton />
           </Grid>
           <Grid item xs={4} md={2}>
-            <NotesButton />
+            <AddNotes repairId={repairID} size="icon" callback={getRepair} />
           </Grid>
           <Grid item xs={4} md={2}>
             <ReprintButton />
@@ -799,7 +639,7 @@ function Actions({
             <ArchiveRepairButton />
           </Grid>
           <Grid item xs={4} md={2}>
-            <NotesButton />
+            <AddNotes repairId={repairID} size="icon" callback={getRepair} />
           </Grid>
           <Grid item xs={4} md={2}>
             <ReprintButton />
@@ -814,7 +654,7 @@ function Actions({
       <>
         <Grid container spacing={2} mb={3}>
           <Grid item xs={4} md={2}>
-            <PartsButton size="icon" status={status} getRepair={getRepair} repairID={repairID} />
+            <PartsButton size="icon" status={status} getRepair={getRepair} repairId={repairID} />
           </Grid>
           <Grid item xs={4} md={2}>
             <CreateInvoiceButton />
@@ -826,7 +666,7 @@ function Actions({
             <CancelRepairButton />
           </Grid>
           <Grid item xs={4} md={2}>
-            <NotesButton />
+            <AddNotes repairId={repairID} size="icon" callback={getRepair} />
           </Grid>
           <Grid item xs={4} md={2}>
             <ReprintButton />
@@ -834,7 +674,7 @@ function Actions({
         </Grid>
         {repairOrderReady ? (
           <Modal
-            open={showInvoice}
+            open={state.showInvoice}
             onClose={() => null}
             // onClose={() => {
             //   setNewRepair(false);
@@ -902,9 +742,9 @@ function Actions({
                   <TextField
                     fullWidth
                     label="Time (hours)"
-                    value={timeUsed}
+                    value={state.timeUsed}
                     onChange={(e) => {
-                      setLaborTime(e.target.value);
+                      setState((s) => ({ ...s, timeUsed: e.target.value }));
                     }}
                     type="number"
                   ></TextField>
@@ -913,16 +753,16 @@ function Actions({
                   <TextField
                     fullWidth
                     label="Labor Rate"
-                    value={Labor}
+                    value={state.Labor}
                     onChange={(e, val) => {
-                      setLabor(e.target.value);
+                      setState((s) => ({ ...s, Labor: e.target.value }));
                     }}
                     type="number"
                   ></TextField>
                 </Grid>
                 <Grid item xs={3}>
                   <MDTypography variant="body2" sx={{ mt: 1 }}>
-                    ${(timeUsed * Labor).toFixed(2)}
+                    ${(state.timeUsed * state.Labor).toFixed(2)}
                   </MDTypography>
                 </Grid>
                 <Grid item xs={12}>
@@ -932,7 +772,7 @@ function Actions({
                   Subtotal
                 </Grid>
                 <Grid item xs={3}>
-                  ${subTotal.toFixed(2)}
+                  ${Number(state.subTotal).toFixed(2)}
                 </Grid>
                 <Grid item xs={12}>
                   <Divider />
@@ -945,13 +785,20 @@ function Actions({
                     control={<Checkbox />}
                     label="Taxable"
                     onChange={(e) => {
-                      setTaxable(e.target.checked);
                       if (!e.target.checked) {
-                        setTax(0);
-                        setTotal(subTotal);
+                        setState((s) => ({
+                          ...s,
+                          Tax: 0,
+                          subTotal: state.subTotal,
+                          Taxable: false,
+                        }));
                       } else {
-                        setTax(subTotal * (TaxRate / 100));
-                        setTotal(subTotal + subTotal * (TaxRate / 100));
+                        setState((s) => ({
+                          ...s,
+                          Tax: state.subTotal * (state.TaxRate / 100),
+                          Total: state.subTotal + state.subTotal * (state.TaxRate / 100),
+                          Taxable: true,
+                        }));
                       }
                     }}
                   />
@@ -960,18 +807,21 @@ function Actions({
                   <TextField
                     fullWidth
                     label="Tax Rate %"
-                    disabled={!Taxable}
-                    value={TaxRate}
+                    disabled={!state.Taxable}
+                    value={state.TaxRate}
                     onChange={(e, val) => {
-                      setTaxRate(e.target.value);
-                      setTax(subTotal * (TaxRate / 100));
-                      setTotal(subTotal + subTotal * (TaxRate / 100));
+                      setState((s) => ({
+                        s,
+                        TaxRate: e.target.value,
+                        Tax: state.subTotal * (e.target.value / 100),
+                        Total: state.subTotal + state.subTotal * (e.target.value / 100),
+                      }));
                     }}
                     type="number"
                   ></TextField>
                 </Grid>
                 <Grid item xs={3}>
-                  ${Tax.toFixed(2)}
+                  ${Number(state.Tax).toFixed(2)}
                 </Grid>
                 <Grid item xs={12}>
                   <Divider />
@@ -980,7 +830,7 @@ function Actions({
                   Total
                 </Grid>
                 <Grid item xs={3}>
-                  ${Total.toFixed(2)}
+                  ${Number(state.Total).toFixed(2)}
                 </Grid>
               </Grid>
               <FormControl fullWidth></FormControl>
@@ -999,7 +849,7 @@ function Actions({
                 fullWidth
                 color="secondary"
                 onClick={() => {
-                  setShowInvoice(false);
+                  setState((s) => ({ ...s, showInvoice: false }));
                 }}
               >
                 Cancel
@@ -1007,7 +857,6 @@ function Actions({
             </MDBox>
           </Modal>
         ) : null}
-        <PartsModal />
       </>
     );
   }
@@ -1019,7 +868,7 @@ function Actions({
             <CancelInvoiceButton />
           </Grid>
           <Grid item xs={4} md={2}>
-            <NotesButton />
+            <AddNotes repairId={repairID} size="icon" callback={getRepair} />
           </Grid>
           <Grid item xs={4} md={2}>
             <ReprintButton />
@@ -1029,8 +878,8 @@ function Actions({
           title="Are you sure?"
           content="Do you wish to cancel this invoice?"
           action={() => doCancelInvoice()}
-          openState={confirmOpen.cancelInvoice}
-          closeState={() => toggleconfirmOpen({ cancelInvoice: false })}
+          openState={state.confirmOpen.cancelInvoice}
+          closeState={() => setState((s) => ({ ...s, confirmOpen: { cancelInvoice: false } }))}
         />
       </>
     );

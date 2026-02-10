@@ -87,7 +87,7 @@ const data = (status = [], tableState, setTableState) => {
     } else {
       doFilter();
     }
-  }, []);
+  }, [tableState.loaded]);
   useEffect(() => {
     doFilter();
   }, [tableState.data]);
@@ -103,7 +103,6 @@ const data = (status = [], tableState, setTableState) => {
       // filterData = [...tableState.data];
     }
     filterData = [...data];
-    console.log("doFilter called with data:", data);
 
     let filtered = filterData.filter((item) => {
       for (var key in myFilters) {
@@ -117,7 +116,6 @@ const data = (status = [], tableState, setTableState) => {
       return true;
     });
     setTableState((s) => ({ ...s, dataFiltered: filtered }));
-    console.log("Filtered data:", filtered);
   };
 
   // const doFilter = (data = null) => {
@@ -157,27 +155,14 @@ const data = (status = [], tableState, setTableState) => {
         doSearch();
       }
     }
-  }, [searchTerm, repairsOrig]);
-
-  // useEffect(() => {
-  //   if (repairs.length > 0) {
-  //     console.log("status filter changed:", status);
-  //     doFilter();
-  //   }
-  // }, [myFilters]);
+  }, [searchTerm, data]);
 
   useEffect(() => {
-    console.log("myFilters changed:", myFilters);
     if (searchTerm !== "") {
       doSearch();
     }
     doFilter();
   }, [myFilters]);
-
-  // useEffect(() => {
-  //   console.log("repairs changed:", repairs);
-  //   setData();
-  // }, [repairs]);
 
   const doSearch = () => {
     let filterData = [...tableState.data];

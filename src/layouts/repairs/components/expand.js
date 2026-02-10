@@ -5,8 +5,8 @@ import parse from "html-react-parser";
 import Status from "./status";
 import Actions from "./quickActions";
 const ExpandedComponent = ({ data, reRender }) => {
-  let repairDetails = data.data.allData;
-  console.log("ExpandedComponent data:", data);
+  console.log("Expanded component data: ", data);
+  let repairDetails = data.allData;
   return (
     <Grid container mt={2} padding={2} spacing={2}>
       <Grid item xs={4}>

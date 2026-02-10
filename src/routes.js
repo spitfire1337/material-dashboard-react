@@ -53,7 +53,6 @@ import ETags from "layouts/inventoryTags";
 // @mui icons
 import Icon from "@mui/material/Icon";
 const devRoutes = (stats) => {
-  console.log("Stats: ", stats);
   return [
     {
       name: "Repairs",
@@ -355,7 +354,6 @@ const publicRoutes = () => {
   ];
 };
 const routes = (stats, loginState) => {
-  console.log("Routes loginState: ", loginState);
   if (loginState.user.isDev) return devRoutes(stats);
   if (loginState.user.isAdmin) return adminRoutes(stats);
   if (loginState.user.isTech) return techRoutes(stats);

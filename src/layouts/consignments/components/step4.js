@@ -88,7 +88,6 @@ const step4 = ({ newConsignmentData, updateConsignmentData, nextRepairStep }) =>
     //setCustomerID(json.data.customer.id);
     if (json.res == 200) {
       let newRepairData = { ...newConsignmentData };
-      console.log("New Repair Data: ", newRepairData);
       newRepairData.PEVSerialNumber = serialNumber;
       newRepairData.itemData.variations[0].itemVariationData.name = "";
       newRepairData.itemData.variations[0].itemVariationData.priceMoney.amount = salePrice * 100;

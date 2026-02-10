@@ -96,7 +96,6 @@ const step2 = ({ repairData, updateRepairData, setrepairID, nextRepairStep }) =>
     newData.Brand._id = pev != null ? pev.id : "";
     newData.Brand.name = pev != null ? (pev.id == 0 ? pev.inputValue : pev.label) : "";
     pev != "" && pev != undefined && pev.id != undefined && pev != "" ? newPevData(newData) : null;
-    console.log("PEV SELECTED", newPev);
     if (pev == null) {
       setPEVBrand(0);
       setAllowContinue(false);
@@ -113,13 +112,11 @@ const step2 = ({ repairData, updateRepairData, setrepairID, nextRepairStep }) =>
       //Existing brand
       let pevData = pevSelection.filter((mypev) => mypev.Brand._id == pev.id);
       let models = [];
-      console.log("PEV DATA", pevData);
       pevData.map((model) => {
         models.push({ id: model._id, label: model.Model, PevType: model.PevType });
       });
       setModels(models);
       setShowNewPev(true);
-      console.log("Brand ID", pev.id);
       setPEVBrand(pev.id);
       setAllowContinue(true);
       //setShowCustForm(true);
@@ -306,7 +303,6 @@ const step2 = ({ repairData, updateRepairData, setrepairID, nextRepairStep }) =>
                     0 &&
                   finder == undefined
                 ) {
-                  console.log("FINDER", finder);
                   filtered.unshift({
                     inputValue: params.inputValue,
                     label: `Add "${params.inputValue}"`,
@@ -347,7 +343,6 @@ const step2 = ({ repairData, updateRepairData, setrepairID, nextRepairStep }) =>
                       newValue != ""
                         ? newPevData(newData)
                         : null;
-                      console.log("PEV SELECTED", newData);
                     }}
                     filterOptions={(options, params) => {
                       const filtered = filter(options, params);
@@ -361,7 +356,6 @@ const step2 = ({ repairData, updateRepairData, setrepairID, nextRepairStep }) =>
                             .length == 0 &&
                           finder == undefined
                         ) {
-                          console.log("FINDER", finder);
                           filtered.unshift({
                             inputValue: params.inputValue,
                             label: `Add "${params.inputValue}"`,

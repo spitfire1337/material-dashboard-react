@@ -83,7 +83,6 @@ const step3 = ({ newConsignmentData, updateConsignmentData, setrepairID, nextRep
     newData.Brand._id = pev != null ? pev.id : "";
     newData.Brand.name = pev != null ? (pev.id == 0 ? pev.inputValue : pev.label) : "";
     pev != "" && pev != undefined && pev.id != undefined && pev != "" ? newPevData(newData) : null;
-    console.log("PEV SELECTED", newPev);
     if (pev == null) {
       setPEVBrand(0);
       setAllowContinue(false);
@@ -100,13 +99,11 @@ const step3 = ({ newConsignmentData, updateConsignmentData, setrepairID, nextRep
       //Existing brand
       let pevData = pevSelection.filter((mypev) => mypev.Brand._id == pev.id);
       let models = [];
-      console.log("PEV DATA", pevData);
       pevData.map((model) => {
         models.push({ id: model._id, label: model.Model, PevType: model.PevType });
       });
       setModels(models);
       setShowNewPev(true);
-      console.log("Brand ID", pev.id);
       setPEVBrand(pev.id);
       setAllowContinue(false);
       //setShowCustForm(true);
@@ -300,7 +297,6 @@ const step3 = ({ newConsignmentData, updateConsignmentData, setrepairID, nextRep
                     params.inputValue.toLowerCase() !== "custom") &&
                   finder == undefined
                 ) {
-                  console.log("FINDER", finder);
                   filtered.unshift({
                     inputValue: params.inputValue,
                     label: `Add "${params.inputValue}"`,
@@ -341,18 +337,6 @@ const step3 = ({ newConsignmentData, updateConsignmentData, setrepairID, nextRep
                       newValue != ""
                         ? newPevData(newData)
                         : null;
-                      console.log("PEV SELECTED", newData);
-                      // let newData = { ...newPev };
-                      // newData.Brand == undefined ? (newPev.Brand = {}) : null;
-                      // newData.Brand._id = newValue != null ? newValue.id : "";
-                      // newData.Brand.name =
-                      //   newValue != null ? (newValue.id == 0 ? "" : newValue.label) : "";
-                      // newValue != "" &&
-                      // newValue != undefined &&
-                      // newValue.id != undefined &&
-                      // newValue != ""
-                      //   ? newPevData(newData)
-                      //   : null;
                     }}
                     filterOptions={(options, params) => {
                       const filtered = filter(options, params);

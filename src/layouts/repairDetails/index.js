@@ -842,7 +842,7 @@ const RepairDetails = () => {
         </Grid>
       </MDBox>
 
-      <AddNotes
+      {/* <AddNotes
         RepairNotes={RepairNotes}
         setRepairNotes={setRepairNotes}
         newRepairNotes={newRepairNotes}
@@ -850,7 +850,7 @@ const RepairDetails = () => {
         saveNotes={saveNotes}
         getRepair={getRepair}
         repairId={repairID}
-      />
+      /> */}
       <PartsAdd
         status={repairDetails.status}
         showPartsModal={newRepairPart}

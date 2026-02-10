@@ -166,13 +166,7 @@ const Consignments = () => {
 
   const updateConsignmentData = (val) => {
     setNewConsignmentData({ ...val });
-    console.log("Next repair step called with val: ", val);
-    console.log("New consignment data: ", newConsignmentData);
   };
-
-  useEffect(() => {
-    console.log("New consignment data: ", newConsignmentData);
-  }, [newConsignmentData]);
 
   const { columns, rows, reRender, filter, resetFilter, repairs, setsearchTerm, searchterm } =
     consignmentTableData();

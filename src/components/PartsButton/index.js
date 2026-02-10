@@ -26,7 +26,8 @@ const style = {
   p: 4,
   borderRadius: "25px",
 };
-const PartsButton = ({ size = "full", status, getRepair, repairID }) => {
+const PartsButton = ({ size = "full", status, getRepair = undefined, repairId }) => {
+  console.log("Showing add parts to repair id: ", repairId);
   const { setSnackBar, setShowLoad } = globalFuncs();
   const [newRepairPart, setnewRepairPart] = useState(false);
   const [parts, setParts] = useState([]);
@@ -141,7 +142,7 @@ const PartsButton = ({ size = "full", status, getRepair, repairID }) => {
       },
       credentials: "include",
       body: JSON.stringify({
-        id: repairID,
+        id: repairId,
         status: status,
         parts: {
           quantity: partDetails.qty,
@@ -163,7 +164,9 @@ const PartsButton = ({ size = "full", status, getRepair, repairID }) => {
         show: true,
         icon: "check",
       });
-      getRepair();
+      if (getRepair != undefined) {
+        getRepair();
+      }
       if (status == 4) {
         createInvoice();
       }
@@ -183,187 +186,181 @@ const PartsButton = ({ size = "full", status, getRepair, repairID }) => {
       });
     }
   };
-
-  //   useEffect(() => {
-  //     if (showPartsModal) {
-  //       getParts();
-  //     }
-  //   }, [showPartsModal]);
-
-  const PartsModal = () => {
-    return (
-      <>
-        <Modal
-          open={showPartsModal}
-          onClose={() => null}
-          aria-labelledby="modal-modal-title"
-          aria-describedby="modal-modal-description"
-        >
-          <MDBox sx={style}>
-            <MDTypography id="modal-modal-title" variant="h6" component="h2">
-              Add Parts
-            </MDTypography>
-            <MDTypography id="modal-modal-description" sx={{ mt: 2 }}>
-              <FormControl fullWidth>
-                <Autocomplete
-                  pb={1}
-                  value={searchedpart}
-                  onChange={(event, newValue) => {
-                    setSearchedpart(newValue);
-                    if (newValue == null) {
-                      return null;
-                    } else if (newValue && newValue.inputValue) {
-                      toggleDialogOpen(true);
-                      // setPartCost(0);
-                      // setPartQuantity(1);
-                      // setPartName(newValue.inputValue);
-                      setPartDetails({
-                        qty: 1,
-                        cost: 0,
-                        name: newValue.inputValue,
-                      });
-                    } else {
-                      choosePart(newValue);
-                    }
-                  }}
-                  filterOptions={(options, params) => {
-                    const filtered = filter(options, params);
-                    if (params.inputValue !== "") {
-                      filtered.unshift({
-                        inputValue: params.inputValue,
-                        label: `Add "${params.inputValue}"`,
-                        id: 0,
-                      });
-                    }
-                    return filtered;
-                  }}
-                  disablePortal
-                  options={parts}
-                  fullWidth
-                  renderInput={(params) => <TextField {...params} label="Part" />}
-                />
-                {PartDetail ? (
-                  <Grid container spacing={1} pt={1} pb={1}>
-                    <Grid item xs={12} md={6}>
-                      <TextField
-                        fullWidth
-                        label="Quantity"
-                        value={partDetails.qty}
-                        onChange={(e, val) => {
-                          setPartDetails({
-                            ...partDetails,
-                            qty: event.target.value,
-                          });
-                        }}
-                        type="number"
-                      ></TextField>
-                    </Grid>
-                    <Grid item xs={12} md={6}>
-                      <TextField
-                        fullWidth
-                        label="Cost"
-                        value={partDetails.cost}
-                        onChange={(e, val) => {
-                          setPartDetails({
-                            ...partDetails,
-                            cost: event.target.value,
-                          });
-                        }}
-                        type="number"
-                      ></TextField>
-                    </Grid>
+  useEffect(() => {
+    console.log("Parts modal show: ", showPartsModal);
+  }, [showPartsModal]);
+  const partsModal = (
+    <>
+      <Modal
+        open={showPartsModal}
+        onClose={() => null}
+        aria-labelledby="modal-modal-title"
+        aria-describedby="modal-modal-description"
+      >
+        <MDBox sx={style}>
+          <MDTypography id="modal-modal-title" variant="h6" component="h2">
+            Add Parts
+          </MDTypography>
+          <MDTypography id="modal-modal-description" sx={{ mt: 2 }}>
+            <FormControl fullWidth>
+              <Autocomplete
+                pb={1}
+                value={searchedpart}
+                onChange={(event, newValue) => {
+                  setSearchedpart(newValue);
+                  if (newValue == null) {
+                    return null;
+                  } else if (newValue && newValue.inputValue) {
+                    toggleDialogOpen(true);
+                    // setPartCost(0);
+                    // setPartQuantity(1);
+                    // setPartName(newValue.inputValue);
+                    setPartDetails({
+                      qty: 1,
+                      cost: 0,
+                      name: newValue.inputValue,
+                    });
+                  } else {
+                    choosePart(newValue);
+                  }
+                }}
+                filterOptions={(options, params) => {
+                  const filtered = filter(options, params);
+                  if (params.inputValue !== "") {
+                    filtered.unshift({
+                      inputValue: params.inputValue,
+                      label: `Add "${params.inputValue}"`,
+                      id: 0,
+                    });
+                  }
+                  return filtered;
+                }}
+                disablePortal
+                options={parts}
+                fullWidth
+                renderInput={(params) => <TextField {...params} label="Part" />}
+              />
+              {PartDetail ? (
+                <Grid container spacing={1} pt={1} pb={1}>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      label="Quantity"
+                      value={partDetails.qty}
+                      onChange={(e) => {
+                        setPartDetails({
+                          ...partDetails,
+                          qty: e.target.value,
+                        });
+                      }}
+                      type="number"
+                    ></TextField>
                   </Grid>
-                ) : (
-                  ""
-                )}
-              </FormControl>
-            </MDTypography>
-            <MDButton
-              sx={{ marginTop: "2px" }}
-              fullWidth
-              color="success"
-              onClick={() => {
-                addParts();
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      label="Cost"
+                      value={partDetails.cost}
+                      onChange={(e) => {
+                        setPartDetails({
+                          ...partDetails,
+                          cost: e.target.value,
+                        });
+                      }}
+                      type="number"
+                    ></TextField>
+                  </Grid>
+                </Grid>
+              ) : (
+                ""
+              )}
+            </FormControl>
+          </MDTypography>
+          <MDButton
+            sx={{ marginTop: "2px" }}
+            fullWidth
+            color="success"
+            onClick={() => {
+              addParts();
+            }}
+          >
+            Save
+          </MDButton>
+          <MDButton
+            sx={{ marginTop: "2px" }}
+            fullWidth
+            color="secondary"
+            onClick={() => {
+              setshowPartsModal(false);
+            }}
+          >
+            Cancel
+          </MDButton>
+        </MDBox>
+      </Modal>
+      <Dialog open={dialogOpen} onClose={dialogHandleClose}>
+        <form onSubmit={addParts}>
+          <DialogTitle>Add a new item</DialogTitle>
+          <DialogContent>
+            <DialogContentText>
+              Item not listed? Add it here for single use. To store item in inventory, add item
+              through square.
+            </DialogContentText>
+            <TextField
+              autoFocus
+              margin="dense"
+              id="name"
+              value={partDetails.name}
+              onChange={(event) => {
+                //setPartName(event.target.value)
+                setPartDetails({
+                  ...partDetails,
+                  name: event.target.value,
+                });
               }}
-            >
-              Save
-            </MDButton>
-            <MDButton
-              sx={{ marginTop: "2px" }}
-              fullWidth
-              color="secondary"
-              onClick={() => {
-                setshowPartsModal(false);
+              label="Name"
+              type="text"
+              variant="standard"
+            />
+            <TextField
+              margin="dense"
+              id="name"
+              value={partDetails.qty}
+              onChange={(event) => {
+                setPartDetails({
+                  ...partDetails,
+                  qty: event.target.value,
+                });
+                //setPartQuantity(event.target.value)
               }}
-            >
-              Cancel
-            </MDButton>
-          </MDBox>
-        </Modal>
-        <Dialog open={dialogOpen} onClose={dialogHandleClose}>
-          <form onSubmit={addParts}>
-            <DialogTitle>Add a new item</DialogTitle>
-            <DialogContent>
-              <DialogContentText>
-                Item not listed? Add it here for single use. To store item in inventory, add item
-                through square.
-              </DialogContentText>
-              <TextField
-                autoFocus
-                margin="dense"
-                id="name"
-                value={partDetails.name}
-                onChange={(event) => {
-                  //setPartName(event.target.value)
-                  setPartDetails({
-                    ...partDetails,
-                    name: event.target.value,
-                  });
-                }}
-                label="Name"
-                type="text"
-                variant="standard"
-              />
-              <TextField
-                margin="dense"
-                id="name"
-                value={partDetails.qty}
-                onChange={(event) => {
-                  setPartDetails({
-                    ...partDetails,
-                    qty: event.target.value,
-                  });
-                  //setPartQuantity(event.target.value)
-                }}
-                label="Qty"
-                type="number"
-                variant="standard"
-              />
-              <TextField
-                margin="dense"
-                id="name"
-                value={partDetails.cost}
-                onChange={(event) => {
-                  //setPartCost(event.target.value)
-                  setPartDetails({
-                    ...partDetails,
-                    cost: event.target.value,
-                  });
-                }}
-                label="Cost"
-                type="number"
-                variant="standard"
-              />
-            </DialogContent>
-            <DialogActions>
-              <MDButton onClick={dialogHandleClose}>Cancel</MDButton>
-              <MDButton type="submit">Add</MDButton>
-            </DialogActions>
-          </form>
-        </Dialog>
-      </>
-    );
-  };
+              label="Qty"
+              type="number"
+              variant="standard"
+            />
+            <TextField
+              margin="dense"
+              id="name"
+              value={partDetails.cost}
+              onChange={(event) => {
+                //setPartCost(event.target.value)
+                setPartDetails({
+                  ...partDetails,
+                  cost: event.target.value,
+                });
+              }}
+              label="Cost"
+              type="number"
+              variant="standard"
+            />
+          </DialogContent>
+          <DialogActions>
+            <MDButton onClick={dialogHandleClose}>Cancel</MDButton>
+            <MDButton type="submit">Add</MDButton>
+          </DialogActions>
+        </form>
+      </Dialog>
+    </>
+  );
 
   if (size == "full") {
     return (
@@ -371,7 +368,7 @@ const PartsButton = ({ size = "full", status, getRepair, repairID }) => {
         <MDButton color="success" size="small" onClick={() => getParts()}>
           Add parts
         </MDButton>
-        <PartsModal />
+        {partsModal}
       </>
     );
   } else if (size == "icon") {
@@ -382,7 +379,7 @@ const PartsButton = ({ size = "full", status, getRepair, repairID }) => {
             <Icon>add_shopping_cart</Icon>
           </MDButton>
         </Tooltip>
-        <PartsModal />
+        {partsModal}
       </>
     );
   }

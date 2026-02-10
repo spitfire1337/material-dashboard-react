@@ -370,7 +370,6 @@ export default function data(contIntake, status) {
     rows:
       repairs.length > 0
         ? repairs.map((repair) => {
-            console.log(repair.itemData.variations[0].itemVariationData.priceMoney.amount);
             return {
               id: repair.repairID,
               customer: (

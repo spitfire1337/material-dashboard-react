@@ -366,12 +366,7 @@ export default function App() {
   }, [direction]);
 
   useEffect(() => {
-    if (!loginState.loggedin) {
-      //checkLogin();
-    } else {
-      // if (!loginState.square) {
-      //   //checkSquare();
-      // } else {
+    if (loginState.loggedin) {
       setLocation(cookies.get("mylocation"));
       getWhatsnew();
       getInitData();

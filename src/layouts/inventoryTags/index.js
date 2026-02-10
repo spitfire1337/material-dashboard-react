@@ -164,7 +164,6 @@ const ETags = () => {
   }, [showPartsModal]);
 
   useEffect(() => {
-    console.log("itemid changed", customData.squareId);
     if (customData.squareId == "custom") {
       setUseCustomData(true);
       setCustomDataFields(customData);
@@ -174,9 +173,6 @@ const ETags = () => {
     }
   }, [customData]);
 
-  useEffect(() => {
-    console.log("customDataEnabled changed", customDataEnabled);
-  }, []);
   return (
     <DashboardLayout>
       <DashboardNavbar />

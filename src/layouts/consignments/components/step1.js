@@ -139,9 +139,6 @@ const step1 = ({ nextRepairStep, setcustomerName }) => {
   };
 
   const submitCustomer = async (val) => {
-    console.log("Customer", selectedcustomer);
-    console.log("Valid email", validateEmail(selectedcustomer.email_address || ""));
-    console.log("Valid Phone", PhoneisValid(selectedcustomer.phone_number));
     if (!validateEmail(selectedcustomer.email_address)) {
       setSnackBar({
         type: "error",
@@ -169,7 +166,6 @@ const step1 = ({ nextRepairStep, setcustomerName }) => {
       });
       return null;
     }
-    console.log("Submitting customer", selectedcustomer);
     if (selectedcustomer.id == undefined || selectedcustomer.id == 0) {
       //New Customer
       try {
@@ -251,7 +247,6 @@ const step1 = ({ nextRepairStep, setcustomerName }) => {
           show: true,
           icon: "warning",
         });
-        console.log("Error updating customer", e);
       }
     }
   };

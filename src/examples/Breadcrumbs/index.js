@@ -28,7 +28,6 @@ import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 
 function Breadcrumbs({ icon, title, route, light }) {
-  console.log("Breadcrumbs render", route);
   const routes = route.slice(0, -1);
   //const routes2 = route.slice(-1);
   return (

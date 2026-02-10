@@ -16,6 +16,18 @@ export const TableStateProvider = ({ children }) => {
     data: [],
     dataFiltered: [],
     loaded: false,
+    filters: {
+      status: [],
+      RepairType: [
+        "Tire Change",
+        "Tube Change",
+        "Power issue",
+        "Mechanical Repair",
+        "Other",
+        undefined,
+      ],
+    },
+    searchTerm: "",
   });
   const RepairRerender = async (callback) => {
     setShowLoad(true);

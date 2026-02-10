@@ -7,7 +7,6 @@ const LoginStateContext = createContext();
 export const LoginStateProvider = ({ children }) => {
   const { setShowLoad } = globalFuncs();
   //let redirect = useNavigate();
-  console.log("LoginStateProvider rendered");
   const [loginState, setLoginState] = useState({
     user: { isDev: false, isAdmin: false, isRepairTech: false },
     loggedin: false,
@@ -16,7 +15,6 @@ export const LoginStateProvider = ({ children }) => {
   });
 
   const checkLogin = async () => {
-    console.log("Checking login from context");
     //setLoginState((prev) => ({ ...prev, loading: true }));
     try {
       const response = await fetch(`${vars.serverUrl}/auth/authCheck`, {
@@ -37,24 +35,6 @@ export const LoginStateProvider = ({ children }) => {
       setShowLoad(false);
       setLoginState((prev) => ({ ...prev, user: null, loggedin: false, loading: false }));
       console.error("Error checking login:", error);
-    }
-  };
-
-  useEffect(() => {
-    checkLogin();
-    setInterval(() => {
-      checkLogin();
-    }, 60000);
-  }, []);
-  const checkSquare = async () => {
-    const response = await fetch(`${vars.serverUrl}/square/checkconfig`, {
-      credentials: "include",
-    });
-    const res = await response.json();
-    if (res.res === 401) {
-      setLoginState((prev) => ({ ...prev, loading: false, square: false }));
-    } else {
-      setLoginState((prev) => ({ ...prev, loading: false, square: true }));
     }
   };
 

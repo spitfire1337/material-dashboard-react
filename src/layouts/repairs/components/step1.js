@@ -161,9 +161,6 @@ const step1 = ({ nextRepairStep }) => {
   };
 
   const submitCustomer = async (val) => {
-    console.log("Customer", selectedcustomer);
-    console.log("Valid email", validateEmail(selectedcustomer.email_address || ""));
-    console.log("Valid Phone", PhoneisValid(selectedcustomer.phone_number));
     if (
       !validateEmail(selectedcustomer.email_address) &&
       !PhoneisValid(selectedcustomer.phone_number)

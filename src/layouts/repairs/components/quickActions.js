@@ -5,7 +5,7 @@ import MDButton from "components/MDButton";
 import MDBox from "components/MDBox";
 import { Grid } from "@mui/material";
 import vars from "../../../config";
-import { useState, React, useEffect, useMemo, useDebugValue } from "react";
+import { useState, React } from "react";
 import MDTypography from "components/MDTypography";
 import {
   Modal,
@@ -21,10 +21,11 @@ import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
-import PartsOrder from "./partsOrder";
+// import PartsOrder from "./partsOrder";
 // import PartsAdd from "../components/addParts";
-import Loading from "../../../components/Loading_Dialog";
-import AddNotes from "layouts/repairs/components/addnotes";
+//Buttons
+import AddNotes from "components/NotesButton";
+import PartsButton from "components/PartsButton";
 
 const style = {
   position: "absolute",
@@ -48,7 +49,7 @@ function Actions({
   createInvoice,
   reRender,
 }) {
-  const { setSnackBar } = globalFuncs();
+  const { setSnackBar, setShowLoad } = globalFuncs();
   const [Labor, setLabor] = useState(100);
   const [Tax, setTax] = useState(0);
   const [TaxRate, setTaxRate] = useState(7);
@@ -73,44 +74,13 @@ function Actions({
   const [dialogOpen, toggleDialogOpen] = useState(false);
   const [printDialogOpen, toggleprintDialogOpen] = useState(false);
   const [documents, setDocuments] = useState([]);
-  //     {
-  //       id: 0,
-  //       vendor: "",
-  //       part: "",
-  //       cost: 0,
-  //       price: 0,
-  //       tracking: "",
-  //     },
-  //   ]);
+
   const [partsCount, setPartsCount] = useState(0);
 
   const [confirmOpen, toggleconfirmOpen] = useState({ cancelInvoice: false });
   const [showUpload, showUploadFunc] = useState(false);
+  // const { PartsOrderDialog, togglePartsOrderOpen } = PartsOrder();
 
-  const { setShowLoad, LoadBox } = Loading();
-
-  const { PartsOrderDialog, togglePartsOrderOpen } = PartsOrder();
-  //   useEffect(() => {
-  //     if (repairOrderReady == true) {
-  //       let mySubTotal = timeUsed * Labor;
-  //       repairOrder.lineItems.map((item) => {
-  //         mySubTotal = mySubTotal + (item.basePriceMoney.amount * item.quantity) / 100;
-  //       });
-  //       setSubtotal(mySubTotal);
-  //       let mytax = 0;
-  //       if (Taxable) {
-  //         mytax = subTotal * (TaxRate / 100);
-  //         setTax(mytax);
-  //       } else {
-  //         mytax = 0;
-  //         setTax(0);
-  //       }
-  //       setTotal(mySubTotal + mytax);
-  //     }
-  //   }, [repairOrderReady, Labor, Taxable, TaxRate, timeUsed]);
-  //   useEffect(() => {
-  //     setLaborTime(repairTime.toFixed(2));
-  //   }, [repairTime]);
   const dialogHandleClose = () => {
     // setPartCost(0);
     // setPartQuantity(1);
@@ -473,25 +443,6 @@ function Actions({
     );
   };
 
-  const NotesButton = () => {
-    return (
-      <>
-        <Tooltip title="Add Notes">
-          <MDButton fullwidth color="dark" variant="contained" onClick={() => setShowNotes(true)}>
-            <Icon>note_add</Icon>
-          </MDButton>
-        </Tooltip>
-        <AddNotes
-          setnewRepairNotes={setShowNotes}
-          newRepairNotes={showNotes}
-          getRepair={reRender}
-          setShowLoad={setShowLoad}
-          repairId={repairID}
-        />
-      </>
-    );
-  };
-
   const ConfirmActionDialog = ({ title, content, action, openState, closeState }) => {
     return (
       <Dialog open={openState}>
@@ -613,23 +564,23 @@ function Actions({
     );
   };
 
-  const PauseRepairPartsButton = () => {
-    return (
-      <>
-        <Tooltip title="Pause Repair - Awaiting parts">
-          <MDButton
-            fullwidth
-            color="info"
-            variant="contained"
-            onClick={() => togglePartsOrderOpen(true)}
-          >
-            <Icon>alarm_pause</Icon>
-          </MDButton>
-        </Tooltip>
-        <PartsOrderDialog />
-      </>
-    );
-  };
+  // const PauseRepairPartsButton = () => {
+  //   return (
+  //     <>
+  //       <Tooltip title="Pause Repair - Awaiting parts">
+  //         <MDButton
+  //           fullwidth
+  //           color="info"
+  //           variant="contained"
+  //           onClick={() => togglePartsOrderOpen(true)}
+  //         >
+  //           <Icon>alarm_pause</Icon>
+  //         </MDButton>
+  //       </Tooltip>
+  //       <PartsOrderDialog />
+  //     </>
+  //   );
+  // };
 
   const AddPartsButton = () => {
     return (
@@ -720,7 +671,7 @@ function Actions({
       </Tooltip>
     );
   };
-  console.log("Quick Actions Rendered");
+  console.log("Quick actions rendered");
   if (status == 1) {
     return (
       <>
@@ -729,11 +680,11 @@ function Actions({
             <StartRepairButton />
           </Grid>
           <Grid item xs={6} lg={3}>
-            <PauseRepairPartsButton />
+            {/* <PauseRepairPartsButton /> */}
           </Grid>
-          {/* <Grid item xs={4} md={2}>
-            <AddPartsButton />
-          </Grid> */}
+          <Grid item xs={4} md={2}>
+            <PartsButton size="icon" repairId={repairID} getRepair={getRepair} />
+          </Grid>
           <Grid item xs={6} lg={3}>
             <ReturnToCustomerButton />
           </Grid>
@@ -741,13 +692,12 @@ function Actions({
             <CancelRepairButton />
           </Grid>
           <Grid item xs={6} lg={3}>
-            <NotesButton />
+            <AddNotes repairId={repairID} callback={getRepair} size="icon" />
           </Grid>
           <Grid item xs={6} lg={3}>
             <ReprintButton />
           </Grid>
         </Grid>
-        <LoadBox />
         {/* <PartsModal /> */}
       </>
     );
@@ -760,11 +710,11 @@ function Actions({
             <PauseRepairButton />
           </Grid>
           <Grid item xs={6} lg={3}>
-            <PauseRepairPartsButton />
+            {/* <PauseRepairPartsButton /> */}
           </Grid>
-          {/* <Grid item xs={4} md={2}>
-            <AddPartsButton />
-          </Grid> */}
+          <Grid item xs={4} md={2}>
+            <PartsButton size="icon" repairId={repairID} getRepair={getRepair} />
+          </Grid>
           <Grid item xs={6} lg={3}>
             <CompleteRepairButton />
           </Grid>
@@ -775,14 +725,13 @@ function Actions({
             <CancelRepairButton />
           </Grid>
           <Grid item xs={6} lg={3}>
-            <NotesButton />
+            <AddNotes repairId={repairID} callback={getRepair} size="icon" />
           </Grid>
           <Grid item xs={6} lg={3}>
             <ReprintButton />
           </Grid>
         </Grid>
         {/* <PartsModal /> */}
-        <LoadBox />
       </>
     );
   }
@@ -793,7 +742,9 @@ function Actions({
           <Grid item xs={6} lg={3}>
             <RestartRepairButton />
           </Grid>
-
+          <Grid item xs={6} md={3}>
+            <PartsButton size="icon" repairId={repairID} getRepair={getRepair} />
+          </Grid>
           <Grid item xs={6} lg={3}>
             <CompleteRepairButton />
           </Grid>
@@ -804,7 +755,7 @@ function Actions({
             <CancelRepairButton />
           </Grid>
           <Grid item xs={6} lg={3}>
-            <NotesButton />
+            <AddNotes repairId={repairID} callback={getRepair} size="icon" />
           </Grid>
           <Grid item xs={6} lg={3}>
             <ReprintButton />
@@ -825,7 +776,7 @@ function Actions({
             <ArchiveRepairButton />
           </Grid>
           <Grid item xs={6} lg={3}>
-            <NotesButton />
+            <AddNotes repairId={repairID} callback={getRepair} size="icon" />
           </Grid>
           <Grid item xs={6} lg={3}>
             <ReprintButton />
@@ -853,13 +804,12 @@ function Actions({
             <CancelRepairButton />
           </Grid>
           <Grid item xs={6} lg={3}>
-            <NotesButton />
+            <AddNotes repairId={repairID} callback={getRepair} size="icon" />
           </Grid>
           <Grid item xs={6} lg={3}>
             <ReprintButton />
           </Grid>
         </Grid>
-        <LoadBox />
         {repairOrderReady ? (
           <Modal
             open={showInvoice}
@@ -1047,13 +997,12 @@ function Actions({
             <CancelInvoiceButton />
           </Grid>
           <Grid item xs={6} lg={3}>
-            <NotesButton />
+            <AddNotes repairId={repairID} callback={getRepair} size="icon" />
           </Grid>
           <Grid item xs={6} lg={3}>
             <ReprintButton />
           </Grid>
         </Grid>
-        <LoadBox />
         <ConfirmActionDialog
           title="Are you sure?"
           content="Do you wish to cancel this invoice?"

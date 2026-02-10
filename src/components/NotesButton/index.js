@@ -1,15 +1,16 @@
 import { useState } from "react";
-import { Modal, Grid } from "@mui/material";
+import { Modal, Grid, Icon, Tooltip } from "@mui/material";
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 import MDButton from "components/MDButton";
-import vars from "../../../config";
+import vars from "../../config";
 import { EditorState, convertToRaw } from "draft-js";
 import { Editor } from "react-draft-wysiwyg";
 import draftToHtml from "draftjs-to-html";
-import { globalFuncs } from "../../../context/global";
-import { useLoginState } from "../../../context/loginContext";
-import "../../../../node_modules/react-draft-wysiwyg/dist/react-draft-wysiwyg.css";
+import { globalFuncs } from "../../context/global";
+import { useLoginState } from "../../context/loginContext";
+
+import "../../../node_modules/react-draft-wysiwyg/dist/react-draft-wysiwyg.css";
 const style = {
   position: "absolute",
   top: "50%",
@@ -22,10 +23,18 @@ const style = {
   p: 4,
   borderRadius: "25px",
 };
-const AddNotes = ({ setShowLoad, getRepair, newRepairNotes, setnewRepairNotes, repairId }) => {
-  const { setSnackBar } = globalFuncs();
+
+const AddNotes = ({ callback, repairId, size = "full" }) => {
+  const { setSnackBar, setShowLoad } = globalFuncs();
   const { setLoggedIn } = useLoginState();
-  const [state, setState] = useState({ value: { editorState: EditorState.createEmpty() } });
+  const [newRepairNotes, setnewRepairNotes] = useState(false);
+  const [value, setValue] = useState({ editorState: EditorState.createEmpty() });
+
+  const onEditorStateChange = (editorState) => {
+    console.log("Editor state changed");
+    setValue({ editorState });
+  };
+
   const saveNotes = async () => {
     setShowLoad(true);
     const response = await fetch(`${vars.serverUrl}/repairs/repairNotes`, {
@@ -61,7 +70,7 @@ const AddNotes = ({ setShowLoad, getRepair, newRepairNotes, setnewRepairNotes, r
     } else {
       setnewRepairNotes(false);
       setValue({ editorState: EditorState.createEmpty() });
-      getRepair();
+      if (callback) callback();
       setSnackBar({
         type: "success",
         title: "Notes saved",
@@ -73,13 +82,7 @@ const AddNotes = ({ setShowLoad, getRepair, newRepairNotes, setnewRepairNotes, r
     setShowLoad(false);
   };
 
-  const [value, setValue] = useState({ editorState: EditorState.createEmpty() });
-
-  const onEditorStateChange = (editorState) => {
-    setValue({ editorState });
-  };
-
-  return (
+  const notesModal = (
     <Modal
       open={newRepairNotes}
       onClose={() => null}
@@ -142,6 +145,33 @@ const AddNotes = ({ setShowLoad, getRepair, newRepairNotes, setnewRepairNotes, r
       </MDBox>
     </Modal>
   );
+
+  if (size == "full") {
+    return (
+      <>
+        <MDButton color="success" size="small" onClick={() => setnewRepairNotes(true)}>
+          Add Notes
+        </MDButton>
+        {notesModal}
+      </>
+    );
+  } else if (size == "icon") {
+    return (
+      <>
+        <Tooltip title="Add Notes">
+          <MDButton
+            fullwidth
+            color="dark"
+            variant="contained"
+            onClick={() => setnewRepairNotes(true)}
+          >
+            <Icon>note_add</Icon>
+          </MDButton>
+        </Tooltip>
+        {notesModal}
+      </>
+    );
+  }
 };
 
 export default AddNotes;
