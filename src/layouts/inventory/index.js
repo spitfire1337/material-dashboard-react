@@ -46,7 +46,7 @@ const useStyles = makeStyles((theme) => ({
 
 // eslint-disable-next-line react/prop-types
 const InventoryAdmin = () => {
-  const { setLoggedIn } = useLoginState();
+  const { setLoginState } = useLoginState();
   const { setSnackBar, setShowLoad } = globalFuncs();
   const classes = useStyles();
   const [updateLoc, setUpdateLoc] = useState(false);
@@ -82,7 +82,7 @@ const InventoryAdmin = () => {
         setCatList(cats);
         setShowNewItem(true);
       } else if (res.res === 401) {
-        setLoggedIn(false);
+        setLoginState(false);
         setSnackBar({
           type: "error",
           title: "Error",
@@ -92,7 +92,7 @@ const InventoryAdmin = () => {
         });
       }
     } else if (response.status == 401) {
-      setLoggedIn(false);
+      setLoginState(false);
       setSnackBar({
         type: "error",
         title: "Error",

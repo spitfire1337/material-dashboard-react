@@ -20,6 +20,7 @@ import PropTypes from "prop-types";
 import Collapse from "@mui/material/Collapse";
 import ListItem from "@mui/material/ListItem";
 import ListItemText from "@mui/material/ListItemText";
+import ListItemIcon from "@mui/material/ListItemIcon";
 import Icon from "@mui/material/Icon";
 
 // Material Dashboard 3 PRO React components
@@ -38,6 +39,7 @@ function SidenavItem({
   nested = false,
   children = false,
   open = false,
+  icon,
   ...rest
 }) {
   const [controller] = useMaterialUIController();
@@ -51,8 +53,8 @@ function SidenavItem({
         sx={(theme) => item(theme, { active, color, transparentSidenav, whiteSidenav, darkMode })}
       >
         <MDBox
-          sx={(theme) =>
-            itemContent(theme, {
+          sx={(theme) => ({
+            ...itemContent(theme, {
               active,
               miniSidenav,
               name,
@@ -61,9 +63,17 @@ function SidenavItem({
               transparentSidenav,
               whiteSidenav,
               darkMode,
-            })
-          }
+            }),
+            ...(nested && {
+              "&:before": { display: "none" },
+            }),
+          })}
         >
+          {icon && (
+            <ListItemIcon sx={{ minWidth: 0, mr: 1, color: "inherit" }}>
+              {typeof icon === "string" ? <Icon>{icon}</Icon> : icon}
+            </ListItemIcon>
+          )}
           <ListItemText primary={name} />
           {children && (
             <Icon
@@ -94,6 +104,7 @@ SidenavItem.propTypes = {
   nested: PropTypes.bool,
   children: PropTypes.node,
   open: PropTypes.bool,
+  icon: PropTypes.node,
 };
 
 export default SidenavItem;

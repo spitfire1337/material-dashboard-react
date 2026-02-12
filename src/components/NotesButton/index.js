@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Modal, Grid, Icon, Tooltip } from "@mui/material";
+import { Modal, Grid, Icon, Tooltip, FormControlLabel, Checkbox } from "@mui/material";
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 import MDButton from "components/MDButton";
@@ -26,9 +26,10 @@ const style = {
 
 const AddNotes = ({ callback, repairId, size = "full" }) => {
   const { setSnackBar, setShowLoad } = globalFuncs();
-  const { setLoggedIn } = useLoginState();
+  const { setLoginState } = useLoginState();
   const [newRepairNotes, setnewRepairNotes] = useState(false);
   const [value, setValue] = useState({ editorState: EditorState.createEmpty() });
+  const [customerVisible, setCustomerVisible] = useState(false);
 
   const onEditorStateChange = (editorState) => {
     console.log("Editor state changed");
@@ -36,6 +37,16 @@ const AddNotes = ({ callback, repairId, size = "full" }) => {
   };
 
   const saveNotes = async () => {
+    if (!value.editorState.getCurrentContent().hasText()) {
+      setSnackBar({
+        type: "error",
+        title: "Error",
+        message: "Please enter notes",
+        show: true,
+        icon: "warning",
+      });
+      return;
+    }
     setShowLoad(true);
     const response = await fetch(`${vars.serverUrl}/repairs/repairNotes`, {
       method: "POST",
@@ -46,12 +57,13 @@ const AddNotes = ({ callback, repairId, size = "full" }) => {
       body: JSON.stringify({
         repairId: repairId,
         notes: draftToHtml(convertToRaw(value.editorState.getCurrentContent())),
+        customerVisible: customerVisible,
       }),
       credentials: "include",
     });
     const res = await response.json();
     if (res.res === 401) {
-      setLoggedIn(false);
+      setLoginState(false);
       setSnackBar({
         type: "error",
         title: "Unauthorized",
@@ -70,6 +82,7 @@ const AddNotes = ({ callback, repairId, size = "full" }) => {
     } else {
       setnewRepairNotes(false);
       setValue({ editorState: EditorState.createEmpty() });
+      setCustomerVisible(false);
       if (callback) callback();
       setSnackBar({
         type: "success",
@@ -116,6 +129,17 @@ const AddNotes = ({ callback, repairId, size = "full" }) => {
                 }}
               />
             </div>
+          </Grid>
+          <Grid item xs={12}>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={customerVisible}
+                  onChange={(e) => setCustomerVisible(e.target.checked)}
+                />
+              }
+              label="Visible to Customer"
+            />
           </Grid>
           <Grid item xs={6}>
             <MDButton

@@ -7,7 +7,7 @@ const TableStateContext = createContext();
 
 export const TableStateProvider = ({ children }) => {
   const { setSnackBar, setShowLoad } = globalFuncs();
-  const { setLoggedIn } = useLoginState();
+  const { setLoginState } = useLoginState();
   const [tableState, setTableState] = useState({
     page: 0,
     pageSize: 10,
@@ -44,7 +44,7 @@ export const TableStateProvider = ({ children }) => {
         }
         setShowLoad(false);
       } else if (res.res === 401) {
-        setLoggedIn(false);
+        setLoginState(false);
         setSnackBar({
           type: "error",
           title: "Error",
@@ -55,7 +55,7 @@ export const TableStateProvider = ({ children }) => {
         setShowLoad(false);
       }
     } else if (response.status == 401) {
-      setLoggedIn(false);
+      setLoginState(false);
       setSnackBar({
         type: "error",
         title: "Error",
@@ -85,7 +85,7 @@ export const RepairRerender = async (callback) => {
       setTableState((s) => ({ ...s, data: res.data, dataFiltered: res.data, loaded: true }));
       callback(res.data);
     } else if (res.res === 401) {
-      setLoggedIn(false);
+      setLoginState(false);
       setSnackBar({
         type: "error",
         title: "Error",
@@ -95,7 +95,7 @@ export const RepairRerender = async (callback) => {
       });
     }
   } else if (response.status == 401) {
-    setLoggedIn(false);
+    setLoginState(false);
     setSnackBar({
       type: "error",
       title: "Error",

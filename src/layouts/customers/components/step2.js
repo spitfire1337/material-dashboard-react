@@ -21,7 +21,7 @@ import {
 import vars from "../../../config";
 
 const step2 = ({ repairData, updateRepairData, setrepairID, nextRepairStep }) => {
-  const { setLoggedIn } = useLoginState();
+  const { setLoginState } = useLoginState();
   const { setSnackBar } = globalFuncs();
   const [pevSelection, setPEVSelection] = useState([]);
   const [allowContinue, setAllowContinue] = useState(false);
@@ -78,10 +78,10 @@ const step2 = ({ repairData, updateRepairData, setrepairID, nextRepairStep }) =>
           //setSelectedCustomer({});
           //setShowCustForm(false);
         } else if (res.res === 401) {
-          setLoggedIn(false);
+          setLoginState(false);
         }
       } else if (response.status == 401) {
-        setLoggedIn(false);
+        setLoginState(false);
       }
     };
     fetchData();

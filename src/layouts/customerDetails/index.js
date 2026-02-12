@@ -58,7 +58,7 @@ const style = {
 };
 // eslint-disable-next-line react/prop-types
 const CustomerDetails = () => {
-  const { setLoggedIn } = useLoginState();
+  const { setLoginState } = useLoginState();
   const { setSnackBar, setShowLoad } = globalFuncs();
   const { id } = useParams();
   const [loading, setLoading] = useState(true);
@@ -292,7 +292,7 @@ const CustomerDetails = () => {
     });
     const res = await response.json();
     if (res.res === 401) {
-      setLoggedIn(false);
+      setLoginState(false);
       setSnackBar({
         type: "error",
         title: "Server error occured",

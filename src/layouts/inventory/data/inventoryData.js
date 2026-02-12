@@ -30,7 +30,7 @@ import moment from "moment";
 
 export default function data(updateLocation) {
   const { setSnackBar, setShowLoad } = globalFuncs();
-  const { setLoggedIn } = useLoginState();
+  const { setLoginState } = useLoginState();
   let redirect = useNavigate();
   const [inventoryOrig, setInventoryOrig] = useState([]);
   const [inventory, setInventory] = useState([]);
@@ -47,7 +47,7 @@ export default function data(updateLocation) {
         setInventoryOrig(res.data);
         setInventory(res.data);
       } else if (res.res === 401) {
-        setLoggedIn(false);
+        setLoginState(false);
         setSnackBar({
           type: "error",
           title: "Error",
@@ -57,7 +57,7 @@ export default function data(updateLocation) {
         });
       }
     } else if (response.status == 401) {
-      setLoggedIn(false);
+      setLoginState(false);
       setSnackBar({
         type: "error",
         title: "Error",

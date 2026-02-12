@@ -21,7 +21,7 @@ import { globalFuncs } from "../../context/global";
 
 const step1 = ({ repairData, callback }) => {
   const { setSnackBar, setShowLoad } = globalFuncs();
-  const { setLoggedIn } = useLoginState();
+  const { setLoginState } = useLoginState();
   const [pevSelection, setPEVSelection] = useState([]);
   const [allowContinue, setAllowContinue] = useState(false);
   const [pevBrand, setPEVBrand] = useState([]);
@@ -79,10 +79,10 @@ const step1 = ({ repairData, callback }) => {
           //setSelectedCustomer({});
           //setShowCustForm(false);
         } else if (res.res === 401) {
-          setLoggedIn(false);
+          setLoginState(false);
         }
       } else if (response.status == 401) {
-        setLoggedIn(false);
+        setLoginState(false);
       }
     };
     fetchData();

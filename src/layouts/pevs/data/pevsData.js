@@ -55,7 +55,7 @@ const style2 = {
 
 export default function data(setshowModal) {
   const { setSnackBar, setShowLoad } = globalFuncs();
-  const { setLoggedIn } = useLoginState();
+  const { setLoginState } = useLoginState();
   let redirect = useNavigate();
   const [inventoryOrig, setInventoryOrig] = useState([]);
   const [inventory, setInventory] = useState([]);
@@ -94,7 +94,7 @@ export default function data(setshowModal) {
         setBrands(brands);
       } else if (res.res === 401) {
         setShowLoad(false);
-        setLoggedIn(false);
+        setLoginState(false);
         setSnackBar({
           type: "error",
           title: "Error",
@@ -105,7 +105,7 @@ export default function data(setshowModal) {
       }
     } else if (response.status == 401) {
       setShowLoad(false);
-      setLoggedIn(false);
+      setLoginState(false);
       setSnackBar({
         type: "error",
         title: "Error",

@@ -13,7 +13,7 @@ import vars from "../../../config";
 
 const filter = createFilterOptions();
 const step2 = ({ repairData, updateRepairData, setrepairID, nextRepairStep }) => {
-  const { setLoggedIn } = useLoginState();
+  const { setLoginState } = useLoginState();
   const { setSnackBar } = globalFuncs();
   const blackListedNames = [
     "generic",
@@ -81,10 +81,10 @@ const step2 = ({ repairData, updateRepairData, setrepairID, nextRepairStep }) =>
           //setSelectedCustomer({});
           //setShowCustForm(false);
         } else if (res.res === 401) {
-          setLoggedIn(false);
+          setLoginState(false);
         }
       } else if (response.status == 401) {
-        setLoggedIn(false);
+        setLoginState(false);
       }
     };
     fetchData();

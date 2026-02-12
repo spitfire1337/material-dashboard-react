@@ -19,7 +19,6 @@ import RepairHistory from "./components/history";
 import Actions from "./components/actions";
 import NotesItem from "examples/Timeline/NotesItem";
 import RepairImages from "./components/images";
-import AddNotes from "layouts/repairs/components/addnotes";
 import parse from "html-react-parser";
 import { globalFuncs } from "../../context/global";
 import { useLoginState } from "../../context/loginContext";
@@ -51,6 +50,7 @@ import PartsAdd from "./components/addParts";
 import AddPhotos from "./components/addPhoto";
 import { useTableState } from "../../context/tableState";
 import PartsButton from "components/PartsButton";
+import AddNotes from "components/NotesButton";
 
 const iconsStyle = ({ palette: { dark, white, text }, functions: { rgba } }) => ({
   color: () => {
@@ -64,10 +64,225 @@ const iconsStyle = ({ palette: { dark, white, text }, functions: { rgba } }) => 
   },
 });
 
+const Status = ({ repairStatus }) => {
+  if (repairStatus == 0) {
+    return (
+      <MDBox ml={-1}>
+        <MDBadge
+          badgeContent="Created"
+          sx={{
+            "& .MuiBadge-badge": {
+              color: "#000",
+              backgroundColor: "green",
+              background: "linear-gradient(195deg, #FFFF00, #989845)",
+            },
+          }}
+          size="sm"
+          bg=""
+        />
+      </MDBox>
+    );
+  }
+  if (repairStatus == 1) {
+    return (
+      <MDBox ml={-1}>
+        <MDBadge
+          badgeContent="Not started"
+          sx={{
+            "& .MuiBadge-badge": {
+              color: "#000",
+              backgroundColor: "green",
+              background: "linear-gradient(195deg, #ffae00, #B38D4C)",
+            },
+          }}
+          size="sm"
+          bg=""
+        />
+      </MDBox>
+    );
+  }
+  if (repairStatus == 2) {
+    return (
+      <MDBox ml={-1}>
+        <MDBadge
+          badgeContent="In Progress"
+          sx={{
+            "& .MuiBadge-badge": {
+              color: "#000",
+              backgroundColor: "green",
+              background: "linear-gradient(195deg, #00BEFF, #4C99B3)",
+            },
+          }}
+          size="sm"
+          bg=""
+        />
+      </MDBox>
+    );
+  }
+  if (repairStatus == 3) {
+    return (
+      <MDBox ml={-1}>
+        <MDBadge
+          badgeContent="Paused"
+          sx={{
+            "& .MuiBadge-badge": {
+              color: "#000",
+              backgroundColor: "green",
+              background: "linear-gradient(195deg, #3D8E8C, #00FFF9)",
+            },
+          }}
+          size="sm"
+          bg=""
+        />
+      </MDBox>
+    );
+  }
+  if (repairStatus == 4) {
+    return (
+      <MDBox ml={-1}>
+        <MDBadge
+          badgeContent="Repair Complete"
+          sx={{
+            "& .MuiBadge-badge": {
+              color: "#000",
+              backgroundColor: "green",
+              background: "linear-gradient(195deg, #3C9041, #00FF0F)",
+            },
+          }}
+          size="sm"
+          bg=""
+        />
+      </MDBox>
+    );
+  }
+  if (repairStatus == 5) {
+    return (
+      <MDBox ml={-1}>
+        <MDBadge
+          badgeContent="Invoice Created"
+          sx={{
+            "& .MuiBadge-badge": {
+              color: "#000",
+              backgroundColor: "green",
+              background: "linear-gradient(195deg, #8E833E, #FFDE03)",
+            },
+          }}
+          size="sm"
+          bg=""
+        />
+      </MDBox>
+    );
+  }
+  if (repairStatus == 6) {
+    return (
+      <MDBox ml={-1}>
+        <MDBadge
+          badgeContent="Complete"
+          sx={{
+            "& .MuiBadge-badge": {
+              color: "#000",
+              backgroundColor: "green",
+              background: "linear-gradient(195deg, #329858, #00FF60)",
+            },
+          }}
+          size="sm"
+          bg=""
+        />
+      </MDBox>
+    );
+  }
+  if (repairStatus == 998) {
+    return (
+      <MDBox ml={-1}>
+        <MDBadge
+          badgeContent="Cancelled"
+          sx={{
+            "& .MuiBadge-badge": {
+              color: "#fff",
+              backgroundColor: "green",
+              background: "linear-gradient(195deg, #984742, #FB0F00)",
+            },
+          }}
+          size="sm"
+          bg=""
+        />
+      </MDBox>
+    );
+  }
+  if (repairStatus == 999) {
+    return (
+      <MDBox ml={-1}>
+        <MDBadge
+          badgeContent="Unrepairable"
+          sx={{
+            "& .MuiBadge-badge": {
+              color: "#fff",
+              backgroundColor: "green",
+              background: "linear-gradient(195deg, #9E3755, #F70048)",
+            },
+          }}
+          size="sm"
+          bg=""
+        />
+      </MDBox>
+    );
+  }
+};
+
+const ConfirmActionDialog = ({ title, content, action, openState, closeState }) => {
+  return (
+    <Dialog open={openState}>
+      <DialogTitle>{title}</DialogTitle>
+      <DialogContent>{content}</DialogContent>
+      <DialogActions>
+        <MDButton onClick={closeState}>No</MDButton>
+        <MDButton onClick={action} autoFocus>
+          Yes
+        </MDButton>
+      </DialogActions>
+    </Dialog>
+  );
+};
+
+const PartsItem = ({ part, status, onDelete }) => {
+  return (
+    <>
+      <Grid item xs={status == 6 || status == 5 ? 8 : 6}>
+        <MDTypography variant="body2" mb={-2}>
+          {part.name}
+        </MDTypography>
+        <MDTypography variant="caption" mt={-2}>
+          {part.note || ""}
+        </MDTypography>
+      </Grid>
+      <Grid item xs={2}>
+        <MDTypography variant="body2">{part.quantity}</MDTypography>
+      </Grid>
+      <Grid item xs={2}>
+        <MDTypography variant="body2">
+          ${(part.basePriceMoney.amount / 100).toFixed(2)}
+        </MDTypography>
+      </Grid>
+      <Grid item xs={2}>
+        {status == 6 || status == 5 ? (
+          ""
+        ) : (
+          <IconButton size="small" disableRipple color="red" onClick={() => onDelete(part)}>
+            <Icon sx={iconsStyle}>clear</Icon>
+          </IconButton>
+        )}
+      </Grid>
+      <Grid item xs={12} mb={-2} mt={-2}>
+        <Divider fullWidth></Divider>
+      </Grid>
+    </>
+  );
+};
+
 // eslint-disable-next-line react/prop-types
 const RepairDetails = () => {
   const { setSnackBar, setShowLoad } = globalFuncs();
-  const { setLoggedIn } = useLoginState();
+  const { setLoginState } = useLoginState();
   const { RepairRerender } = useTableState();
   const { id } = useParams();
   const [repairID, setrepairID] = useState(id);
@@ -87,6 +302,7 @@ const RepairDetails = () => {
   const [partId, setPartid] = useState();
   const [partName, setPartName] = useState();
   const [newMinutes, setnewMinutes] = useState();
+  const [questions, setQuestions] = useState([]);
   const getRepair = async () => {
     setShowLoad(true);
     createInvoice();
@@ -102,7 +318,7 @@ const RepairDetails = () => {
     });
     const res = await response.json();
     if (res.res === 401) {
-      setLoggedIn(false);
+      setLoginState(false);
       setSnackBar({
         type: "error",
         title: "Unauthorized",
@@ -130,6 +346,20 @@ const RepairDetails = () => {
       setShowLoad(false);
 
       //setRepairOrderReady(true);
+    }
+  };
+
+  const getQuestions = async () => {
+    try {
+      const response = await fetch(`${vars.serverUrl}/checklist/questions`, {
+        credentials: "include",
+      });
+      const res = await response.json();
+      if (res.res === 200) {
+        setQuestions(res.data);
+      }
+    } catch (error) {
+      console.error(error);
     }
   };
 
@@ -173,7 +403,7 @@ const RepairDetails = () => {
     });
     const res = await response.json();
     if (res.res === 401) {
-      setLoggedIn(false);
+      setLoginState(false);
       setSnackBar({
         type: "error",
         title: "Unauthorized",
@@ -201,64 +431,6 @@ const RepairDetails = () => {
       });
     }
     setShowLoad(false);
-  };
-  const ConfirmActionDialog = ({ title, content, action, openState, closeState }) => {
-    return (
-      <Dialog open={openState}>
-        <DialogTitle>{title}</DialogTitle>
-        <DialogContent>{content}</DialogContent>
-        <DialogActions>
-          <MDButton onClick={closeState}>No</MDButton>
-          <MDButton onClick={action} autoFocus>
-            Yes
-          </MDButton>
-        </DialogActions>
-      </Dialog>
-    );
-  };
-
-  const PartsItem = ({ part, status }) => {
-    return (
-      <>
-        <Grid item xs={status == 6 || status == 5 ? 8 : 6}>
-          <MDTypography variant="body2" mb={-2}>
-            {part.name}
-          </MDTypography>
-          <MDTypography variant="caption" mt={-2}>
-            {part.note || ""}
-          </MDTypography>
-        </Grid>
-        <Grid item xs={2}>
-          <MDTypography variant="body2">{part.quantity}</MDTypography>
-        </Grid>
-        <Grid item xs={2}>
-          <MDTypography variant="body2">
-            ${(part.basePriceMoney.amount / 100).toFixed(2)}
-          </MDTypography>
-        </Grid>
-        <Grid item xs={2}>
-          {status == 6 || status == 5 ? (
-            ""
-          ) : (
-            <IconButton
-              size="small"
-              disableRipple
-              color="red"
-              onClick={() => {
-                setPartid(part._id);
-                toggleconfirmOpen({ removePart: true });
-                setPartName(part.name);
-              }}
-            >
-              <Icon sx={iconsStyle}>clear</Icon>
-            </IconButton>
-          )}
-        </Grid>
-        <Grid item xs={12} mb={-2} mt={-2}>
-          <Divider fullWidth></Divider>
-        </Grid>
-      </>
-    );
   };
 
   const removeParts = async (id, status) => {
@@ -340,7 +512,7 @@ const RepairDetails = () => {
     }
   };
 
-  const { showUploadFunc, AddPhotoModal, setRepairId } = AddPhotos({
+  const { showUploadFunc, addPhotoModal, setRepairId } = AddPhotos({
     getRepair,
   });
 
@@ -349,6 +521,7 @@ const RepairDetails = () => {
     setrepairID(repairID);
     setRepairId(repairID);
     getRepair();
+    getQuestions();
     createInvoice();
   }, [id]);
 
@@ -360,170 +533,32 @@ const RepairDetails = () => {
     );
   }
 
-  const Status = ({ repairStatus }) => {
-    if (repairStatus == 0) {
-      return (
-        <MDBox ml={-1}>
-          <MDBadge
-            badgeContent="Created"
-            sx={{
-              "& .MuiBadge-badge": {
-                color: "#000",
-                backgroundColor: "green",
-                background: "linear-gradient(195deg, #FFFF00, #989845)",
-              },
-            }}
-            size="sm"
-            bg=""
-          />
-        </MDBox>
-      );
-    }
-    if (repairStatus == 1) {
-      return (
-        <MDBox ml={-1}>
-          <MDBadge
-            badgeContent="Not started"
-            sx={{
-              "& .MuiBadge-badge": {
-                color: "#000",
-                backgroundColor: "green",
-                background: "linear-gradient(195deg, #ffae00, #B38D4C)",
-              },
-            }}
-            size="sm"
-            bg=""
-          />
-        </MDBox>
-      );
-    }
-    if (repairStatus == 2) {
-      return (
-        <MDBox ml={-1}>
-          <MDBadge
-            badgeContent="In Progress"
-            sx={{
-              "& .MuiBadge-badge": {
-                color: "#000",
-                backgroundColor: "green",
-                background: "linear-gradient(195deg, #00BEFF, #4C99B3)",
-              },
-            }}
-            size="sm"
-            bg=""
-          />
-        </MDBox>
-      );
-    }
-    if (repairStatus == 3) {
-      return (
-        <MDBox ml={-1}>
-          <MDBadge
-            badgeContent="Paused"
-            sx={{
-              "& .MuiBadge-badge": {
-                color: "#000",
-                backgroundColor: "green",
-                background: "linear-gradient(195deg, #3D8E8C, #00FFF9)",
-              },
-            }}
-            size="sm"
-            bg=""
-          />
-        </MDBox>
-      );
-    }
-    if (repairStatus == 4) {
-      return (
-        <MDBox ml={-1}>
-          <MDBadge
-            badgeContent="Repair Complete"
-            sx={{
-              "& .MuiBadge-badge": {
-                color: "#000",
-                backgroundColor: "green",
-                background: "linear-gradient(195deg, #3C9041, #00FF0F)",
-              },
-            }}
-            size="sm"
-            bg=""
-          />
-        </MDBox>
-      );
-    }
-    if (repairStatus == 5) {
-      return (
-        <MDBox ml={-1}>
-          <MDBadge
-            badgeContent="Invoice Created"
-            sx={{
-              "& .MuiBadge-badge": {
-                color: "#000",
-                backgroundColor: "green",
-                background: "linear-gradient(195deg, #8E833E, #FFDE03)",
-              },
-            }}
-            size="sm"
-            bg=""
-          />
-        </MDBox>
-      );
-    }
-    if (repairStatus == 6) {
-      return (
-        <MDBox ml={-1}>
-          <MDBadge
-            badgeContent="Complete"
-            sx={{
-              "& .MuiBadge-badge": {
-                color: "#000",
-                backgroundColor: "green",
-                background: "linear-gradient(195deg, #329858, #00FF60)",
-              },
-            }}
-            size="sm"
-            bg=""
-          />
-        </MDBox>
-      );
-    }
-    if (repairStatus == 998) {
-      return (
-        <MDBox ml={-1}>
-          <MDBadge
-            badgeContent="Cancelled"
-            sx={{
-              "& .MuiBadge-badge": {
-                color: "#fff",
-                backgroundColor: "green",
-                background: "linear-gradient(195deg, #984742, #FB0F00)",
-              },
-            }}
-            size="sm"
-            bg=""
-          />
-        </MDBox>
-      );
-    }
-    if (repairStatus == 999) {
-      return (
-        <MDBox ml={-1}>
-          <MDBadge
-            badgeContent="Unrepairable"
-            sx={{
-              "& .MuiBadge-badge": {
-                color: "#fff",
-                backgroundColor: "green",
-                background: "linear-gradient(195deg, #9E3755, #F70048)",
-              },
-            }}
-            size="sm"
-            bg=""
-          />
-        </MDBox>
-      );
-    }
+  const getApplicableQuestions = (type) => {
+    if (!repairDetails || !questions) return [];
+    const filtered = questions.filter((q) => {
+      if (!q.isActive) return false;
+      if (q.checklistType !== type) return false;
+
+      // Filter by Device Type
+      if (q.deviceType && q.deviceType !== "All" && q.deviceType !== "") {
+        const deviceType = repairDetails.pev?.PevType || repairDetails.pev?.type;
+        if (deviceType && q.deviceType !== deviceType) return false;
+      }
+
+      // Filter by Repair Type
+      if (q.repairType && q.repairType !== "All" && q.repairType !== "") {
+        if (repairDetails.RepairType && !repairDetails.RepairType.includes(q.repairType))
+          return false;
+      }
+      return true;
+    });
+    return filtered
+      .filter(
+        (q, index, self) => index === self.findIndex((t) => t.question.text === q.question.text)
+      )
+      .sort((a, b) => (a.sequence || 0) - (b.sequence || 0));
   };
+
   return (
     <DashboardLayout>
       <DashboardNavbar />
@@ -619,6 +654,103 @@ const RepairDetails = () => {
                   </MDBox>
                 </Card>
               </Grid>
+              {/* Checklists */}
+              <Grid item xs={12}>
+                <Card>
+                  <MDBox
+                    mx={1}
+                    mt={-3}
+                    py={2}
+                    px={1}
+                    variant="gradient"
+                    bgColor="info"
+                    borderRadius="lg"
+                    coloredShadow="info"
+                  >
+                    <MDTypography variant="h6" color="white">
+                      Checklists
+                    </MDTypography>
+                  </MDBox>
+                  <MDBox mx={2} py={3} px={2}>
+                    <Grid container spacing={2}>
+                      <Grid item xs={12} md={6}>
+                        <MDTypography variant="h6" gutterBottom>
+                          Pre-Repair Checklist
+                        </MDTypography>
+                        {repairDetails.preRepairChecklist?.user && (
+                          <MDTypography variant="caption" display="block" gutterBottom>
+                            Completed by: {repairDetails.preRepairChecklist.user}
+                          </MDTypography>
+                        )}
+                        {getApplicableQuestions("Pre-Repair").length > 0 ? (
+                          getApplicableQuestions("Pre-Repair").map((q) => {
+                            const answerObj = repairDetails.preRepairChecklist?.answers?.find(
+                              (a) => a.questionId === q._id
+                            );
+                            let answerDisplay = "Not answered";
+                            if (answerObj) {
+                              if (q.answerType === "checkbox") {
+                                answerDisplay = answerObj.answer ? "Yes" : "No";
+                              } else {
+                                answerDisplay = answerObj.answer;
+                              }
+                            }
+                            return (
+                              <MDBox key={q._id} mb={1}>
+                                <MDTypography variant="button" fontWeight="bold" display="block">
+                                  {q.question.text}
+                                  {q.question.required && <span style={{ color: "red" }}> *</span>}
+                                </MDTypography>
+                                <MDTypography variant="body2">{String(answerDisplay)}</MDTypography>
+                                <Divider />
+                              </MDBox>
+                            );
+                          })
+                        ) : (
+                          <MDTypography variant="body2">No questions available.</MDTypography>
+                        )}
+                      </Grid>
+                      <Grid item xs={12} md={6}>
+                        <MDTypography variant="h6" gutterBottom>
+                          Post-Repair Checklist
+                        </MDTypography>
+                        {repairDetails.postRepairChecklist?.user && (
+                          <MDTypography variant="caption" display="block" gutterBottom>
+                            Completed by: {repairDetails.postRepairChecklist.user}
+                          </MDTypography>
+                        )}
+                        {getApplicableQuestions("Post-Repair").length > 0 ? (
+                          getApplicableQuestions("Post-Repair").map((q) => {
+                            const answerObj = repairDetails.postRepairChecklist?.answers?.find(
+                              (a) => a.questionId === q._id
+                            );
+                            let answerDisplay = "Not answered";
+                            if (answerObj) {
+                              if (q.answerType === "checkbox") {
+                                answerDisplay = answerObj.answer ? "Yes" : "No";
+                              } else {
+                                answerDisplay = answerObj.answer;
+                              }
+                            }
+                            return (
+                              <MDBox key={q._id} mb={1}>
+                                <MDTypography variant="button" fontWeight="bold" display="block">
+                                  {q.question.text}
+                                  {q.question.required && <span style={{ color: "red" }}> *</span>}
+                                </MDTypography>
+                                <MDTypography variant="body2">{String(answerDisplay)}</MDTypography>
+                                <Divider />
+                              </MDBox>
+                            );
+                          })
+                        ) : (
+                          <MDTypography variant="body2">No questions available.</MDTypography>
+                        )}
+                      </Grid>
+                    </Grid>
+                  </MDBox>
+                </Card>
+              </Grid>
               {/* Repair notes */}
               <Grid item xs={12}>
                 <Card>
@@ -639,13 +771,7 @@ const RepairDetails = () => {
                         </MDTypography>
                       </Grid>
                       <Grid item xs={6} alignItems="center" textAlign="right">
-                        <MDButton
-                          color="success"
-                          size="small"
-                          onClick={() => setnewRepairNotes(true)}
-                        >
-                          Add notes
-                        </MDButton>
+                        <AddNotes repairId={repairDetails._id} size="full" callback={getRepair} />
                       </Grid>
                     </Grid>
                   </MDBox>
@@ -761,7 +887,16 @@ const RepairDetails = () => {
                       </Grid>
                       {allparts.lineItems.map((part) => {
                         return (
-                          <PartsItem part={part} key={part.name} status={repairDetails.status} />
+                          <PartsItem
+                            part={part}
+                            key={part.name}
+                            status={repairDetails.status}
+                            onDelete={(p) => {
+                              setPartid(p._id);
+                              toggleconfirmOpen({ removePart: true });
+                              setPartName(p.name);
+                            }}
+                          />
                         );
                       })}
                     </Grid>
@@ -805,6 +940,7 @@ const RepairDetails = () => {
                       createInvoice={createInvoice}
                       showUploadFunc={showUploadFunc}
                       setnewRepairNotes={setnewRepairNotes}
+                      repair={repairDetails}
                     />
                   </MDBox>
                 </Card>
@@ -862,7 +998,7 @@ const RepairDetails = () => {
         repairID={repairID}
         getRepair={getRepair}
       />
-      <AddPhotoModal repairID={repairID} getRepair={getRepair} />
+      {addPhotoModal}
       <ConfirmActionDialog
         title="Are you sure?"
         content="Do you wish to remove this item?"

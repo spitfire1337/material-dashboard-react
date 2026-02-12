@@ -28,7 +28,7 @@ import moment from "moment";
 
 const data = (status = [], tableState, setTableState) => {
   const { setSnackBar, setShowLoad } = globalFuncs();
-  const { setLoggedIn } = useLoginState();
+  const { setLoginState } = useLoginState();
   let redirect = useNavigate();
   const [repairsOrig, setrepairsOrig] = useState([]);
   const [repairs, setRepairs] = useState([]);
@@ -59,7 +59,7 @@ const data = (status = [], tableState, setTableState) => {
         doFilter(res.data);
         setShowLoad(false);
       } else if (res.res === 401) {
-        setLoggedIn(false);
+        setLoginState(false);
         setSnackBar({
           type: "error",
           title: "Error",
@@ -70,7 +70,7 @@ const data = (status = [], tableState, setTableState) => {
         setShowLoad(false);
       }
     } else if (response.status == 401) {
-      setLoggedIn(false);
+      setLoginState(false);
       setSnackBar({
         type: "error",
         title: "Error",

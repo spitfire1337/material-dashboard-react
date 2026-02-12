@@ -96,30 +96,28 @@ function AddPhotos({ getRepair }) {
       );
     }
   };
-  const AddPhotoModal = () => {
-    return (
-      <>
-        <Dialog open={showUpload}>
-          <form onSubmit={submit}>
-            <DialogTitle>Upload image</DialogTitle>
-            <DialogContent>
-              <WebcamCapture />
-              <br />
-            </DialogContent>
-            <DialogActions>
-              <MDButton onClick={() => setShowUpload(false)}>Cancel</MDButton>
-              <MDButton type="submit" disabled={file != null ? false : true}>
-                Upload
-              </MDButton>
-            </DialogActions>
-          </form>
-        </Dialog>
-      </>
-    );
-  };
+  const addPhotoModal = (
+    <>
+      <Dialog open={showUpload}>
+        <form onSubmit={submit}>
+          <DialogTitle>Upload image</DialogTitle>
+          <DialogContent>
+            <WebcamCapture />
+            <br />
+          </DialogContent>
+          <DialogActions>
+            <MDButton onClick={() => setShowUpload(false)}>Cancel</MDButton>
+            <MDButton type="submit" disabled={file != null ? false : true}>
+              Upload
+            </MDButton>
+          </DialogActions>
+        </form>
+      </Dialog>
+    </>
+  );
   return {
     showUploadFunc: showUploadFunc,
-    AddPhotoModal: AddPhotoModal,
+    addPhotoModal: addPhotoModal,
     setRepairId: setRepairId,
   };
 }

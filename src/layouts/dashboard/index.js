@@ -35,7 +35,7 @@ import { useNavigate } from "react-router-dom";
 
 // eslint-disable-next-line react/prop-types
 function Dashboard({ stats }) {
-  const { loginState, setLoginState, checkLogin } = useLoginState();
+  const { loginState } = useLoginState();
 
   const [sales, setSalesData] = useState({
     labels: [],

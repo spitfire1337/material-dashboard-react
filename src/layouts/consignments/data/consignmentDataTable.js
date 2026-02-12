@@ -28,7 +28,7 @@ import MDBadge from "components/MDBadge";
 import moment from "moment";
 
 export default function data(contIntake, status) {
-  const { setLoggedIn } = useLoginState();
+  const { setLoginState } = useLoginState();
   const { setShowLoad, setSnackBar } = globalFuncs();
   let redirect = useNavigate();
   const [repairsOrig, setrepairsOrig] = useState([]);
@@ -53,7 +53,7 @@ export default function data(contIntake, status) {
         // doFilter();
       } else if (res.res === 401) {
         setShowLoad(false);
-        setLoggedIn(false);
+        setLoginState(false);
         setSnackBar({
           type: "error",
           title: "Error",
@@ -64,7 +64,7 @@ export default function data(contIntake, status) {
       }
     } else if (response.status == 401) {
       setShowLoad(false);
-      setLoggedIn(false);
+      setLoginState(false);
       setSnackBar({
         type: "error",
         title: "Error",

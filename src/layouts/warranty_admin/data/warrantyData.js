@@ -31,7 +31,7 @@ import moment from "moment";
 
 export default function data(contIntake, filters) {
   const { setSnackBar, setShowLoad } = globalFuncs();
-  const { setLoggedIn } = useLoginState();
+  const { setLoginState } = useLoginState();
 
   let redirect = useNavigate();
   const [repairsOrig, setrepairsOrig] = useState([]);
@@ -52,7 +52,7 @@ export default function data(contIntake, filters) {
         setrepairsOrig(res.data);
         setRepairs(res.data);
       } else if (res.res === 401) {
-        setLoggedIn(false);
+        setLoginState(false);
         setSnackBar({
           type: "error",
           title: "Error",
@@ -62,7 +62,7 @@ export default function data(contIntake, filters) {
         });
       }
     } else if (response.status == 401) {
-      setLoggedIn(false);
+      setLoginState(false);
       setSnackBar({
         type: "error",
         title: "Error",

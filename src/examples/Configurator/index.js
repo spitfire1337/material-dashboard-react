@@ -63,7 +63,7 @@ function Configurator() {
   const [businessHours, setBusinessHours] = useState([]);
   const [myAvailability, setMyAvailabilty] = useState([]);
   const { setSnackBar } = globalFuncs();
-  const { setLoggedIn } = useLoginState();
+  const { setLoginState } = useLoginState();
 
   // Use the useEffect hook to change the button state for the sidenav type based on window size.
   useEffect(() => {
@@ -100,7 +100,7 @@ function Configurator() {
       if (res.res === 200) {
         setBusinessHours(res.data);
       } else if (res.res === 401) {
-        setLoggedIn(false);
+        setLoginState(false);
         setSnackBar({
           type: "error",
           title: "Server error occured",
@@ -118,7 +118,7 @@ function Configurator() {
       if (res.res === 200) {
         setMyAvailabilty(res.data);
       } else if (res.res === 401) {
-        setLoggedIn(false);
+        setLoginState(false);
         setSnackBar({
           type: "error",
           title: "Server error occured",
@@ -239,7 +239,7 @@ function Configurator() {
       });
       return null;
     } else if (res.res == 401) {
-      setLoggedIn(false);
+      setLoginState(false);
       setSnackBar({
         type: "error",
         title: "Server error occured",
@@ -273,7 +273,7 @@ function Configurator() {
       });
       return null;
     } else if (res.res == 401) {
-      setLoggedIn(false);
+      setLoginState(false);
       setSnackBar({
         type: "error",
         title: "Server error occured",

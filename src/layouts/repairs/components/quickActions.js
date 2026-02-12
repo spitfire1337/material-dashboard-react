@@ -6,6 +6,7 @@ import MDBox from "components/MDBox";
 import { Grid } from "@mui/material";
 import vars from "../../../config";
 import { useState, React } from "react";
+import { useNavigate } from "react-router-dom";
 import MDTypography from "components/MDTypography";
 import {
   Modal,
@@ -26,6 +27,8 @@ import DialogActions from "@mui/material/DialogActions";
 //Buttons
 import AddNotes from "components/NotesButton";
 import PartsButton from "components/PartsButton";
+import ChecklistModal from "../../repairDetails/components/checklist";
+import PauseRepairPartsButton from "components/PauseRepairPartsButton";
 
 const style = {
   position: "absolute",
@@ -48,7 +51,9 @@ function Actions({
   repairOrderReady,
   createInvoice,
   reRender,
+  repair,
 }) {
+  const navigate = useNavigate();
   const { setSnackBar, setShowLoad } = globalFuncs();
   const [Labor, setLabor] = useState(100);
   const [Tax, setTax] = useState(0);
@@ -78,7 +83,10 @@ function Actions({
   const [partsCount, setPartsCount] = useState(0);
 
   const [confirmOpen, toggleconfirmOpen] = useState({ cancelInvoice: false });
+  const [checklistOpen, setChecklistOpen] = useState(false);
   const [showUpload, showUploadFunc] = useState(false);
+  const [activeRepairId, setActiveRepairId] = useState(null);
+  const [showActiveRepairDialog, setShowActiveRepairDialog] = useState(false);
   // const { PartsOrderDialog, togglePartsOrderOpen } = PartsOrder();
 
   const dialogHandleClose = () => {
@@ -458,246 +466,241 @@ function Actions({
     );
   };
 
-  const PrintDocsDialog = () => {
-    return (
-      <Dialog open={printDialogOpen}>
-        <DialogTitle>Reprint Paperwork</DialogTitle>
-        <DialogContent>
-          {documents.map((doc) => {
-            return (
-              // eslint-disable-next-line react/jsx-key
-              <>
-                <MDButton
-                  mt={1}
-                  fullWidth
-                  color="success"
-                  onClick={() => reprintPaperwork(doc._id)}
-                >
-                  {doc.name}
-                </MDButton>
-                <br /> <br />
-              </>
-            );
-          })}
-          <MDButton color="success" fullWidth onClick={() => reprintPaperwork()}>
-            Reprint All
-          </MDButton>
-        </DialogContent>
-        <DialogActions>
-          <MDButton color="error" fullWidth onClick={() => toggleprintDialogOpen(false)}>
-            Close
-          </MDButton>
-        </DialogActions>
-      </Dialog>
-    );
-  };
-
-  const ReprintButton = () => {
-    return (
-      <Tooltip title="Reprint Paperwork">
-        <MDButton fullwidth color="dark" variant="contained" pb={3} onClick={() => getDocuments()}>
-          <Icon>print</Icon>
+  const printDocsDialog = (
+    <Dialog open={printDialogOpen}>
+      <DialogTitle>Reprint Paperwork</DialogTitle>
+      <DialogContent>
+        {documents.map((doc) => {
+          return (
+            // eslint-disable-next-line react/jsx-key
+            <>
+              <MDButton mt={1} fullWidth color="success" onClick={() => reprintPaperwork(doc._id)}>
+                {doc.name}
+              </MDButton>
+              <br /> <br />
+            </>
+          );
+        })}
+        <MDButton color="success" fullWidth onClick={() => reprintPaperwork()}>
+          Reprint All
         </MDButton>
-      </Tooltip>
-    );
-  };
-
-  const StartRepairButton = () => {
-    return (
-      <Tooltip title="Start Repair">
-        <MDButton
-          fullwidth
-          color="success"
-          variant="contained"
-          pb={3}
-          onClick={() => repairAction(2, "Repair started", "construction", "success")}
-        >
-          <Icon>play_circle</Icon>
+      </DialogContent>
+      <DialogActions>
+        <MDButton color="error" fullWidth onClick={() => toggleprintDialogOpen(false)}>
+          Close
         </MDButton>
-      </Tooltip>
-    );
+      </DialogActions>
+    </Dialog>
+  );
+
+  const reprintButton = (
+    <Tooltip title="Reprint Paperwork">
+      <MDButton fullwidth color="dark" variant="contained" pb={3} onClick={() => getDocuments()}>
+        <Icon>print</Icon>
+      </MDButton>
+    </Tooltip>
+  );
+
+  const handleStartRepair = async () => {
+    setShowLoad(true);
+    const response = await fetch(`${vars.serverUrl}/repairs/activeRepair`, {
+      credentials: "include",
+    });
+    const json = await response.json();
+    setShowLoad(false);
+    if (json.res == 501) {
+      setActiveRepairId(json.data._id);
+      setShowActiveRepairDialog(true);
+    } else {
+      if (
+        repair &&
+        repair.RepairType &&
+        repair.RepairType.some((t) => t.toLowerCase() !== "other")
+      ) {
+        setChecklistOpen(true);
+      } else {
+        repairAction(2, "Repair started", "construction", "success");
+      }
+    }
   };
 
-  const ReturnToCustomerButton = () => {
-    return (
-      <Tooltip title="Return to Customer">
-        <MDButton
-          fullwidth
-          color="primary"
-          variant="contained"
-          p={3}
-          onClick={() => repairAction(997, "Return to customer", "event_busy", "primary")}
-        >
-          <Icon>exit_to_app</Icon>
-        </MDButton>
-      </Tooltip>
-    );
-  };
+  const startRepairButton = (
+    <Tooltip title="Start Repair">
+      <MDButton fullwidth color="success" variant="contained" pb={3} onClick={handleStartRepair}>
+        <Icon>play_circle</Icon>
+      </MDButton>
+    </Tooltip>
+  );
 
-  const CancelRepairButton = () => {
-    return (
-      <Tooltip title="Cancel Repair">
-        <MDButton
-          fullwidth
-          color="primary"
-          variant="contained"
-          onClick={() => repairAction(998, "Repair cancelled", "event_busy", "primary")}
-        >
-          <Icon>cancel</Icon>
-        </MDButton>
-      </Tooltip>
-    );
-  };
+  const returnToCustomerButton = (
+    <Tooltip title="Return to Customer">
+      <MDButton
+        fullwidth
+        color="primary"
+        variant="contained"
+        p={3}
+        onClick={() => repairAction(997, "Return to customer", "event_busy", "primary")}
+      >
+        <Icon>exit_to_app</Icon>
+      </MDButton>
+    </Tooltip>
+  );
 
-  const PauseRepairButton = () => {
-    return (
-      <Tooltip title="Pause Repair">
-        <MDButton
-          fullwidth
-          color="info"
-          variant="contained"
-          onClick={() => repairAction(3, "Repair paused", "pause", "info")}
-        >
-          <Icon>pause_circle</Icon>
-        </MDButton>
-      </Tooltip>
-    );
-  };
+  const cancelRepairButton = (
+    <Tooltip title="Cancel Repair">
+      <MDButton
+        fullwidth
+        color="primary"
+        variant="contained"
+        onClick={() => repairAction(998, "Repair cancelled", "event_busy", "primary")}
+      >
+        <Icon>cancel</Icon>
+      </MDButton>
+    </Tooltip>
+  );
 
-  // const PauseRepairPartsButton = () => {
-  //   return (
-  //     <>
-  //       <Tooltip title="Pause Repair - Awaiting parts">
-  //         <MDButton
-  //           fullwidth
-  //           color="info"
-  //           variant="contained"
-  //           onClick={() => togglePartsOrderOpen(true)}
-  //         >
-  //           <Icon>alarm_pause</Icon>
-  //         </MDButton>
-  //       </Tooltip>
-  //       <PartsOrderDialog />
-  //     </>
-  //   );
-  // };
+  const pauseRepairButton = (
+    <Tooltip title="Pause Repair">
+      <MDButton
+        fullwidth
+        color="info"
+        variant="contained"
+        onClick={() => repairAction(3, "Repair paused", "pause", "info")}
+      >
+        <Icon>pause_circle</Icon>
+      </MDButton>
+    </Tooltip>
+  );
 
-  const AddPartsButton = () => {
-    return (
-      <Tooltip title="Add Parts">
-        <MDButton fullwidth color="dark" variant="contained" onClick={() => getParts()}>
-          <Icon>add_shopping_cart</Icon>
-        </MDButton>
-      </Tooltip>
-    );
-  };
+  const pauseRepairPartsButton = (
+    <PauseRepairPartsButton repairId={repairID} onPause={repairAction} size="icon" />
+  );
 
-  const CompleteRepairButton = () => {
-    return (
-      <Tooltip title="Complete Repair">
-        <MDButton
-          fullwidth
-          color="success"
-          variant="contained"
-          onClick={() => repairAction(4, "Repair completed", "build_circle", "success")}
-        >
-          <Icon>check_circle</Icon>
-        </MDButton>
-      </Tooltip>
-    );
-  };
+  const addPartsButton = (
+    <Tooltip title="Add Parts">
+      <MDButton fullwidth color="dark" variant="contained" onClick={() => getParts()}>
+        <Icon>add_shopping_cart</Icon>
+      </MDButton>
+    </Tooltip>
+  );
 
-  const RestartRepairButton = () => {
-    return (
-      <Tooltip title="Restart Repair">
-        <MDButton
-          fullwidth
-          color="success"
-          variant="contained"
-          p={3}
-          onClick={() => repairAction(2, "Repair resumed", "construction", "success")}
-        >
-          <Icon>restart_alt</Icon>
-        </MDButton>
-      </Tooltip>
-    );
-  };
+  const completeRepairButton = (
+    <Tooltip title="Complete Repair">
+      <MDButton
+        fullwidth
+        color="success"
+        variant="contained"
+        onClick={() => setChecklistOpen(true)}
+      >
+        <Icon>check_circle</Icon>
+      </MDButton>
+    </Tooltip>
+  );
 
-  const CreateInvoiceButton = () => {
-    return (
-      <Tooltip title="Create Invoice">
-        <MDButton
-          fullwidth
-          color="success"
-          variant="contained"
-          p={3}
-          disabled={!repairOrderReady}
-          onClick={() => setShowInvoice(true)}
-        >
-          <Icon>receipt</Icon>
-        </MDButton>
-      </Tooltip>
-    );
-  };
+  const restartRepairButton = (
+    <Tooltip title="Restart Repair">
+      <MDButton
+        fullwidth
+        color="success"
+        variant="contained"
+        p={3}
+        onClick={() => repairAction(2, "Repair resumed", "construction", "success")}
+      >
+        <Icon>restart_alt</Icon>
+      </MDButton>
+    </Tooltip>
+  );
 
-  const CancelInvoiceButton = () => {
-    return (
-      <Tooltip title="Cancel Invoice">
-        <MDButton
-          fullwidth
-          color="success"
-          variant="contained"
-          p={3}
-          onClick={() => toggleconfirmOpen({ cancelInvoice: true })}
-        >
-          <Icon>credit_card_off</Icon>
-        </MDButton>
-      </Tooltip>
-    );
-  };
+  const createInvoiceButton = (
+    <Tooltip title="Create Invoice">
+      <MDButton
+        fullwidth
+        color="success"
+        variant="contained"
+        p={3}
+        disabled={!repairOrderReady}
+        onClick={() => setShowInvoice(true)}
+      >
+        <Icon>receipt</Icon>
+      </MDButton>
+    </Tooltip>
+  );
 
-  const ArchiveRepairButton = () => {
-    return (
-      <Tooltip title="Archive Repair - Customer picked up">
-        <MDButton
-          fullwidth
-          color="primary"
-          variant="contained"
-          p={3}
-          onClick={() => repairAction(998, "Repair Archived", "event_busy", "primary")}
-        >
-          <Icon>archive</Icon>
-        </MDButton>
-      </Tooltip>
-    );
-  };
+  const cancelInvoiceButton = (
+    <Tooltip title="Cancel Invoice">
+      <MDButton
+        fullwidth
+        color="success"
+        variant="contained"
+        p={3}
+        onClick={() => toggleconfirmOpen({ cancelInvoice: true })}
+      >
+        <Icon>credit_card_off</Icon>
+      </MDButton>
+    </Tooltip>
+  );
+
+  const archiveRepairButton = (
+    <Tooltip title="Archive Repair - Customer picked up">
+      <MDButton
+        fullwidth
+        color="primary"
+        variant="contained"
+        p={3}
+        onClick={() => repairAction(998, "Repair Archived", "event_busy", "primary")}
+      >
+        <Icon>archive</Icon>
+      </MDButton>
+    </Tooltip>
+  );
   console.log("Quick actions rendered");
   if (status == 1) {
     return (
       <>
         <Grid container spacing={2} mb={3}>
           <Grid item xs={6} lg={3}>
-            <StartRepairButton />
+            {startRepairButton}
           </Grid>
           <Grid item xs={6} lg={3}>
-            {/* <PauseRepairPartsButton /> */}
+            {pauseRepairPartsButton}
           </Grid>
-          <Grid item xs={4} md={2}>
+          <Grid item xs={6} md={3}>
             <PartsButton size="icon" repairId={repairID} getRepair={getRepair} />
           </Grid>
           <Grid item xs={6} lg={3}>
-            <ReturnToCustomerButton />
+            {returnToCustomerButton}
           </Grid>
           <Grid item xs={6} lg={3}>
-            <CancelRepairButton />
+            {cancelRepairButton}
           </Grid>
           <Grid item xs={6} lg={3}>
             <AddNotes repairId={repairID} callback={getRepair} size="icon" />
           </Grid>
           <Grid item xs={6} lg={3}>
-            <ReprintButton />
+            {reprintButton}
           </Grid>
         </Grid>
+        <ChecklistModal
+          open={checklistOpen}
+          onClose={() => setChecklistOpen(false)}
+          repair={repair}
+          checklistType="Pre-Repair"
+          getRepair={reRender || getRepair}
+          onSave={() => repairAction(2, "Repair started", "construction", "success")}
+        />
+        {printDocsDialog}
+        <ConfirmActionDialog
+          title={"Current repair in progress"}
+          content={
+            "You must pause the current repair before starting a new one. Would you like to go to the current repair"
+          }
+          action={() => {
+            navigate(`/repairdetails/${activeRepairId}`);
+            setShowActiveRepairDialog(false);
+          }}
+          openState={showActiveRepairDialog}
+          closeState={() => setShowActiveRepairDialog(false)}
+        />
         {/* <PartsModal /> */}
       </>
     );
@@ -707,30 +710,39 @@ function Actions({
       <>
         <Grid container spacing={2} mb={3}>
           <Grid item xs={6} lg={3}>
-            <PauseRepairButton />
+            {pauseRepairButton}
           </Grid>
           <Grid item xs={6} lg={3}>
-            {/* <PauseRepairPartsButton /> */}
+            {pauseRepairPartsButton}
           </Grid>
-          <Grid item xs={4} md={2}>
+          <Grid item xs={6} md={3}>
             <PartsButton size="icon" repairId={repairID} getRepair={getRepair} />
           </Grid>
           <Grid item xs={6} lg={3}>
-            <CompleteRepairButton />
+            {completeRepairButton}
           </Grid>
           <Grid item xs={6} lg={3}>
-            <ReturnToCustomerButton />
+            {returnToCustomerButton}
           </Grid>
           <Grid item xs={6} lg={3}>
-            <CancelRepairButton />
+            {cancelRepairButton}
           </Grid>
           <Grid item xs={6} lg={3}>
             <AddNotes repairId={repairID} callback={getRepair} size="icon" />
           </Grid>
           <Grid item xs={6} lg={3}>
-            <ReprintButton />
+            {reprintButton}
           </Grid>
         </Grid>
+        {printDocsDialog}
+        <ChecklistModal
+          open={checklistOpen}
+          onClose={() => setChecklistOpen(false)}
+          repair={repair}
+          checklistType="Post-Repair"
+          getRepair={reRender || getRepair}
+          onSave={() => repairAction(4, "Repair completed", "build_circle", "success")}
+        />
         {/* <PartsModal /> */}
       </>
     );
@@ -740,27 +752,36 @@ function Actions({
       <>
         <Grid container spacing={2} mb={3}>
           <Grid item xs={6} lg={3}>
-            <RestartRepairButton />
+            {restartRepairButton}
           </Grid>
           <Grid item xs={6} md={3}>
             <PartsButton size="icon" repairId={repairID} getRepair={getRepair} />
           </Grid>
           <Grid item xs={6} lg={3}>
-            <CompleteRepairButton />
+            {completeRepairButton}
           </Grid>
           <Grid item xs={6} lg={3}>
-            <ReturnToCustomerButton />
+            {returnToCustomerButton}
           </Grid>
           <Grid item xs={6} lg={3}>
-            <CancelRepairButton />
+            {cancelRepairButton}
           </Grid>
           <Grid item xs={6} lg={3}>
             <AddNotes repairId={repairID} callback={getRepair} size="icon" />
           </Grid>
           <Grid item xs={6} lg={3}>
-            <ReprintButton />
+            {reprintButton}
           </Grid>
         </Grid>
+        {printDocsDialog}
+        <ChecklistModal
+          open={checklistOpen}
+          onClose={() => setChecklistOpen(false)}
+          repair={repair}
+          checklistType="Post-Repair"
+          getRepair={reRender || getRepair}
+          onSave={() => repairAction(4, "Repair completed", "build_circle", "success")}
+        />
         <setShowLoad />
       </>
     );
@@ -770,18 +791,19 @@ function Actions({
       <>
         <Grid container spacing={2} mb={3}>
           <Grid item xs={6} lg={3}>
-            <RestartRepairButton />
+            {restartRepairButton}
           </Grid>
           <Grid item xs={6} lg={3}>
-            <ArchiveRepairButton />
+            {archiveRepairButton}
           </Grid>
           <Grid item xs={6} lg={3}>
             <AddNotes repairId={repairID} callback={getRepair} size="icon" />
           </Grid>
           <Grid item xs={6} lg={3}>
-            <ReprintButton />
+            {reprintButton}
           </Grid>
         </Grid>
+        {printDocsDialog}
         <setShowLoad />
       </>
     );
@@ -792,22 +814,22 @@ function Actions({
       <>
         <Grid container spacing={2} mb={3}>
           {/* <Grid item xs={4} md={2}>
-            <AddPartsButton />
+            {addPartsButton}
           </Grid> */}
           <Grid item xs={6} lg={3}>
-            <CreateInvoiceButton />
+            {createInvoiceButton}
           </Grid>
           <Grid item xs={6} lg={3}>
-            <RestartRepairButton />
+            {restartRepairButton}
           </Grid>
           <Grid item xs={6} lg={3}>
-            <CancelRepairButton />
+            {cancelRepairButton}
           </Grid>
           <Grid item xs={6} lg={3}>
             <AddNotes repairId={repairID} callback={getRepair} size="icon" />
           </Grid>
           <Grid item xs={6} lg={3}>
-            <ReprintButton />
+            {reprintButton}
           </Grid>
         </Grid>
         {repairOrderReady ? (
@@ -985,6 +1007,7 @@ function Actions({
             </MDBox>
           </Modal>
         ) : null}
+        {printDocsDialog}
         {/* <PartsModal /> */}
       </>
     );
@@ -994,13 +1017,13 @@ function Actions({
       <>
         <Grid container spacing={2} mb={3}>
           <Grid item xs={6} lg={3}>
-            <CancelInvoiceButton />
+            {cancelInvoiceButton}
           </Grid>
           <Grid item xs={6} lg={3}>
             <AddNotes repairId={repairID} callback={getRepair} size="icon" />
           </Grid>
           <Grid item xs={6} lg={3}>
-            <ReprintButton />
+            {reprintButton}
           </Grid>
         </Grid>
         <ConfirmActionDialog
@@ -1010,6 +1033,7 @@ function Actions({
           openState={confirmOpen.cancelInvoice}
           closeState={() => toggleconfirmOpen({ cancelInvoice: false })}
         />
+        {printDocsDialog}
       </>
     );
   }
@@ -1017,8 +1041,9 @@ function Actions({
     return (
       <>
         <Grid container spacing={2} mb={3}>
-          <ReprintButton />
+          {reprintButton}
         </Grid>
+        {printDocsDialog}
         <setShowLoad />
       </>
     );

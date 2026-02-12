@@ -27,7 +27,7 @@ import MDTypography from "components/MDTypography";
 import { set } from "draft-js/lib/DefaultDraftBlockRenderMap";
 
 export default function data(contIntake, filters) {
-  const { setLoggedIn } = useLoginState();
+  const { setLoginState } = useLoginState();
   const { setSnackBar, setShowLoad } = globalFuncs();
   let redirect = useNavigate();
   const [repairsOrig, setrepairsOrig] = useState([]);
@@ -51,7 +51,7 @@ export default function data(contIntake, filters) {
         doFilter();
       } else if (res.res === 401) {
         setShowLoad(false);
-        setLoggedIn(false);
+        setLoginState(false);
         setSnackBar({
           type: "error",
           title: "Error",
@@ -62,7 +62,7 @@ export default function data(contIntake, filters) {
       }
     } else if (response.status == 401) {
       setShowLoad(false);
-      setLoggedIn(false);
+      setLoginState(false);
       setSnackBar({
         type: "error",
         title: "Error",

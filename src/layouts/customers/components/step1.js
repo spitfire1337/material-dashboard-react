@@ -12,7 +12,7 @@ import vars from "../../../config";
 const filter = createFilterOptions();
 
 const step1 = ({ nextRepairStep }) => {
-  const { setLoggedIn } = useLoginState();
+  const { setLoginState } = useLoginState();
   const { setSnackBar } = globalFuncs();
   const [customersSelection, setCustomersSelection] = useState([]);
   const [showCustForm, setShowCustForm] = useState(false);
@@ -61,7 +61,7 @@ const step1 = ({ nextRepairStep }) => {
           emptyCustomer();
           setShowCustForm(false);
         } else if (res.res === 401) {
-          setLoggedIn(false);
+          setLoginState(false);
           setSnackBar({
             type: "error",
             title: "Error",
@@ -71,7 +71,7 @@ const step1 = ({ nextRepairStep }) => {
           });
         }
       } else if (response.status == 401) {
-        setLoggedIn(false);
+        setLoginState(false);
         setSnackBar({
           type: "error",
           title: "Error",
@@ -147,7 +147,7 @@ const step1 = ({ nextRepairStep }) => {
           nextRepairStep(val, json.data._id);
           return null;
         } else if (json.res == 401) {
-          setLoggedIn(false);
+          setLoginState(false);
         }
       } catch (e) {
         setSnackBar({

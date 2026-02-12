@@ -70,7 +70,7 @@ const useStyles = makeStyles((theme) => ({
 
 // eslint-disable-next-line react/prop-types
 const CategoryAdmin = () => {
-  const { setLoggedIn } = useLoginState();
+  const { setLoginState } = useLoginState();
   const classes = useStyles();
   const { setSnackBar, setShowLoad } = globalFuncs();
   const [updateLoc, setUpdateLoc] = useState(false);
@@ -121,7 +121,7 @@ const CategoryAdmin = () => {
         setCatList(cats);
         setNewCategory(true);
       } else if (res.res === 401) {
-        setLoggedIn(false);
+        setLoginState(false);
         setSnackBar({
           type: "error",
           title: "Unauthorized",
@@ -131,7 +131,7 @@ const CategoryAdmin = () => {
         });
       }
     } else if (response.status == 401) {
-      setLoggedIn(false);
+      setLoginState(false);
       setSnackBar({
         type: "error",
         title: "Unauthorized",

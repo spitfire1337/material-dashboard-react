@@ -117,7 +117,6 @@ export default function App() {
   } = controller;
   const [onMouseEnter, setOnMouseEnter] = useState(false);
   const [rtlCache, setRtlCache] = useState(null);
-  const [isLoggedin, setLoggedIn] = useState(false);
   const [isSquare, setSquare] = useState(false);
   const [customers, setCustomers] = useState([]);
   const [locations, setLocations] = useState({ locations: [] });
@@ -433,27 +432,26 @@ export default function App() {
     </MDBox>
   );
 
-  const MyScanner = () => {
-    return (
-      <Modal
-        open={showVideoFeed}
-        onClose={() => {
-          setShowVideoFeed(false);
-        }}
-        aria-labelledby="modal-modal-title"
-        aria-describedby="modal-modal-description"
-      >
-        <MDBox sx={style}>
-          <Scanner
-            classNames={{
-              container: "scanner",
-              video: "video",
-            }}
-            onScan={(result) => {
-              barcodeCapture(result[0].rawValue);
-            }}
-          />
-          {/* <BarcodeScanner
+  const myScanner = (
+    <Modal
+      open={showVideoFeed}
+      onClose={() => {
+        setShowVideoFeed(false);
+      }}
+      aria-labelledby="modal-modal-title"
+      aria-describedby="modal-modal-description"
+    >
+      <MDBox sx={style}>
+        <Scanner
+          classNames={{
+            container: "scanner",
+            video: "video",
+          }}
+          onScan={(result) => {
+            barcodeCapture(result[0].rawValue);
+          }}
+        />
+        {/* <BarcodeScanner
             width="100%"
             height="75%"
             options={{ formats: ["code_128"] }}
@@ -461,20 +459,19 @@ export default function App() {
               barcodeCapture(barcode);
             }}
           /> */}
-          <MDButton
-            sx={{ marginTop: "2px" }}
-            fullWidth
-            color="secondary"
-            onClick={() => {
-              setShowVideoFeed(false);
-            }}
-          >
-            Close
-          </MDButton>
-        </MDBox>
-      </Modal>
-    );
-  };
+        <MDButton
+          sx={{ marginTop: "2px" }}
+          fullWidth
+          color="secondary"
+          onClick={() => {
+            setShowVideoFeed(false);
+          }}
+        >
+          Close
+        </MDButton>
+      </MDBox>
+    </Modal>
+  );
   console.log("App loginState: ", loginState);
   if (loginState.loading) {
     return (
@@ -559,7 +556,7 @@ export default function App() {
           </>
         )}
         {layout === "vr" && <Configurator />}
-        {showVideoFeed && <MyScanner />}
+        {showVideoFeed && myScanner}
         {/* {location == null && <LocationSelect locations={locations.locations} />} */}
         <Routes>
           {getRoutes(routes(stats, loginState))}

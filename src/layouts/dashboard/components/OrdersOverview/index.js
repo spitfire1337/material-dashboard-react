@@ -29,7 +29,7 @@ import vars from "../../../../config";
 import moment from "moment";
 
 function OrdersOverview() {
-  const { setLoggedIn } = useLoginState();
+  const { setLoginState } = useLoginState();
   const { setSnackBar } = globalFuncs();
   const [history, setHistory] = useState([]);
 
@@ -43,7 +43,7 @@ function OrdersOverview() {
       if (res.res === 200) {
         setHistory(res.data);
       } else if (res.res === 401) {
-        setLoggedIn(false);
+        setLoginState(false);
         setSnackBar({
           type: "error",
           title: "Error",
@@ -53,7 +53,7 @@ function OrdersOverview() {
         });
       }
     } else if (response.status == 401) {
-      setLoggedIn(false);
+      setLoginState(false);
       setSnackBar({
         type: "error",
         title: "Error",

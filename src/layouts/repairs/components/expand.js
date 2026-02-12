@@ -116,6 +116,8 @@ const ExpandedComponent = ({ data, reRender }) => {
               repairID={repairDetails._id}
               repairTime={repairDetails.repairTime}
               reRender={reRender}
+              getRepair={reRender}
+              repair={repairDetails}
             />
           </MDBox>
         </Card>

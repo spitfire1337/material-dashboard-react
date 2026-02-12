@@ -41,7 +41,7 @@ import MDButton from "components/MDButton";
 // eslint-disable-next-line react/prop-types
 const WhatsNew = () => {
   const { setSnackBar } = globalFuncs();
-  const { setLoggedIn } = useLoginState();
+  const { setLoginState } = useLoginState();
   const [value, setValue] = useState({ editorState: EditorState.createEmpty() });
 
   const onEditorStateChange = (editorState) => {
@@ -62,7 +62,7 @@ const WhatsNew = () => {
     });
     const res = await response.json();
     if (res.res === 401) {
-      setLoggedIn(false);
+      setLoginState(false);
       setSnackBar({
         type: "error",
         title: "Server error occured",

@@ -12,7 +12,7 @@ import vars from "../../../config";
 const filter = createFilterOptions();
 const step3 = ({ newConsignmentData, updateConsignmentData, setrepairID, nextRepairStep }) => {
   const { setSnackBar } = globalFuncs();
-  const { setLoggedIn } = useLoginState();
+  const { setLoginState } = useLoginState();
   const [pevSelection, setPEVSelection] = useState([]);
   const [allowContinue, setAllowContinue] = useState(false);
   const [pevBrand, setPEVBrand] = useState([]);
@@ -68,10 +68,10 @@ const step3 = ({ newConsignmentData, updateConsignmentData, setrepairID, nextRep
           //setSelectedCustomer({});
           //setShowCustForm(false);
         } else if (res.res === 401) {
-          setLoggedIn(false);
+          setLoginState(false);
         }
       } else if (response.status == 401) {
-        setLoggedIn(false);
+        setLoginState(false);
       }
     };
     fetchData();

@@ -6,7 +6,7 @@ import { TextField, Dialog, DialogTitle, DialogContent, DialogActions } from "@m
 import vars from "../../../config";
 
 function EditTime({ repairTime, getRepair, repairID, hide, openVar }) {
-  const { setSnackBar, setShowLoad } = globalFuncs;
+  const { setSnackBar, setShowLoad } = globalFuncs();
   const [newMinutes, setnewMinutes] = useState(Math.round(60 * repairTime));
   const saveTime = async () => {
     hide(false);

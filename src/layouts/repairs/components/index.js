@@ -1,245 +1,208 @@
-import { useState, useEffect, useMemo, useRef } from "react";
-import { useParams } from "react-router-dom";
-import { useTableState } from "../../context/tableState";
-
-//Material UI
-import { Grid, Card, TextField, Tooltip, Modal, IconButton, Icon } from "@mui/material";
-import { makeStyles } from "@mui/styles";
-
-// Material Dashboard 2 React components
-import MDBox from "components/MDBox";
+import { useState, useEffect } from "react";
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  Grid,
+  Autocomplete,
+  Tooltip,
+  Icon,
+} from "@mui/material";
 import MDButton from "components/MDButton";
+import { globalFuncs } from "context/global";
+import vars from "config";
 
-// Material Dashboard 2 React example components
-import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
-import DashboardNavbar from "examples/Navbars/DashboardNavbar";
-import Footer from "examples/Footer";
-
-//External Components
-import DataTable from "react-data-table-component";
-import ExpandedComponent from "./components/expand";
-
-//Data
-import repairsTableData from "./data/repairsDataTable";
-
-const useStyles = makeStyles((theme) => ({
-  input: {
-    background: "rgb(232, 241, 250)",
-  },
-}));
-
-const iconsStyle = ({ palette: { dark, white, text }, functions: { rgba } }) => ({
-  color: () => {
-    let colorValue = dark.main;
-    return colorValue;
-  },
-});
-const style = {
-  position: "absolute",
-  top: "50%",
-  left: "50%",
-  transform: "translate(-50%, -50%)",
-  width: "80%",
-  minHeight: "50vh",
-  maxHeight: "80vh",
-  overflowY: "scroll",
-  bgcolor: "background.paper",
-  border: "2px solid #000",
-  boxShadow: 24,
-  p: 4,
-  borderRadius: "25px",
-};
-const Repairs = () => {
-  const classes = useStyles();
-  const [state, setState] = useState();
-  //const { tableState, setTableState, RepairRerender } = useTableState();
-  const { repairstatus } = useParams();
-  const { columns, rows, setsearchTerm, searchterm, setmyFilters, doFilter } = repairsTableData();
-  const { tableState, setTableState, RepairRerender } = useTableState();
-  const [newRepair, setNewRepair] = useState(false);
-
-  const doFilterRef = useRef(doFilter);
-  useEffect(() => {
-    doFilterRef.current = doFilter;
-  }, [doFilter]);
-
-  const RepairRerenderRef = useRef(RepairRerender);
-  useEffect(() => {
-    RepairRerenderRef.current = RepairRerender;
-  }, [RepairRerender]);
-
-  const ExpandedRow = useMemo(() => {
-    return ({ data }) => (
-      <ExpandedComponent
-        data={data}
-        reRender={() => RepairRerenderRef.current(doFilterRef.current)}
-      />
-    );
-  }, []);
+function PauseRepairPartsButton({ repairId, onPause, size = "full" }) {
+  const { setSnackBar, setShowLoad } = globalFuncs();
+  const [open, setOpen] = useState(false);
+  const [vendors, setVendors] = useState([]);
+  const [partsData, setPartsData] = useState({
+    partName: "",
+    cost: "",
+    customerCost: "",
+    quantity: "",
+    vendor: "",
+    orderNumber: "",
+  });
 
   useEffect(() => {
-    let statusfilter = [];
-    if (repairstatus) {
-      if (repairstatus.indexOf("|") > -1) {
-        const statusParts = repairstatus.split("|");
-        statusfilter = statusParts.map((s) => parseInt(s));
-      } else {
-        statusfilter = [parseInt(repairstatus)];
-      }
-    } else {
-      statusfilter = [0, 1, 2, 3, 4, 5, 11, 997];
+    if (open) {
+      fetchVendors();
     }
-    setTableState((s) => ({ ...s, filters: { status: statusfilter } }));
-    doFilter();
-  }, [repairstatus]);
-  console.log("Repair table rendered");
+  }, [open]);
+
+  const fetchVendors = async () => {
+    try {
+      const response = await fetch(`${vars.serverUrl}/repairs/vendors`, {
+        credentials: "include",
+      });
+      const json = await response.json();
+      if (json.res === 200) {
+        setVendors(json.data);
+      }
+    } catch (e) {
+      console.error("Error fetching vendors", e);
+    }
+  };
+
+  const handleSubmit = async () => {
+    if (!partsData.partName || !partsData.quantity || !partsData.vendor) {
+      setSnackBar({
+        type: "error",
+        title: "Error",
+        message: "Please fill in required fields (Part Name, Quantity, Vendor)",
+        show: true,
+        icon: "warning",
+      });
+      return;
+    }
+
+    setShowLoad(true);
+    try {
+      const response = await fetch(`${vars.serverUrl}/repairs/savePartsOrder`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          repairId,
+          ...partsData,
+        }),
+        credentials: "include",
+      });
+      const json = await response.json();
+
+      if (json.res === 200) {
+        if (onPause) {
+          await onPause(11, "Repair paused - Awaiting parts", "alarm_pause", "info");
+        }
+        setOpen(false);
+        setPartsData({
+          partName: "",
+          cost: "",
+          customerCost: "",
+          quantity: "",
+          vendor: "",
+          orderNumber: "",
+        });
+        setSnackBar({
+          type: "success",
+          title: "Success",
+          message: "Parts order saved and repair paused",
+          show: true,
+          icon: "check",
+        });
+      } else {
+        setSnackBar({
+          type: "error",
+          title: "Error",
+          message: "Error saving parts order",
+          show: true,
+          icon: "warning",
+        });
+      }
+    } catch (e) {
+      setSnackBar({
+        type: "error",
+        title: "Error",
+        message: "Server error",
+        show: true,
+        icon: "warning",
+      });
+    }
+    setShowLoad(false);
+  };
+
+  const button =
+    size === "icon" ? (
+      <Tooltip title="Pause Repair - Awaiting parts">
+        <MDButton fullwidth color="info" variant="contained" onClick={() => setOpen(true)}>
+          <Icon>alarm_pause</Icon>
+        </MDButton>
+      </Tooltip>
+    ) : (
+      <MDButton fullWidth color="info" variant="contained" onClick={() => setOpen(true)}>
+        Pause - Awaiting Parts
+      </MDButton>
+    );
+
   return (
-    <DashboardLayout>
-      <DashboardNavbar />
-      <MDBox pt={6} pb={3}>
-        <Grid container spacing={6}>
-          <Grid item xs={12}>
-            <Card>
-              <MDBox
-                mx={2}
-                mt={-3}
-                py={3}
-                px={2}
-                variant="gradient"
-                bgColor="info"
-                borderRadius="lg"
-                coloredShadow="info"
-              >
-                <Grid container>
-                  <Grid item xs={12} md={4} alignItems="center">
-                    <MDButton
-                      variant="contained"
-                      color="success"
-                      onClick={() => {
-                        showNewRepair();
-                      }}
-                    >
-                      New Repair Layout
-                    </MDButton>
-                  </Grid>
-                  <Grid item xs={11} md={7}>
-                    <TextField
-                      label="Search"
-                      InputProps={{ className: classes.input }}
-                      fullWidth
-                      value={searchterm}
-                      onChange={(e) => {
-                        setTableState((s) => ({ ...s, searchterm: e.target.value }));
-                      }}
-                    />
-                  </Grid>
-                  <Grid item xs={1} alignItems="center" textAlign="right">
-                    <Tooltip title="Refresh list">
-                      <IconButton
-                        size="large"
-                        disableRipple
-                        color="red"
-                        onClick={() => {
-                          RepairRerender(doFilter);
-                        }}
-                      >
-                        <Icon sx={iconsStyle}>refresh</Icon>
-                      </IconButton>
-                    </Tooltip>
-                    <Tooltip title="Filter">
-                      <IconButton
-                        size="large"
-                        disableRipple
-                        color="red"
-                        onClick={() => {
-                          setShowFiler(true);
-                        }}
-                      >
-                        <Icon sx={iconsStyle}>filter_list</Icon>
-                      </IconButton>
-                    </Tooltip>
-                  </Grid>
-                </Grid>
-              </MDBox>
-              <MDBox pt={3}>
-                <DataTable
-                  entriesPerPage={tableState.pageSize}
-                  //table={{ columns, rows }}
-                  columns={columns}
-                  data={rows}
-                  showTotalEntries={true}
-                  noEndBorder
-                  pagination
-                  defaultSortFieldId={5}
-                  expandableRows={true}
-                  expandableRowsComponent={ExpandedRow}
-                  paginationPerPage={tableState.pageSize}
-                  paginationDefaultPage={tableState.page + 1}
-                  onChangePage={(page) => setTableState((s) => ({ ...s, page: page - 1 }))}
-                  onChangeRowsPerPage={(newSize) =>
-                    setTableState((s) => ({ ...s, pageSize: newSize }))
-                  }
-                />
-              </MDBox>
-            </Card>
+    <>
+      {button}
+      <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle>Order Parts & Pause Repair</DialogTitle>
+        <DialogContent>
+          <Grid container spacing={2} pt={1}>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Part Name"
+                value={partsData.partName}
+                onChange={(e) => setPartsData({ ...partsData, partName: e.target.value })}
+              />
+            </Grid>
+            <Grid item xs={6}>
+              <TextField
+                fullWidth
+                label="Cost"
+                type="number"
+                value={partsData.cost}
+                onChange={(e) => setPartsData({ ...partsData, cost: e.target.value })}
+              />
+            </Grid>
+            <Grid item xs={6}>
+              <TextField
+                fullWidth
+                label="Customer Cost"
+                type="number"
+                value={partsData.customerCost}
+                onChange={(e) => setPartsData({ ...partsData, customerCost: e.target.value })}
+              />
+            </Grid>
+            <Grid item xs={6}>
+              <TextField
+                fullWidth
+                label="Quantity"
+                type="number"
+                value={partsData.quantity}
+                onChange={(e) => setPartsData({ ...partsData, quantity: e.target.value })}
+              />
+            </Grid>
+            <Grid item xs={6}>
+              <Autocomplete
+                freeSolo
+                options={vendors.map((v) => v.name || v)}
+                value={partsData.vendor}
+                onChange={(event, newValue) => {
+                  setPartsData({ ...partsData, vendor: newValue });
+                }}
+                onInputChange={(event, newInputValue) => {
+                  setPartsData({ ...partsData, vendor: newInputValue });
+                }}
+                renderInput={(params) => <TextField {...params} label="Vendor" fullWidth />}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Order Number"
+                value={partsData.orderNumber}
+                onChange={(e) => setPartsData({ ...partsData, orderNumber: e.target.value })}
+              />
+            </Grid>
           </Grid>
-        </Grid>
-      </MDBox>
-      <Footer />
-      <Modal
-        open={newRepair}
-        onClose={() => null}
-        // onClose={() => {
-        //   setNewRepair(false);
-        // }}
-        aria-labelledby="modal-modal-title"
-        aria-describedby="modal-modal-description"
-      >
-        <MDBox sx={style}>
-          {/* {repairStep == 0 ? (
-            <Step1 nextRepairStep={nextRepairStep}></Step1>
-          ) : repairStep == 2 ? (
-            <Step2
-              nextRepairStep={nextRepairStep}
-              repairData={repairData}
-              updateRepairData={updateRepairData}
-              setrepairID={setrepairID}
-            ></Step2>
-          ) : repairStep == 3 ? (
-            <Step3 repairID={repairID} nextRepairStep={nextRepairStep}></Step3>
-          ) : (
-            <Step4
-              repairID={repairID}
-              nextRepairStep={nextRepairStep}
-              reRender={() => RepairRerender(doFilter)}
-              setNewRepair={setNewRepair}
-            ></Step4>
-          )} */}
-          <MDButton
-            sx={{ marginTop: "2px" }}
-            fullWidth
-            color="secondary"
-            onClick={() => {
-              setNewRepair(false);
-              RepairRerender(doFilter);
-              setRepairStep(0);
-            }}
-          >
+        </DialogContent>
+        <DialogActions>
+          <MDButton onClick={() => setOpen(false)} color="secondary">
             Cancel
           </MDButton>
-        </MDBox>
-      </Modal>
-      {/* <FilterDialog
-        filter={filter}
-        showFilter={showFilter}
-        resetFilter={resetFilter}
-        setShowFiler={setShowFiler}
-        setmyFilters={setmyFilters}
-        myFilters={myFilters}
-        repairs={repairs}
-      /> */}
-    </DashboardLayout>
+          <MDButton onClick={handleSubmit} color="success">
+            Save & Pause
+          </MDButton>
+        </DialogActions>
+      </Dialog>
+    </>
   );
-};
+}
 
-export default Repairs;
+export default PauseRepairPartsButton;

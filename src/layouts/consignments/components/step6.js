@@ -3,7 +3,7 @@ import { useState } from "react";
 import MDTypography from "components/MDTypography";
 import MDButton from "components/MDButton";
 import { FormControl, Divider, Grid } from "@mui/material";
-
+import { globalFuncs } from "context/global";
 import vars from "../../../config";
 
 const step6 = ({ newConsignmentData, reRender, setNewRepair }) => {

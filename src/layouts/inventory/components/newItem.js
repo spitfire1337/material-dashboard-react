@@ -54,7 +54,7 @@ const borderStyle = {
 
 const filter = createFilterOptions();
 const NewItem = ({ showNewItem, setShowNewItem, setShowLoad }) => {
-  const { setLoggedIn } = useLoginState();
+  const { setLoginState } = useLoginState();
   const { setSnackBar } = globalFuncs();
   const [catList, setCatList] = useState([]);
   const [locations, setLocations] = useState([]);
@@ -138,7 +138,7 @@ const NewItem = ({ showNewItem, setShowNewItem, setShowLoad }) => {
         setCatList(cats);
         setShowNewitemModal(true);
       } else if (res.res === 401) {
-        setLoggedIn(false);
+        setLoginState(false);
         setSnackBar({
           type: "error",
           title: "Error",
@@ -148,7 +148,7 @@ const NewItem = ({ showNewItem, setShowNewItem, setShowLoad }) => {
         });
       }
     } else if (response.status == 401) {
-      setLoggedIn(false);
+      setLoginState(false);
       setSnackBar({
         type: "error",
         title: "Error",

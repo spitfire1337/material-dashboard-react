@@ -50,8 +50,16 @@ import Categories from "layouts/categories";
 import Consignments from "layouts/consignments";
 import PEVDatabase from "layouts/pevs";
 import ETags from "layouts/inventoryTags";
+import Checklist from "layouts/checklist";
 // @mui icons
+import RepairReport from "layouts/reports/RepairReport";
+import SalesTrends from "layouts/reports/SalesTrends";
+import TechEfficiency from "layouts/reports/TechEfficiency";
+import RepairTimeAnalysis from "layouts/reports/RepairTimeAnalysis";
+import RevenueByDevice from "layouts/reports/RevenueByDevice";
+import InventoryVelocity from "layouts/reports/InventoryVelocity";
 import Icon from "@mui/material/Icon";
+import icon from "assets/theme/components/icon";
 const devRoutes = (stats) => {
   return [
     {
@@ -137,34 +145,67 @@ const devRoutes = (stats) => {
       ],
     },
     {
+      type: "collapse",
+      name: "Reports",
+      key: "reports",
+      icon: <Icon fontSize="small">insights</Icon>,
+      collapse: [
+        {
+          type: "collapse",
+          name: "Repair Frequency",
+          key: "repairReport",
+          route: "/reports/repair-frequency",
+          icon: <Icon fontSize="small">airwave</Icon>,
+          component: <RepairReport />,
+        },
+        {
+          type: "collapse",
+          name: "Sales Trends",
+          key: "salesTrends",
+          route: "/reports/sales-trends",
+          icon: <Icon fontSize="small">show_chart</Icon>,
+          component: <SalesTrends />,
+        },
+        {
+          type: "collapse",
+          name: "Tech Efficiency",
+          key: "techEfficiency",
+          route: "/reports/tech-efficiency",
+          icon: <Icon fontSize="small">engineering</Icon>,
+          component: <TechEfficiency />,
+        },
+        {
+          type: "collapse",
+          name: "Repair Time Analysis",
+          key: "repairTimeAnalysis",
+          route: "/reports/repair-time-analysis",
+          icon: <Icon fontSize="small">timer</Icon>,
+          component: <RepairTimeAnalysis />,
+        },
+        {
+          type: "collapse",
+          name: "Revenue by Device",
+          key: "revenueByDevice",
+          route: "/reports/revenue-by-device",
+          icon: <Icon fontSize="small">attach_money</Icon>,
+          component: <RevenueByDevice />,
+        },
+        {
+          type: "collapse",
+          name: "Repair Parts Velocity",
+          key: "inventoryVelocity",
+          route: "/reports/inventory-velocity",
+          icon: <Icon fontSize="small">speed</Icon>,
+          component: <InventoryVelocity />,
+        },
+      ],
+    },
+
+    {
       name: "Customers",
       key: "customers2",
       route: "/customer/:id",
       component: <CustomerDetails />,
-    },
-    {
-      type: "collapse",
-      name: "PEV Database",
-      key: "pevs",
-      route: "/pevDB",
-      icon: <Icon fontSize="small">electric_scooter</Icon>,
-      component: <PEVDatabase />,
-      collapse: [
-        {
-          name: "PEV Database",
-          key: "pevs",
-          route: "/pevDB",
-          component: <PEVDatabase />,
-        },
-        {
-          type: "collapse",
-          name: "Warranty Admin",
-          icon: <Icon fontSize="small">app_registration</Icon>,
-          key: "Admin",
-          route: "/warranty_admin",
-          component: <WarrantyAdmin />,
-        },
-      ],
     },
     {
       name: "Group Rides",
@@ -183,12 +224,53 @@ const devRoutes = (stats) => {
     },
     {
       type: "collapse",
-      noCollapse: true,
-      name: "Update whats new",
-      key: "whatsnew",
-      icon: <Icon fontSize="small">note_add</Icon>,
-      route: "/WhatsNew",
-      component: <WhatsNew />,
+      name: "Settings",
+      key: "Settings",
+      icon: <Icon fontSize="small">settings</Icon>,
+      route: "/settings/",
+      collapse: [
+        {
+          type: "collapse",
+          name: "Checklist Questions",
+          key: "checklist",
+          icon: <Icon fontSize="small">checklist</Icon>,
+          route: "/checklist",
+          component: <Checklist />,
+        },
+        {
+          type: "collapse",
+          name: "PEV Database",
+          key: "pevs",
+          route: "/pevDB",
+          icon: <Icon fontSize="small">electric_scooter</Icon>,
+          component: <PEVDatabase />,
+          collapse: [
+            {
+              name: "PEV Database",
+              key: "pevs",
+              route: "/pevDB",
+              component: <PEVDatabase />,
+            },
+            {
+              type: "collapse",
+              name: "Warranty Admin",
+              icon: <Icon fontSize="small">app_registration</Icon>,
+              key: "Admin",
+              route: "/warranty_admin",
+              component: <WarrantyAdmin />,
+            },
+          ],
+        },
+        {
+          type: "collapse",
+          noCollapse: true,
+          name: "Update whats new",
+          key: "whatsnew",
+          icon: <Icon fontSize="small">note_add</Icon>,
+          route: "/WhatsNew",
+          component: <WhatsNew />,
+        },
+      ],
     },
     {
       type: "collapse",
@@ -266,6 +348,46 @@ const adminRoutes = (stats) => {
       ],
     },
     {
+      type: "collapse",
+      name: "Reports",
+      key: "reports",
+      icon: <Icon fontSize="small">insights</Icon>,
+      collapse: [
+        {
+          type: "collapse",
+          name: "Repair Frequency",
+          key: "repairReport",
+          route: "/reports/repair-frequency",
+          component: <RepairReport />,
+          icon: <Icon fontSize="small">vital_signs</Icon>,
+        },
+        {
+          type: "collapse",
+          name: "Sales Trends",
+          key: "salesTrends",
+          route: "/reports/sales-trends",
+          component: <SalesTrends />,
+          icon: <Icon fontSize="small">show_chart</Icon>,
+        },
+        {
+          type: "collapse",
+          name: "Tech Efficiency",
+          key: "techEfficiency",
+          route: "/reports/tech-efficiency",
+          component: <TechEfficiency />,
+          icon: <Icon fontSize="small">engineering</Icon>,
+        },
+        {
+          type: "collapse",
+          name: "Repair Time Analysis",
+          key: "repairTimeAnalysis",
+          icon: <Icon fontSize="small">timer</Icon>,
+          route: "/reports/repair-time-analysis",
+          component: <RepairTimeAnalysis />,
+        },
+      ],
+    },
+    {
       name: "Repairs",
       key: "repairs2",
       route: "/repairdetails/:id",
@@ -278,34 +400,51 @@ const adminRoutes = (stats) => {
       component: <CustomerDetails />,
     },
     {
-      type: "collapse",
-      name: "PEV Database",
-      key: "pevs",
-      route: "/pevDB",
-      icon: <Icon fontSize="small">electric_scooter</Icon>,
-      component: <PEVDatabase />,
-      collapse: [
-        {
-          name: "PEV Database",
-          key: "pevs",
-          route: "/pevDB",
-          component: <PEVDatabase />,
-        },
-        {
-          type: "collapse",
-          name: "Warranty Admin",
-          icon: <Icon fontSize="small">app_registration</Icon>,
-          key: "Admin",
-          route: "/warranty_admin",
-          component: <WarrantyAdmin />,
-        },
-      ],
-    },
-    {
       name: "Group Rides",
       key: "grouprides",
       route: "/grouprides",
       component: <GroupRides />,
+    },
+    {
+      type: "collapse",
+      name: "Settings",
+      key: "Settings",
+      icon: <Icon fontSize="small">settings</Icon>,
+      route: "/settings/",
+      collapse: [
+        {
+          type: "collapse",
+          name: "Checklist Questions",
+          key: "checklist",
+          icon: <Icon fontSize="small">checklist</Icon>,
+          route: "/checklist",
+          component: <Checklist />,
+        },
+        {
+          type: "collapse",
+          name: "PEV Database",
+          key: "pevs",
+          route: "/pevDB",
+          icon: <Icon fontSize="small">electric_scooter</Icon>,
+          component: <PEVDatabase />,
+          collapse: [
+            {
+              name: "PEV Database",
+              key: "pevs",
+              route: "/pevDB",
+              component: <PEVDatabase />,
+            },
+            {
+              type: "collapse",
+              name: "Warranty Admin",
+              icon: <Icon fontSize="small">app_registration</Icon>,
+              key: "Admin",
+              route: "/warranty_admin",
+              component: <WarrantyAdmin />,
+            },
+          ],
+        },
+      ],
     },
   ];
 };
@@ -342,6 +481,16 @@ const techRoutes = (stats) => {
     },
   ];
 };
+const reportRoutes = () => {
+  return [
+    {
+      name: "Repair Frequency",
+      key: "repairReport",
+      route: "/reports/repair-frequency",
+      component: <RepairReport />,
+    },
+  ];
+};
 
 const publicRoutes = () => {
   return [
@@ -357,7 +506,6 @@ const routes = (stats, loginState) => {
   if (loginState.user.isDev) return devRoutes(stats);
   if (loginState.user.isAdmin) return adminRoutes(stats);
   if (loginState.user.isTech) return techRoutes(stats);
-  return publicRoutes;
   /*
       {
     type: "collapse",

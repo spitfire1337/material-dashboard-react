@@ -32,7 +32,7 @@ import Button from "@mui/material/Button";
 
 export default function data(setShowLoad, getParts) {
   const { setSnackBar } = globalFuncs();
-  const { setLoggedIn } = useLoginState();
+  const { setLoginState } = useLoginState();
   const [inventoryOrig, setInventoryOrig] = useState([]);
   const [inventory, setInventory] = useState([]);
   const [lastUpdated, setlastUpdated] = useState(null);
@@ -63,7 +63,7 @@ export default function data(setShowLoad, getParts) {
         setInventory(res.data);
         setlastUpdated(res.lastUpdate);
       } else if (res.res === 401) {
-        setLoggedIn(false);
+        setLoginState(false);
         setSnackBar({
           type: "error",
           title: "Error",
@@ -73,7 +73,7 @@ export default function data(setShowLoad, getParts) {
         });
       }
     } else if (response.status == 401) {
-      setLoggedIn(false);
+      setLoginState(false);
       setSnackBar({
         type: "error",
         title: "Error",

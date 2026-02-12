@@ -97,7 +97,7 @@ function Sidenav({ color = "info", brand = "", brandName, routes, ...rest }) {
 
   // Render all the nested collapse items from the routes.js
   const renderNestedCollapse = (collapse) => {
-    const template = collapse.map(({ name, route, key, href }) =>
+    const template = collapse.map(({ name, route, key, href, icon }) =>
       href ? (
         <Link
           key={key}
@@ -106,11 +106,11 @@ function Sidenav({ color = "info", brand = "", brandName, routes, ...rest }) {
           rel="noreferrer"
           sx={{ textDecoration: "none" }}
         >
-          <SidenavItem name={name} nested />
+          <SidenavItem name={name} nested icon={icon} />
         </Link>
       ) : (
         <NavLink to={route} key={key} sx={{ textDecoration: "none" }}>
-          <SidenavItem name={name} active={route === pathname} nested />
+          <SidenavItem name={name} active={route === pathname} nested icon={icon} />
         </NavLink>
       )
     );
@@ -119,7 +119,7 @@ function Sidenav({ color = "info", brand = "", brandName, routes, ...rest }) {
   };
   // Render the all the collpases from the routes.js
   const renderCollapse = (collapses) =>
-    collapses.map(({ name, collapse, route, href, key }) => {
+    collapses.map(({ name, collapse, route, href, key, icon }) => {
       let returnValue;
 
       if (collapse) {
@@ -130,6 +130,8 @@ function Sidenav({ color = "info", brand = "", brandName, routes, ...rest }) {
             name={name}
             active={key === itemParentName ? "isParent" : false}
             open={openNestedCollapse === key}
+            icon={icon}
+            nested
             onClick={({ currentTarget }) =>
               openNestedCollapse === key && currentTarget.classList.contains("MuiListItem-root")
                 ? setOpenNestedCollapse(false)
@@ -148,11 +150,11 @@ function Sidenav({ color = "info", brand = "", brandName, routes, ...rest }) {
             rel="noreferrer"
             sx={{ textDecoration: "none" }}
           >
-            <SidenavItem color={color} name={name} active={key === itemName} />
+            <SidenavItem color={color} name={name} active={key === itemName} icon={icon} nested />
           </Link>
         ) : (
           <NavLink to={route} key={key} sx={{ textDecoration: "none" }}>
-            <SidenavItem color={color} name={name} active={key === itemName} />
+            <SidenavItem color={color} name={name} active={key === itemName} icon={icon} nested />
           </NavLink>
         );
       }
