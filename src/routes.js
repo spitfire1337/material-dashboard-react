@@ -51,6 +51,7 @@ import Consignments from "layouts/consignments";
 import PEVDatabase from "layouts/pevs";
 import ETags from "layouts/inventoryTags";
 import Checklist from "layouts/checklist";
+import PartsOnOrder from "layouts/partsOnOrder";
 // @mui icons
 import RepairReport from "layouts/reports/RepairReport";
 import SalesTrends from "layouts/reports/SalesTrends";
@@ -94,12 +95,29 @@ const devRoutes = (stats) => {
     },
     {
       type: "collapse",
-      name: `Repairs (${stats.repairs})`,
-      noCollapse: true,
-      key: "repairs",
-      icon: <Icon fontSize="small">assignment</Icon>,
-      route: "/repairs/",
-      component: <Repairs />,
+      name: `Repairs`,
+      key: "repairsmenu",
+      icon: <Icon fontSize="small">build</Icon>,
+      collapse: [
+        {
+          type: "collapse",
+          name: `Repairs (${stats.repairs})`,
+          noCollapse: true,
+          key: "repairs",
+          icon: <Icon fontSize="small">assignment</Icon>,
+          route: "/repairs",
+          component: <Repairs />,
+        },
+        {
+          type: "collapse",
+          name: `Parts on Order (${stats.partsonorder})`,
+          key: "parts-on-order",
+          noCollapse: true,
+          icon: <Icon fontSize="small">shopping_cart</Icon>,
+          route: "/parts-on-order",
+          component: <PartsOnOrder />,
+        },
+      ],
     },
     {
       type: "collapse",
@@ -115,31 +133,34 @@ const devRoutes = (stats) => {
       name: "Inventory",
       key: "Inventory",
       icon: <Icon fontSize="small">inventory_2</Icon>,
-      route: "/inventory/",
+      route: "/inventory",
       component: <Inventory />,
       collapse: [
         {
           type: "collapse",
           name: "Inventory",
           key: "Inventory",
+          noCollapse: true,
           icon: <Icon fontSize="small">inventory_2</Icon>,
-          route: "/inventory/",
+          route: "/inventory",
           component: <Inventory />,
         },
         {
           type: "collapse",
           name: "Categories",
+          noCollapse: true,
           key: "categories",
           icon: <Icon fontSize="small">inventory_2</Icon>,
-          route: "/categories/",
+          route: "/categories",
           component: <Categories />,
         },
         {
           type: "collapse",
           name: "eTags",
+          noCollapse: true,
           key: "eTags",
           icon: <Icon fontSize="small">inventory_2</Icon>,
-          route: "/etags/",
+          route: "/etags",
           component: <ETags />,
         },
       ],
@@ -159,6 +180,7 @@ const devRoutes = (stats) => {
             {
               type: "collapse",
               name: "Repair Frequency",
+              noCollapse: true,
               key: "repairReport",
               route: "/reports/repair-frequency",
               icon: <Icon fontSize="small">airwave</Icon>,
@@ -167,6 +189,7 @@ const devRoutes = (stats) => {
             {
               type: "collapse",
               name: "Tech Efficiency",
+              noCollapse: true,
               key: "techEfficiency",
               route: "/reports/tech-efficiency",
               icon: <Icon fontSize="small">engineering</Icon>,
@@ -175,6 +198,7 @@ const devRoutes = (stats) => {
             {
               type: "collapse",
               name: "Repair Time Analysis",
+              noCollapse: true,
               key: "repairTimeAnalysis",
               route: "/reports/repair-time-analysis",
               icon: <Icon fontSize="small">timer</Icon>,
@@ -183,6 +207,7 @@ const devRoutes = (stats) => {
             {
               type: "collapse",
               name: "Repair Parts Velocity",
+              noCollapse: true,
               key: "inventoryVelocity",
               route: "/reports/inventory-velocity",
               icon: <Icon fontSize="small">speed</Icon>,
@@ -199,6 +224,7 @@ const devRoutes = (stats) => {
             {
               type: "collapse",
               name: "Sales Trends",
+              noCollapse: true,
               key: "salesTrends",
               route: "/reports/sales-trends",
               icon: <Icon fontSize="small">show_chart</Icon>,
@@ -207,6 +233,7 @@ const devRoutes = (stats) => {
             {
               type: "collapse",
               name: "Revenue by Device",
+              noCollapse: true,
               key: "revenueByDevice",
               route: "/reports/revenue-by-device",
               icon: <Icon fontSize="small">attach_money</Icon>,
@@ -220,11 +247,13 @@ const devRoutes = (stats) => {
     {
       name: "Customers",
       key: "customers2",
+      noCollapse: true,
       route: "/customer/:id",
       component: <CustomerDetails />,
     },
     {
       name: "Group Rides",
+      noCollapse: true,
       key: "grouprides",
       route: "/grouprides",
       component: <GroupRides />,
@@ -243,11 +272,12 @@ const devRoutes = (stats) => {
       name: "Settings",
       key: "Settings",
       icon: <Icon fontSize="small">settings</Icon>,
-      route: "/settings/",
+      route: "/settings",
       collapse: [
         {
           type: "collapse",
           name: "Checklist Questions",
+          noCollapse: true,
           key: "checklist",
           icon: <Icon fontSize="small">checklist</Icon>,
           route: "/checklist",
@@ -263,6 +293,7 @@ const devRoutes = (stats) => {
           collapse: [
             {
               name: "PEV Database",
+              noCollapse: true,
               key: "pevs",
               route: "/pevDB",
               component: <PEVDatabase />,
@@ -270,6 +301,7 @@ const devRoutes = (stats) => {
             {
               type: "collapse",
               name: "Warranty Admin",
+              noCollapse: true,
               icon: <Icon fontSize="small">app_registration</Icon>,
               key: "Admin",
               route: "/warranty_admin",
@@ -313,13 +345,31 @@ const adminRoutes = (stats) => {
     },
     {
       type: "collapse",
-      name: `Repairs (${stats.repairs})`,
-      noCollapse: true,
-      key: "repairs",
-      icon: <Icon fontSize="small">assignment</Icon>,
-      route: "/repairs",
-      component: <Repairs />,
+      name: `Repairs`,
+      key: "repairsmenu",
+      icon: <Icon fontSize="small">build</Icon>,
+      collapse: [
+        {
+          type: "collapse",
+          name: `Repairs (${stats.repairs})`,
+          noCollapse: true,
+          key: "repairs",
+          icon: <Icon fontSize="small">assignment</Icon>,
+          route: "/repairs",
+          component: <Repairs />,
+        },
+        {
+          type: "collapse",
+          name: `Parts on Order (${stats.partsonorder})`,
+          key: "parts-on-order",
+          noCollapse: true,
+          icon: <Icon fontSize="small">shopping_cart</Icon>,
+          route: "/parts-on-order",
+          component: <PartsOnOrder />,
+        },
+      ],
     },
+
     {
       type: "collapse",
       name: "Customers",
@@ -341,12 +391,14 @@ const adminRoutes = (stats) => {
           type: "collapse",
           name: "Inventory",
           key: "Inventory",
+          noCollapse: true,
           icon: <Icon fontSize="small">inventory_2</Icon>,
           route: "/inventory/",
           component: <Inventory />,
         },
         {
           type: "collapse",
+          noCollapse: true,
           name: "Categories",
           key: "categories",
           icon: <Icon fontSize="small">inventory_2</Icon>,
@@ -355,6 +407,7 @@ const adminRoutes = (stats) => {
         },
         {
           type: "collapse",
+          noCollapse: true,
           name: "eTags",
           key: "eTags",
           icon: <Icon fontSize="small">inventory_2</Icon>,
@@ -377,6 +430,7 @@ const adminRoutes = (stats) => {
           collapse: [
             {
               type: "collapse",
+              noCollapse: true,
               name: "Repair Frequency",
               key: "repairReport",
               route: "/reports/repair-frequency",
@@ -385,7 +439,7 @@ const adminRoutes = (stats) => {
             },
             {
               type: "collapse",
-              name: "Tech Efficiency",
+              noCollapse: true,
               key: "techEfficiency",
               route: "/reports/tech-efficiency",
               component: <TechEfficiency />,
@@ -393,6 +447,7 @@ const adminRoutes = (stats) => {
             },
             {
               type: "collapse",
+              noCollapse: true,
               name: "Repair Time Analysis",
               key: "repairTimeAnalysis",
               icon: <Icon fontSize="small">timer</Icon>,
@@ -409,6 +464,7 @@ const adminRoutes = (stats) => {
           collapse: [
             {
               type: "collapse",
+              noCollapse: true,
               name: "Sales Trends",
               key: "salesTrends",
               route: "/reports/sales-trends",
@@ -433,6 +489,7 @@ const adminRoutes = (stats) => {
     },
     {
       name: "Group Rides",
+      noCollapse: true,
       key: "grouprides",
       route: "/grouprides",
       component: <GroupRides />,
@@ -446,6 +503,7 @@ const adminRoutes = (stats) => {
       collapse: [
         {
           type: "collapse",
+          noCollapse: true,
           name: "Checklist Questions",
           key: "checklist",
           icon: <Icon fontSize="small">checklist</Icon>,
@@ -462,12 +520,14 @@ const adminRoutes = (stats) => {
           collapse: [
             {
               name: "PEV Database",
+              noCollapse: true,
               key: "pevs",
               route: "/pevDB",
               component: <PEVDatabase />,
             },
             {
               type: "collapse",
+              noCollapse: true,
               name: "Warranty Admin",
               icon: <Icon fontSize="small">app_registration</Icon>,
               key: "Admin",
@@ -487,27 +547,47 @@ const techRoutes = (stats) => {
       type: "collapse",
       name: "Dashboard",
       key: "dashboard",
+      noCollapse: true,
       icon: <Icon fontSize="small">dashboard</Icon>,
       route: "/dashboard",
       component: <Dashboard stats={stats} />,
     },
     {
       type: "collapse",
-      name: `Repairs (${stats.repairs})`,
-      key: "repairs",
-      icon: <Icon fontSize="small">assignment</Icon>,
-      route: "/repairs",
-      component: <Repairs />,
+      name: `Repairs`,
+      key: "repairsmenu",
+      icon: <Icon fontSize="small">build</Icon>,
+      collapse: [
+        {
+          type: "collapse",
+          name: `Repairs (${stats.repairs})`,
+          noCollapse: true,
+          key: "repairs",
+          icon: <Icon fontSize="small">assignment</Icon>,
+          route: "/repairs",
+          component: <Repairs />,
+        },
+        {
+          type: "collapse",
+          name: `Parts on Order (${stats.partsonorder})`,
+          key: "parts-on-order",
+          noCollapse: true,
+          icon: <Icon fontSize="small">shopping_cart</Icon>,
+          route: "/parts-on-order",
+          component: <PartsOnOrder />,
+        },
+      ],
     },
     {
       name: "Repairs",
       key: "repairs2",
+      noCollapse: true,
       route: "/repairdetails/:id",
       component: <RepairDetails />,
     },
     {
       name: "Group Rides",
-      key: "grouprides",
+      noCollapse: true,
       route: "/grouprides",
       component: <GroupRides />,
     },

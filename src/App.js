@@ -157,6 +157,7 @@ export default function App() {
       datasets: { label: "Sales", data: [] },
     },
     mysales: { lastweek: 0, thisweek: 0 },
+    partsonorder: 0,
   });
   const closeSuccessSB = () => setSuccessSB(false);
   const closeErrorSB = () => setErrorSB(false);
@@ -240,6 +241,7 @@ export default function App() {
       });
 
       setStats({
+        partsonorder: res.partsOnOrder,
         repairs: res.repairsTotal,
         repairsPickup: res.repairsPickup,
         repairsPaused: res.repairsPaused,

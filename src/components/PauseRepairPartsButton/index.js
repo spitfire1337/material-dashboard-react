@@ -98,23 +98,12 @@ function PauseRepairPartsButton({ repairId, onPause, size = "full" }) {
       partsToSave.push(currentPart);
     }
 
-    if (partsToSave.length === 0) {
-      setSnackBar({
-        type: "error",
-        title: "Error",
-        message: "Please add at least one part",
-        show: true,
-        icon: "warning",
-      });
-      return;
-    }
-
     setShowLoad(true);
     let successCount = 0;
 
     for (const part of partsToSave) {
       try {
-        const response = await fetch(`${vars.serverUrl}/repairs/savePartsOrder`, {
+        const response = await fetch(`${vars.serverUrl}/repairs/saveRepairPartOrdered`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -132,7 +121,7 @@ function PauseRepairPartsButton({ repairId, onPause, size = "full" }) {
       }
     }
 
-    if (successCount > 0) {
+    if (partsToSave.length === 0 || successCount > 0) {
       if (onPause) {
         await onPause(11, "Repair paused - Awaiting parts", "alarm_pause", "info");
       }
@@ -148,9 +137,12 @@ function PauseRepairPartsButton({ repairId, onPause, size = "full" }) {
         trackingNumber: "",
       });
       setSnackBar({
-        type: "error",
-        title: "Error",
-        message: `${successCount} parts saved and repair paused`,
+        type: "success",
+        title: "Success",
+        message:
+          partsToSave.length > 0
+            ? `${successCount} parts saved and repair paused`
+            : "Repair paused",
         show: true,
         icon: "check",
       });

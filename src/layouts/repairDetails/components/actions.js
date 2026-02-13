@@ -461,11 +461,38 @@ function Actions({
         const missing = applicableQuestions.filter((q) => !answeredIds.includes(q._id));
 
         if (missing.length > 0) {
+          let scrolled = false;
+          missing.forEach((q) => {
+            const el = document.getElementById(`question-${q._id}`);
+            if (el) {
+              if (!scrolled) {
+                el.scrollIntoView({ behavior: "smooth", block: "center" });
+                scrolled = true;
+              }
+              el.animate(
+                [{ backgroundColor: "rgba(244, 67, 54, 0.2)" }, { backgroundColor: "transparent" }],
+                {
+                  duration: 1000,
+                  iterations: 3,
+                }
+              );
+            }
+          });
+
+          if (!scrolled) {
+            const checklistElement = document.getElementById("in-progress-checklist");
+            if (checklistElement) {
+              checklistElement.scrollIntoView({ behavior: "smooth", block: "center" });
+              scrolled = true;
+            }
+          }
+
           setSnackBar({
             type: "error",
             title: "In Progress Checklist Incomplete",
-            message:
-              "Please answer all In Progress checklist questions before completing the repair.",
+            message: scrolled
+              ? "Please complete the highlighted questions."
+              : "Please answer all In Progress checklist questions before completing the repair.",
             show: true,
             icon: "warning",
           });

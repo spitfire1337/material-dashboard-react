@@ -36,6 +36,7 @@ import {
   Checkbox,
   FormControlLabel,
   FormControl,
+  Tooltip,
 } from "@mui/material";
 
 // Material Dashboard 2 React components
@@ -181,6 +182,24 @@ const Status = ({ repairStatus }) => {
       </MDBox>
     );
   }
+  if (repairStatus == 11) {
+    return (
+      <MDBox ml={-1}>
+        <MDBadge
+          badgeContent="Paused - Awaiting parts"
+          sx={{
+            "& .MuiBadge-badge": {
+              color: "#000",
+              backgroundColor: "green",
+              background: "linear-gradient(195deg, #3D8E8C, #00FFF9)",
+            },
+          }}
+          size="sm"
+          bg=""
+        />
+      </MDBox>
+    );
+  }
   if (repairStatus == 6) {
     return (
       <MDBox ml={-1}>
@@ -287,7 +306,108 @@ const PartsItem = ({ part, status, onDelete }) => {
   );
 };
 
-const ChecklistQuestion = ({ question, answerObj, canEdit, onSave }) => {
+const PartsOrderedItem = ({ part, onReceive, onDelete }) => {
+  const getTrackingLink = (trackingNumber) => {
+    if (!trackingNumber) return null;
+    const cleanNumber = trackingNumber.replace(/\s/g, "").toUpperCase();
+
+    // UPS
+    if (/^1Z[A-Z0-9]{16}$/.test(cleanNumber)) {
+      return `https://www.ups.com/track?tracknum=${cleanNumber}`;
+    }
+    // FedEx
+    if (/^\d{12}$|^\d{15}$/.test(cleanNumber)) {
+      return `https://www.fedex.com/fedextrack/?trknbr=${cleanNumber}`;
+    }
+    // USPS
+    if (
+      /^9\d{21}$/.test(cleanNumber) ||
+      /^\d{20}$/.test(cleanNumber) ||
+      /^\d{22}$/.test(cleanNumber)
+    ) {
+      return `https://tools.usps.com/go/TrackConfirmAction?tLabels=${cleanNumber}`;
+    }
+    // DHL
+    if (/^\d{10}$/.test(cleanNumber)) {
+      return `https://www.dhl.com/en/express/tracking.html?AWB=${cleanNumber}&brand=DHL`;
+    }
+    // Amazon
+    if (/^TB[A-Z]\d{12}$/.test(cleanNumber)) {
+      return `https://track.amazon.com/tracking/${cleanNumber}`;
+    }
+    return null;
+  };
+
+  const trackingLink = getTrackingLink(part.trackingNumber);
+  const amazonLink =
+    part.vendor && part.vendor.toLowerCase().includes("amazon") && part.orderNumber
+      ? `https://www.amazon.com/your-orders/order-details?orderID=${part.orderNumber}`
+      : null;
+
+  return (
+    <>
+      <Grid item xs={4}>
+        <MDTypography variant="body2">{part.partName}</MDTypography>
+        <MDTypography variant="caption" display="block">
+          {part.vendor} {part.orderNumber ? `- ${part.orderNumber}` : ""}
+        </MDTypography>
+      </Grid>
+      <Grid item xs={2}>
+        <MDTypography variant="body2">{part.quantity}</MDTypography>
+      </Grid>
+      <Grid item xs={4}>
+        {trackingLink ? (
+          <MDTypography
+            component="a"
+            href={trackingLink}
+            target="_blank"
+            rel="noreferrer"
+            variant="body2"
+            color="info"
+            sx={{ textDecoration: "underline", cursor: "pointer" }}
+          >
+            {part.trackingNumber}
+          </MDTypography>
+        ) : (
+          <MDTypography variant="body2">{part.trackingNumber}</MDTypography>
+        )}
+        {amazonLink && (
+          <MDTypography
+            component="a"
+            href={amazonLink}
+            target="_blank"
+            rel="noreferrer"
+            variant="caption"
+            color="info"
+            display="block"
+            sx={{ textDecoration: "underline", cursor: "pointer" }}
+          >
+            Track on Amazon
+          </MDTypography>
+        )}
+      </Grid>
+      <Grid item xs={1}>
+        <Tooltip title="Mark as Received">
+          <IconButton color="success" onClick={() => onReceive(part)}>
+            <Icon>check</Icon>
+          </IconButton>
+        </Tooltip>
+      </Grid>
+      <Grid item xs={1}>
+        <Tooltip title="Remove Ordered Part">
+          <IconButton color="error" onClick={() => onDelete(part)}>
+            <Icon>delete</Icon>
+          </IconButton>
+        </Tooltip>
+      </Grid>
+      <Grid item xs={12} mb={-2} mt={-2}>
+        <Divider fullWidth></Divider>
+      </Grid>
+    </>
+  );
+};
+
+const ChecklistQuestion = ({ question, answerObj, canEdit, onSave, id }) => {
   const [value, setValue] = useState("");
 
   useEffect(() => {
@@ -325,7 +445,7 @@ const ChecklistQuestion = ({ question, answerObj, canEdit, onSave }) => {
       }
     }
     return (
-      <MDBox mb={1}>
+      <MDBox mb={1} id={id}>
         <MDTypography variant="button" fontWeight="bold" display="block">
           {question.question.text}
           {question.question.required && <span style={{ color: "red" }}> *</span>}
@@ -342,7 +462,7 @@ const ChecklistQuestion = ({ question, answerObj, canEdit, onSave }) => {
   }
 
   return (
-    <MDBox mb={1}>
+    <MDBox mb={1} id={id}>
       <MDTypography variant="button" fontWeight="bold" display="block">
         {question.question.text}
         {question.question.required && <span style={{ color: "red" }}> *</span>}
@@ -406,11 +526,17 @@ const RepairDetails = () => {
   const [RepairNotes, setRepairNotes] = useState();
   const [AllRepairNotes, setAllRepairNotes] = useState();
   const [allparts, setAllParts] = useState();
+  const [partsOrdered, setPartsOrdered] = useState([]);
   const [newRepairPart, setnewRepairPart] = useState(false);
   const [dialogOpen, toggleDialogOpen] = useState(false);
   const [repairOrder, setRepairOrder] = useState();
   const [repairOrderReady, setRepairOrderReady] = useState(false);
-  const [confirmOpen, toggleconfirmOpen] = useState({ removePart: false, editTime: false });
+  const [confirmOpen, toggleconfirmOpen] = useState({
+    removePart: false,
+    editTime: false,
+    removeOrderedPart: false,
+  });
+  const [orderedPartToDelete, setOrderedPartToDelete] = useState(null);
   const [partId, setPartid] = useState();
   const [partName, setPartName] = useState();
   const [newMinutes, setnewMinutes] = useState();
@@ -454,6 +580,7 @@ const RepairDetails = () => {
       setrepairImages(res.images);
       setAllRepairNotes(res.notes);
       setAllParts(res.parts);
+      setPartsOrdered(res.partsOrdered || []);
       RepairRerender();
       setShowLoad(false);
 
@@ -618,6 +745,93 @@ const RepairDetails = () => {
         type: "error",
         title: "Server error occured",
         message: "Please try again later",
+        show: true,
+        icon: "error",
+      });
+    }
+  };
+
+  const removeOrderedPart = async () => {
+    toggleconfirmOpen({ ...confirmOpen, removeOrderedPart: false });
+    setShowLoad(true);
+    try {
+      const response = await fetch(`${vars.serverUrl}/repairs/removeOrderedPart`, {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          repairId: repairID,
+          partId: orderedPartToDelete._id,
+        }),
+      });
+      const json = await response.json();
+      setShowLoad(false);
+      if (json.res == 200) {
+        setSnackBar({
+          type: "success",
+          title: "Success",
+          message: "Ordered part removed",
+          show: true,
+          icon: "check",
+        });
+        getRepair();
+      } else {
+        setSnackBar({
+          type: "error",
+          title: "Error",
+          message: json.message || "Error removing part",
+          show: true,
+          icon: "error",
+        });
+      }
+    } catch (e) {
+      setShowLoad(false);
+      setSnackBar({
+        type: "error",
+        title: "Error",
+        message: "Server error",
+        show: true,
+        icon: "error",
+      });
+    }
+  };
+
+  const receivePart = async (part) => {
+    setShowLoad(true);
+    const response = await fetch(`${vars.serverUrl}/repairs/receivePart`, {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify({
+        repairId: repairID,
+        partId: part._id,
+      }),
+    });
+    const json = await response.json();
+    setShowLoad(false);
+    if (json.res == 200) {
+      setSnackBar({
+        type: "success",
+        title: "Part Received",
+        message: "Part has been moved to repair parts list",
+        show: true,
+        icon: "check",
+      });
+      getRepair();
+      if (repairDetails.status == 4) {
+        createInvoice();
+      }
+    } else {
+      setSnackBar({
+        type: "error",
+        title: "Error",
+        message: json.message,
         show: true,
         icon: "error",
       });
@@ -870,7 +1084,7 @@ const RepairDetails = () => {
                           <MDTypography variant="body2">No questions available.</MDTypography>
                         )}
                       </Grid>
-                      <Grid item xs={12} md={4}>
+                      <Grid item xs={12} md={4} id="in-progress-checklist">
                         <MDTypography variant="h6" gutterBottom>
                           In Progress Checklist
                         </MDTypography>
@@ -883,9 +1097,14 @@ const RepairDetails = () => {
                             return (
                               <ChecklistQuestion
                                 key={q._id}
+                                id={`question-${q._id}`}
                                 question={q}
                                 answerObj={answerObj}
-                                canEdit={repairDetails.status === 2 || repairDetails.status === 3}
+                                canEdit={
+                                  repairDetails.status === 2 ||
+                                  repairDetails.status === 3 ||
+                                  repairDetails.status === 11
+                                }
                                 onSave={(qId, val) =>
                                   updateChecklistAnswer("In Progress", qId, val)
                                 }
@@ -1004,6 +1223,54 @@ const RepairDetails = () => {
                   </MDBox>
                 </Card>
               </Grid>
+              {/* Parts on Order */}
+              {partsOrdered && partsOrdered.length > 0 && (
+                <Grid item xs={12}>
+                  <Card>
+                    <MDBox
+                      mx={1}
+                      mt={-3}
+                      py={2}
+                      px={1}
+                      variant="gradient"
+                      bgColor="info"
+                      borderRadius="lg"
+                      coloredShadow="info"
+                    >
+                      <MDTypography variant="h6" color="white">
+                        Parts on Order
+                      </MDTypography>
+                    </MDBox>
+                    <MDBox mx={2} py={3} px={2}>
+                      <Grid container spacing={1}>
+                        <Grid item xs={4}>
+                          <MDTypography variant="h6">Part Details</MDTypography>
+                        </Grid>
+                        <Grid item xs={2}>
+                          <MDTypography variant="h6">Qty</MDTypography>
+                        </Grid>
+                        <Grid item xs={6}>
+                          <MDTypography variant="h6">Tracking</MDTypography>
+                        </Grid>
+                        <Grid item xs={12} mb={-2} mt={-2}>
+                          <Divider fullWidth></Divider>
+                        </Grid>
+                        {partsOrdered.map((part, index) => (
+                          <PartsOrderedItem
+                            key={index}
+                            part={part}
+                            onReceive={receivePart}
+                            onDelete={(p) => {
+                              setOrderedPartToDelete(p);
+                              toggleconfirmOpen({ ...confirmOpen, removeOrderedPart: true });
+                            }}
+                          />
+                        ))}
+                      </Grid>
+                    </MDBox>
+                  </Card>
+                </Grid>
+              )}
               {/* Repair parts */}
               <Grid item xs={12}>
                 <Card>
@@ -1183,6 +1450,13 @@ const RepairDetails = () => {
         action={() => removeParts(partId, repairDetails.status)}
         openState={confirmOpen.removePart}
         closeState={() => toggleconfirmOpen({ removePart: false })}
+      />
+      <ConfirmActionDialog
+        title="Are you sure?"
+        content="Do you wish to remove this ordered part?"
+        action={removeOrderedPart}
+        openState={confirmOpen.removeOrderedPart}
+        closeState={() => toggleconfirmOpen({ ...confirmOpen, removeOrderedPart: false })}
       />
       <Footer />
     </DashboardLayout>
