@@ -507,16 +507,64 @@ function Actions({
       credentials: "include",
     });
     const json = await response.json();
-    setShowLoad(false);
     if (json.res == 501) {
+      setShowLoad(false);
       setActiveRepairId(json.data._id);
       setShowActiveRepairDialog(true);
     } else {
+      let showChecklist = false;
       if (
         repair &&
         repair.RepairType &&
         repair.RepairType.some((t) => t.toLowerCase() !== "other")
       ) {
+        try {
+          const qResponse = await fetch(`${vars.serverUrl}/checklist/questions`, {
+            credentials: "include",
+          });
+          const qRes = await qResponse.json();
+          if (qRes.res === 200) {
+            const checklistType = "Pre-Repair";
+            const applicableQuestions = qRes.data.filter((q) => {
+              if (!q.isActive) return false;
+              if (q.checklistType !== checklistType) return false;
+
+              if (q.deviceType && q.deviceType !== "All" && q.deviceType !== "") {
+                const deviceType = repair.pev?.PevType || repair.pev?.type;
+                if (deviceType && q.deviceType !== deviceType) return false;
+              }
+
+              if (q.repairType && q.repairType !== "All" && q.repairType !== "") {
+                if (repair.RepairType && !repair.RepairType.includes(q.repairType)) return false;
+              }
+              return true;
+            });
+
+            let answeredIds = [];
+            if (repair.preRepairChecklist && repair.preRepairChecklist.answers) {
+              answeredIds = repair.preRepairChecklist.answers.map((a) => a.questionId);
+            } else if (repair.checklistAnswers) {
+              answeredIds = repair.checklistAnswers
+                .filter((a) => a.checklistType === checklistType)
+                .map((a) => a.questionId);
+            }
+
+            const hasUnanswered = applicableQuestions.some((q) => !answeredIds.includes(q._id));
+
+            if (hasUnanswered && applicableQuestions.length > 0) {
+              showChecklist = true;
+            }
+          } else {
+            showChecklist = true;
+          }
+        } catch (e) {
+          console.error(e);
+          showChecklist = true;
+        }
+      }
+
+      setShowLoad(false);
+      if (showChecklist) {
         setChecklistOpen(true);
       } else {
         repairAction(2, "Repair started", "construction", "success");
@@ -584,14 +632,64 @@ function Actions({
     </Tooltip>
   );
 
+  const handleCompleteRepair = async () => {
+    setShowLoad(true);
+    try {
+      const qResponse = await fetch(`${vars.serverUrl}/checklist/questions`, {
+        credentials: "include",
+      });
+      const qRes = await qResponse.json();
+      if (qRes.res === 200) {
+        const checklistType = "In Progress";
+        const applicableQuestions = qRes.data.filter((q) => {
+          if (!q.isActive) return false;
+          if (q.checklistType !== checklistType) return false;
+
+          if (q.deviceType && q.deviceType !== "All" && q.deviceType !== "") {
+            const deviceType = repair.pev?.PevType || repair.pev?.type;
+            if (deviceType && q.deviceType !== deviceType) return false;
+          }
+
+          if (q.repairType && q.repairType !== "All" && q.repairType !== "") {
+            if (repair.RepairType && !repair.RepairType.includes(q.repairType)) return false;
+          }
+          return true;
+        });
+
+        let answeredIds = [];
+        if (repair.inprogressRepairChecklist && repair.inprogressRepairChecklist.answers) {
+          answeredIds = repair.inprogressRepairChecklist.answers.map((a) => a.questionId);
+        } else if (repair.checklistAnswers) {
+          answeredIds = repair.checklistAnswers
+            .filter((a) => a.checklistType === checklistType)
+            .map((a) => a.questionId);
+        }
+
+        const missing = applicableQuestions.filter((q) => !answeredIds.includes(q._id));
+
+        if (missing.length > 0) {
+          setSnackBar({
+            type: "error",
+            title: "In Progress Checklist Incomplete",
+            message:
+              "Please answer all In Progress checklist questions before completing the repair.",
+            show: true,
+            icon: "warning",
+          });
+          setShowLoad(false);
+          return;
+        }
+      }
+    } catch (e) {
+      console.error(e);
+    }
+    setShowLoad(false);
+    setChecklistOpen(true);
+  };
+
   const completeRepairButton = (
     <Tooltip title="Complete Repair">
-      <MDButton
-        fullwidth
-        color="success"
-        variant="contained"
-        onClick={() => setChecklistOpen(true)}
-      >
+      <MDButton fullwidth color="success" variant="contained" onClick={handleCompleteRepair}>
         <Icon>check_circle</Icon>
       </MDButton>
     </Tooltip>

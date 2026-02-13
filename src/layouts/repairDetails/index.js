@@ -28,7 +28,15 @@ import vars from "../../config";
 // @mui material components
 import Grid from "@mui/material/Grid";
 import Card from "@mui/material/Card";
-import { Divider } from "@mui/material";
+import {
+  Divider,
+  TextField,
+  Select,
+  MenuItem,
+  Checkbox,
+  FormControlLabel,
+  FormControl,
+} from "@mui/material";
 
 // Material Dashboard 2 React components
 import MDBox from "components/MDBox";
@@ -279,6 +287,110 @@ const PartsItem = ({ part, status, onDelete }) => {
   );
 };
 
+const ChecklistQuestion = ({ question, answerObj, canEdit, onSave }) => {
+  const [value, setValue] = useState("");
+
+  useEffect(() => {
+    if (answerObj) {
+      setValue(answerObj.answer);
+    } else {
+      setValue(question.answerType === "checkbox" ? false : "");
+    }
+  }, [answerObj, question]);
+
+  const handleChange = (e) => {
+    const newValue = question.answerType === "checkbox" ? e.target.checked : e.target.value;
+    setValue(newValue);
+    if (question.answerType !== "text") {
+      onSave(question._id, newValue);
+    }
+  };
+
+  const handleBlur = () => {
+    if (question.answerType === "text") {
+      const original = answerObj ? answerObj.answer : "";
+      if (value !== original) {
+        onSave(question._id, value);
+      }
+    }
+  };
+
+  if (!canEdit) {
+    let answerDisplay = "Not answered";
+    if (answerObj) {
+      if (question.answerType === "checkbox") {
+        answerDisplay = answerObj.answer ? "Yes" : "No";
+      } else {
+        answerDisplay = answerObj.answer;
+      }
+    }
+    return (
+      <MDBox mb={1}>
+        <MDTypography variant="button" fontWeight="bold" display="block">
+          {question.question.text}
+          {question.question.required && <span style={{ color: "red" }}> *</span>}
+        </MDTypography>
+        <MDTypography variant="body2">{String(answerDisplay)}</MDTypography>
+        {answerObj?.user && (
+          <MDTypography variant="caption" color="text" display="block">
+            Answered by: {answerObj.user}
+          </MDTypography>
+        )}
+        <Divider />
+      </MDBox>
+    );
+  }
+
+  return (
+    <MDBox mb={1}>
+      <MDTypography variant="button" fontWeight="bold" display="block">
+        {question.question.text}
+        {question.question.required && <span style={{ color: "red" }}> *</span>}
+      </MDTypography>
+      {question.answerType === "text" && (
+        <TextField
+          fullWidth
+          variant="standard"
+          value={value}
+          onKeyUp={(e) => {
+            if (e.keyCode === 13) {
+              handleChange(e);
+            }
+          }}
+          onChange={handleChange}
+          onBlur={handleBlur}
+        />
+      )}
+      {question.answerType === "select" && (
+        <FormControl fullWidth variant="standard">
+          <Select value={value} onChange={handleChange} displayEmpty>
+            <MenuItem value="" disabled>
+              <em>Select Option</em>
+            </MenuItem>
+            {question.selectOptions.map((opt) => (
+              <MenuItem key={opt} value={opt}>
+                {opt}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+      )}
+      {question.answerType === "checkbox" && (
+        <FormControlLabel
+          control={<Checkbox checked={Boolean(value)} onChange={handleChange} />}
+          label="Yes"
+        />
+      )}
+      {answerObj?.user && (
+        <MDTypography variant="caption" color="text" display="block">
+          Answered by: {answerObj.user}
+        </MDTypography>
+      )}
+      <Divider />
+    </MDBox>
+  );
+};
+
 // eslint-disable-next-line react/prop-types
 const RepairDetails = () => {
   const { setSnackBar, setShowLoad } = globalFuncs();
@@ -512,6 +624,68 @@ const RepairDetails = () => {
     }
   };
 
+  const updateChecklistAnswer = async (checklistType, questionId, value) => {
+    try {
+      const response = await fetch(`${vars.serverUrl}/checklist/updateAnswer`, {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ repairId: id, checklistType, questionId, answer: value }),
+        credentials: "include",
+      });
+      const res = await response.json();
+      if (res.res === 200) {
+        setrepairDetails((prev) => {
+          const listKey =
+            checklistType === "Pre-Repair"
+              ? "preRepairChecklist"
+              : checklistType === "In Progress"
+              ? "inProgressChecklist"
+              : "postRepairChecklist";
+
+          const currentList = prev[listKey] || { answers: [] };
+          const answers = currentList.answers || [];
+          const existingIndex = answers.findIndex((a) => a.questionId === questionId);
+
+          let newAnswers = [...answers];
+          if (existingIndex >= 0) {
+            newAnswers[existingIndex] = { ...newAnswers[existingIndex], answer: value };
+          } else {
+            newAnswers.push({ questionId, answer: value });
+          }
+
+          return {
+            ...prev,
+            [listKey]: {
+              ...currentList,
+              answers: newAnswers,
+            },
+          };
+        });
+        getRepair();
+        setSnackBar({
+          type: "success",
+          title: "Success",
+          message: "Answer saved successfully",
+          show: true,
+          icon: "check",
+        });
+      } else {
+        setSnackBar({
+          type: "error",
+          title: "Error",
+          message: "Error saving answer",
+          show: true,
+          icon: "warning",
+        });
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   const { showUploadFunc, addPhotoModal, setRepairId } = AddPhotos({
     getRepair,
   });
@@ -673,74 +847,78 @@ const RepairDetails = () => {
                   </MDBox>
                   <MDBox mx={2} py={3} px={2}>
                     <Grid container spacing={2}>
-                      <Grid item xs={12} md={6}>
+                      <Grid item xs={12} md={4}>
                         <MDTypography variant="h6" gutterBottom>
                           Pre-Repair Checklist
                         </MDTypography>
-                        {repairDetails.preRepairChecklist?.user && (
-                          <MDTypography variant="caption" display="block" gutterBottom>
-                            Completed by: {repairDetails.preRepairChecklist.user}
-                          </MDTypography>
-                        )}
                         {getApplicableQuestions("Pre-Repair").length > 0 ? (
                           getApplicableQuestions("Pre-Repair").map((q) => {
                             const answerObj = repairDetails.preRepairChecklist?.answers?.find(
                               (a) => a.questionId === q._id
                             );
-                            let answerDisplay = "Not answered";
-                            if (answerObj) {
-                              if (q.answerType === "checkbox") {
-                                answerDisplay = answerObj.answer ? "Yes" : "No";
-                              } else {
-                                answerDisplay = answerObj.answer;
-                              }
-                            }
                             return (
-                              <MDBox key={q._id} mb={1}>
-                                <MDTypography variant="button" fontWeight="bold" display="block">
-                                  {q.question.text}
-                                  {q.question.required && <span style={{ color: "red" }}> *</span>}
-                                </MDTypography>
-                                <MDTypography variant="body2">{String(answerDisplay)}</MDTypography>
-                                <Divider />
-                              </MDBox>
+                              <ChecklistQuestion
+                                key={q._id}
+                                question={q}
+                                answerObj={answerObj}
+                                canEdit={repairDetails.status === 0 || repairDetails.status === 1}
+                                onSave={(qId, val) => updateChecklistAnswer("Pre-Repair", qId, val)}
+                              />
                             );
                           })
                         ) : (
                           <MDTypography variant="body2">No questions available.</MDTypography>
                         )}
                       </Grid>
-                      <Grid item xs={12} md={6}>
+                      <Grid item xs={12} md={4}>
+                        <MDTypography variant="h6" gutterBottom>
+                          In Progress Checklist
+                        </MDTypography>
+                        {getApplicableQuestions("In Progress").length > 0 ? (
+                          getApplicableQuestions("In Progress").map((q) => {
+                            const answerObj =
+                              repairDetails.inprogressRepairChecklist?.answers?.find(
+                                (a) => a.questionId === q._id
+                              );
+                            return (
+                              <ChecklistQuestion
+                                key={q._id}
+                                question={q}
+                                answerObj={answerObj}
+                                canEdit={repairDetails.status === 2 || repairDetails.status === 3}
+                                onSave={(qId, val) =>
+                                  updateChecklistAnswer("In Progress", qId, val)
+                                }
+                              />
+                            );
+                          })
+                        ) : (
+                          <MDTypography variant="body2">No questions available.</MDTypography>
+                        )}
+                      </Grid>
+                      <Grid item xs={12} md={4}>
                         <MDTypography variant="h6" gutterBottom>
                           Post-Repair Checklist
                         </MDTypography>
-                        {repairDetails.postRepairChecklist?.user && (
-                          <MDTypography variant="caption" display="block" gutterBottom>
-                            Completed by: {repairDetails.postRepairChecklist.user}
-                          </MDTypography>
-                        )}
                         {getApplicableQuestions("Post-Repair").length > 0 ? (
                           getApplicableQuestions("Post-Repair").map((q) => {
                             const answerObj = repairDetails.postRepairChecklist?.answers?.find(
                               (a) => a.questionId === q._id
                             );
-                            let answerDisplay = "Not answered";
-                            if (answerObj) {
-                              if (q.answerType === "checkbox") {
-                                answerDisplay = answerObj.answer ? "Yes" : "No";
-                              } else {
-                                answerDisplay = answerObj.answer;
-                              }
-                            }
                             return (
-                              <MDBox key={q._id} mb={1}>
-                                <MDTypography variant="button" fontWeight="bold" display="block">
-                                  {q.question.text}
-                                  {q.question.required && <span style={{ color: "red" }}> *</span>}
-                                </MDTypography>
-                                <MDTypography variant="body2">{String(answerDisplay)}</MDTypography>
-                                <Divider />
-                              </MDBox>
+                              <ChecklistQuestion
+                                key={q._id}
+                                question={q}
+                                answerObj={answerObj}
+                                canEdit={
+                                  repairDetails.status === 4 ||
+                                  repairDetails.status === 5 ||
+                                  repairDetails.status === 6
+                                }
+                                onSave={(qId, val) =>
+                                  updateChecklistAnswer("Post-Repair", qId, val)
+                                }
+                              />
                             );
                           })
                         ) : (
@@ -853,7 +1031,7 @@ const RepairDetails = () => {
                             size="full"
                             status={repairDetails.status}
                             getRepair={getRepair}
-                            repairID={repairDetails._id}
+                            repairId={repairDetails._id}
                           />
                         ) : (
                           ""

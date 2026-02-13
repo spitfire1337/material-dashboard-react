@@ -63,11 +63,17 @@ function Checklist() {
   const [filterDeviceType, setFilterDeviceType] = useState("");
   const [filterChecklistType, setFilterChecklistType] = useState("");
   const [filterRepairType, setFilterRepairType] = useState("");
+  const [copyDialog, setCopyDialog] = useState({ open: false, question: null });
+  const [copyTarget, setCopyTarget] = useState({
+    repairType: "",
+    deviceType: "",
+    checklistType: "",
+  });
 
   const repairTypes = ["Tire Change", "Tube Change", "Power issue", "Mechanical Repair", "Other"];
   const deviceTypes = ["EUC", "Scooter", "OneWheel", "Ebike", "Emoto", "Eskate"];
   const answerTypes = ["text", "select", "checkbox"];
-  const checklistTypes = ["Pre-Repair", "Post-Repair"];
+  const checklistTypes = ["Pre-Repair", "In Progress", "Post-Repair"];
 
   const handleEdit = (row) => {
     setNewQuestion(row);
@@ -109,6 +115,94 @@ function Checklist() {
         });
       }
     } catch (e) {
+      setSnackBar({
+        type: "error",
+        title: "Error",
+        message: "Server error",
+        show: true,
+        icon: "warning",
+      });
+    }
+    setShowLoad(false);
+  };
+
+  const handleCopy = (row) => {
+    setCopyTarget({
+      repairType: row.repairType,
+      deviceType: row.deviceType,
+      checklistType: row.checklistType,
+    });
+    setCopyDialog({ open: true, question: row });
+  };
+
+  const executeCopy = async () => {
+    if (!copyTarget.repairType || !copyTarget.deviceType || !copyTarget.checklistType) {
+      setSnackBar({
+        type: "error",
+        title: "Error",
+        message: "Please select all types",
+        show: true,
+        icon: "warning",
+      });
+      return;
+    }
+
+    setShowLoad(true);
+    try {
+      const filtered = questions.filter(
+        (q) =>
+          q.repairType === copyTarget.repairType &&
+          q.deviceType === copyTarget.deviceType &&
+          q.checklistType === copyTarget.checklistType
+      );
+      let nextSeq = 1;
+      if (filtered.length > 0) {
+        const maxSeq = Math.max(...filtered.map((q) => parseInt(q.sequence) || 0));
+        nextSeq = maxSeq + 1;
+      }
+
+      const newQ = {
+        ...copyDialog.question,
+        _id: undefined,
+        createdAt: undefined,
+        updatedAt: undefined,
+        addedBy: undefined,
+        lastUpdatedBy: undefined,
+        __v: undefined,
+        repairType: copyTarget.repairType,
+        deviceType: copyTarget.deviceType,
+        checklistType: copyTarget.checklistType,
+        sequence: nextSeq,
+      };
+
+      const response = await fetch(`${vars.serverUrl}/checklist/create`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newQ),
+        credentials: "include",
+      });
+      const res = await response.json();
+      if (res.res === 200) {
+        setSnackBar({
+          type: "success",
+          title: "Success",
+          message: "Question copied successfully",
+          show: true,
+          icon: "check",
+        });
+        setCopyDialog({ open: false, question: null });
+        getQuestions();
+      } else {
+        setSnackBar({
+          type: "error",
+          title: "Error",
+          message: "Error copying question",
+          show: true,
+          icon: "warning",
+        });
+      }
+    } catch (e) {
+      console.error(e);
       setSnackBar({
         type: "error",
         title: "Error",
@@ -175,6 +269,9 @@ function Checklist() {
         <>
           <IconButton onClick={() => handleEdit(row)} color="info">
             <Icon>edit</Icon>
+          </IconButton>
+          <IconButton onClick={() => handleCopy(row)} color="primary" title="Copy Question">
+            <Icon>content_copy</Icon>
           </IconButton>
           <IconButton onClick={() => handleDelete(row._id)} color="error">
             <Icon>delete</Icon>
@@ -402,12 +499,12 @@ function Checklist() {
                       onClick={() => {
                         setNewQuestion({
                           question: { required: true, text: "" },
-                          repairType: "",
-                          deviceType: "",
+                          repairType: filterRepairType || "",
+                          deviceType: filterDeviceType || "",
                           isActive: true,
                           answerType: "",
                           selectOptions: [],
-                          checklistType: "",
+                          checklistType: filterChecklistType || "",
                           sequence: 1,
                         });
                         setShowModal(true);
@@ -699,6 +796,90 @@ function Checklist() {
           <MDButton onClick={() => setDeleteConfirmation({ open: false, id: null })}>No</MDButton>
           <MDButton onClick={executeDelete} color="error">
             Yes
+          </MDButton>
+        </DialogActions>
+      </Dialog>
+      <Dialog
+        open={copyDialog.open}
+        onClose={() => setCopyDialog({ open: false, question: null })}
+        fullWidth
+        maxWidth="sm"
+      >
+        <DialogTitle>Copy Question</DialogTitle>
+        <DialogContent>
+          <MDBox pt={2}>
+            <MDTypography variant="body2" fontWeight="bold" gutterBottom>
+              Original Question:
+            </MDTypography>
+            <MDTypography variant="body2" gutterBottom mb={3}>
+              {copyDialog.question?.question?.text}
+            </MDTypography>
+            <Grid container spacing={2}>
+              <Grid item xs={12}>
+                <FormControl fullWidth>
+                  <InputLabel>Target Repair Type</InputLabel>
+                  <Select
+                    value={copyTarget.repairType}
+                    label="Target Repair Type"
+                    onChange={(e) => setCopyTarget({ ...copyTarget, repairType: e.target.value })}
+                    sx={{ height: "44px" }}
+                  >
+                    {repairTypes.map((type) => (
+                      <MenuItem key={type} value={type}>
+                        {type}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12}>
+                <FormControl fullWidth>
+                  <InputLabel>Target Device Type</InputLabel>
+                  <Select
+                    value={copyTarget.deviceType}
+                    label="Target Device Type"
+                    onChange={(e) => setCopyTarget({ ...copyTarget, deviceType: e.target.value })}
+                    sx={{ height: "44px" }}
+                  >
+                    {deviceTypes.map((type) => (
+                      <MenuItem key={type} value={type}>
+                        {type}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12}>
+                <FormControl fullWidth>
+                  <InputLabel>Target Checklist Type</InputLabel>
+                  <Select
+                    value={copyTarget.checklistType}
+                    label="Target Checklist Type"
+                    onChange={(e) =>
+                      setCopyTarget({ ...copyTarget, checklistType: e.target.value })
+                    }
+                    sx={{ height: "44px" }}
+                  >
+                    {checklistTypes.map((type) => (
+                      <MenuItem key={type} value={type}>
+                        {type}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+            </Grid>
+          </MDBox>
+        </DialogContent>
+        <DialogActions>
+          <MDButton
+            onClick={() => setCopyDialog({ open: false, question: null })}
+            color="secondary"
+          >
+            Cancel
+          </MDButton>
+          <MDButton onClick={executeCopy} color="info">
+            Copy
           </MDButton>
         </DialogActions>
       </Dialog>

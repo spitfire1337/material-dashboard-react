@@ -132,7 +132,20 @@ const PartsButton = ({ size = "full", status, getRepair = undefined, repairId })
     }
   };
 
-  const addParts = async () => {
+  const addParts = async (e) => {
+    if (e && e.preventDefault) {
+      e.preventDefault();
+    }
+    if (!partDetails.name) {
+      setSnackBar({
+        type: "error",
+        title: "Error",
+        message: "Please select a part",
+        show: true,
+        icon: "warning",
+      });
+      return;
+    }
     setShowLoad(true);
     const response = await fetch(`${vars.serverUrl}/repairs/addParts`, {
       method: "POST",
@@ -209,6 +222,8 @@ const PartsButton = ({ size = "full", status, getRepair = undefined, repairId })
                 onChange={(event, newValue) => {
                   setSearchedpart(newValue);
                   if (newValue == null) {
+                    setPartDetails({ cost: 0, name: "", qty: 0 });
+                    setPart(null);
                     return null;
                   } else if (newValue && newValue.inputValue) {
                     toggleDialogOpen(true);
