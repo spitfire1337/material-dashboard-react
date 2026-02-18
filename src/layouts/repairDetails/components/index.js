@@ -57,7 +57,7 @@ function Checklist() {
   const getQuestions = () => {
     setShowLoad(true);
     if (socket) {
-      socket.emit("getChecklistQuestions", {}, (res) => {
+      socket.emit("getChecklist", {}, (res) => {
         if (res.res === 200) {
           setQuestions(res.data);
         }

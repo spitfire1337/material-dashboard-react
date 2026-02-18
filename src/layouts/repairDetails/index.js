@@ -65,6 +65,7 @@ import PartsAdd from "./components/addParts";
 import AddPhotos from "./components/addPhoto";
 import { useTableState } from "../../context/tableState";
 import EditRepairDetails from "./components/editRepairDetails";
+import EditCustomerDetails from "./components/editCustomerDetails";
 import PartsButton from "components/PartsButton";
 import AddNotes from "components/NotesButton";
 import { useEditor } from "@tiptap/react";
@@ -678,6 +679,7 @@ const RepairDetails = () => {
   const [selectedGuide, setSelectedGuide] = useState(null);
   const [highlightUpdate, setHighlightUpdate] = useState(false);
   const [showEditDetailsModal, setShowEditDetailsModal] = useState(false);
+  const [showEditCustomerModal, setShowEditCustomerModal] = useState(false);
 
   const editor = useEditor({
     extensions: [
@@ -1157,6 +1159,34 @@ const RepairDetails = () => {
     }
   };
 
+  const handleSaveCustomerDetails = (data) => {
+    setShowLoad(true);
+    if (socket) {
+      socket.emit("updateCustomer", data, (res) => {
+        if (res.res === 200) {
+          setSnackBar({
+            type: "success",
+            title: "Success",
+            message: "Customer details updated",
+            show: true,
+            icon: "check",
+          });
+          setShowEditCustomerModal(false);
+          getRepair();
+        } else {
+          setSnackBar({
+            type: "error",
+            title: "Error",
+            message: "Failed to update customer details",
+            show: true,
+            icon: "warning",
+          });
+        }
+        setShowLoad(false);
+      });
+    }
+  };
+
   useEffect(() => {
     if (showAddGuideModal && editor) {
       editor.commands.setContent(newGuide.content);
@@ -1305,9 +1335,27 @@ const RepairDetails = () => {
                     borderRadius="lg"
                     coloredShadow="info"
                   >
-                    <MDTypography variant="h6" color="white">
-                      Customer Details
-                    </MDTypography>
+                    <Grid container>
+                      <Grid item xs={6} alignItems="center">
+                        <MDTypography variant="h6" color="white">
+                          Customer Details
+                        </MDTypography>
+                      </Grid>
+                      <Grid
+                        item
+                        xs={6}
+                        display="flex"
+                        alignItems="center"
+                        justifyContent="flex-end"
+                      >
+                        <IconButton
+                          onClick={() => setShowEditCustomerModal(true)}
+                          sx={{ color: "white", mr: 1 }}
+                        >
+                          <Icon>edit</Icon>
+                        </IconButton>
+                      </Grid>
+                    </Grid>
                   </MDBox>
                   <MDBox mx={2} py={3} px={2}>
                     <MDTypography variant="subtitle2">
@@ -1887,6 +1935,12 @@ const RepairDetails = () => {
         onClose={() => setShowEditDetailsModal(false)}
         repair={repairDetails}
         onSave={handleSaveRepairDetails}
+      />
+      <EditCustomerDetails
+        open={showEditCustomerModal}
+        onClose={() => setShowEditCustomerModal(false)}
+        customer={repairDetails.Customer}
+        onSave={handleSaveCustomerDetails}
       />
       {/* Guides List Modal */}
       <Modal

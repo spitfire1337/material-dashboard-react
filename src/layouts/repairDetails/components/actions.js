@@ -357,7 +357,7 @@ function Actions({
           ) {
             try {
               const qRes = await new Promise((resolve) => {
-                socket.emit("getChecklistQuestions", {}, (res) => resolve(res));
+                socket.emit("getChecklist", {}, (res) => resolve(res));
               });
               if (qRes.res === 200) {
                 const checklistType = "Pre-Repair";
@@ -415,7 +415,7 @@ function Actions({
     setShowLoad(true);
     try {
       const qRes = await new Promise((resolve) => {
-        socket.emit("getChecklistQuestions", {}, (res) => resolve(res));
+        socket.emit("getChecklist", {}, (res) => resolve(res));
       });
       if (qRes.res === 200) {
         const checklistType = "In Progress";
