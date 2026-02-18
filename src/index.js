@@ -19,6 +19,7 @@ import { BrowserRouter } from "react-router-dom";
 import { TableStateProvider } from "context/tableState";
 import { LoginStateProvider } from "context/loginContext";
 import { GlobalProvider } from "context/global";
+import { SocketProvider } from "context/socket";
 import App from "App";
 import { registerLicense } from "@syncfusion/ej2-base";
 import { AddToHomeScreen } from "react-pwa-add-to-homescreen";
@@ -37,7 +38,9 @@ root.render(
         <LoginStateProvider>
           <TableStateProvider>
             <AddToHomeScreen />
-            <App />
+            <SocketProvider>
+              <App />
+            </SocketProvider>
           </TableStateProvider>
         </LoginStateProvider>
       </GlobalProvider>

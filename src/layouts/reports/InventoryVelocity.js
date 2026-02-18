@@ -239,7 +239,7 @@ function InventoryVelocity() {
           <Grid item xs={12}>
             <Card>
               <MDBox p={3}>
-                <MDTypography variant="h6">Inventory Velocity (Top Items Used)</MDTypography>
+                <MDTypography variant="h6">Repair Item Velocity (Top Items Used)</MDTypography>
                 {inventoryData.length > 0 ? (
                   <Chart data={inventoryData}>
                     <ArgumentAxis showLabels={false} />
@@ -249,7 +249,7 @@ function InventoryVelocity() {
                       argumentField="partName"
                       name="Quantity Used"
                     />
-                    <Title text="Most Used Inventory Items" />
+                    <Title text="Most Used Repair Items" />
                     <Animation />
                     <EventTracker />
                     <Tooltip

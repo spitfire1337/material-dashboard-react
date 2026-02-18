@@ -22,6 +22,7 @@ import RepairImages from "./components/images";
 import parse from "html-react-parser";
 import { globalFuncs } from "../../context/global";
 import { useLoginState } from "../../context/loginContext";
+import { useSocket } from "../../context/socket";
 // Vars
 import vars from "../../config";
 
@@ -37,6 +38,11 @@ import {
   FormControlLabel,
   FormControl,
   Tooltip,
+  Modal,
+  InputLabel,
+  Chip,
+  OutlinedInput,
+  keyframes,
 } from "@mui/material";
 
 // Material Dashboard 2 React components
@@ -60,6 +66,30 @@ import AddPhotos from "./components/addPhoto";
 import { useTableState } from "../../context/tableState";
 import PartsButton from "components/PartsButton";
 import AddNotes from "components/NotesButton";
+import { useEditor } from "@tiptap/react";
+import StarterKit from "@tiptap/starter-kit";
+import Link from "@tiptap/extension-link";
+import { Table } from "@tiptap/extension-table";
+import { TableCell } from "@tiptap/extension-table-cell";
+import { TableHeader } from "@tiptap/extension-table-header";
+import { TableRow } from "@tiptap/extension-table-row";
+import {
+  RichTextEditorProvider,
+  RichTextField,
+  RichTextReadOnly,
+  MenuControlsContainer,
+  MenuSelectHeading,
+  MenuDivider,
+  MenuButtonBold,
+  MenuButtonItalic,
+  MenuButtonOrderedList,
+  MenuButtonBulletedList,
+  MenuButtonUndo,
+  MenuButtonRedo,
+  MenuButtonEditLink,
+  MenuButtonAddTable,
+} from "mui-tiptap";
+import DataTable from "react-data-table-component";
 
 const iconsStyle = ({ palette: { dark, white, text }, functions: { rgba } }) => ({
   color: () => {
@@ -210,6 +240,24 @@ const Status = ({ repairStatus }) => {
               color: "#000",
               backgroundColor: "green",
               background: "linear-gradient(195deg, #329858, #00FF60)",
+            },
+          }}
+          size="sm"
+          bg=""
+        />
+      </MDBox>
+    );
+  }
+  if (repairStatus == 997) {
+    return (
+      <MDBox ml={-1}>
+        <MDBadge
+          badgeContent="Cancelled - Return to Customer"
+          sx={{
+            "& .MuiBadge-badge": {
+              color: "#fff",
+              backgroundColor: "green",
+              background: "linear-gradient(195deg, #984742, #FB0F00)",
             },
           }}
           size="sm"
@@ -511,9 +559,77 @@ const ChecklistQuestion = ({ question, answerObj, canEdit, onSave, id }) => {
   );
 };
 
+const highlightAnimation = keyframes`
+  0% {
+    background-color: transparent;
+  }
+  25% {
+    background-color: rgba(76, 175, 80, 0.2);
+  }
+  100% {
+    background-color: transparent;
+  }
+`;
+
+const modalStyle = {
+  position: "absolute",
+  top: "50%",
+  left: "50%",
+  transform: "translate(-50%, -50%)",
+  width: "80%",
+  maxHeight: "90vh",
+  overflowY: "auto",
+  bgcolor: "background.paper",
+  border: "2px solid #000",
+  boxShadow: 24,
+  p: 4,
+  borderRadius: "25px",
+};
+
+const getYoutubeEmbedUrl = (url) => {
+  if (!url) return "";
+  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+  const match = url.match(regExp);
+  return match && match[2].length === 11 ? `https://www.youtube.com/embed/${match[2]}` : null;
+};
+
+const GuideDetail = ({ data }) => {
+  return (
+    <MDBox p={3} bgcolor="#f8f9fa">
+      {data.type === "video" || data.videoUrl ? (
+        <MDBox
+          component="iframe"
+          src={getYoutubeEmbedUrl(data.videoUrl)}
+          width="100%"
+          height="400px"
+          frameBorder="0"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+          sx={{ borderRadius: "8px" }}
+        />
+      ) : (
+        <MDBox sx={{ border: "1px solid #eee", borderRadius: "8px", p: 2, bgcolor: "white" }}>
+          <RichTextReadOnly
+            content={data.content}
+            extensions={[
+              StarterKit,
+              Link,
+              Table.configure({ resizable: true }),
+              TableRow,
+              TableHeader,
+              TableCell,
+            ]}
+          />
+        </MDBox>
+      )}
+    </MDBox>
+  );
+};
+
 // eslint-disable-next-line react/prop-types
 const RepairDetails = () => {
   const { setSnackBar, setShowLoad } = globalFuncs();
+  const socket = useSocket();
   const { setLoginState } = useLoginState();
   const { RepairRerender } = useTableState();
   const { id } = useParams();
@@ -541,92 +657,128 @@ const RepairDetails = () => {
   const [partName, setPartName] = useState();
   const [newMinutes, setnewMinutes] = useState();
   const [questions, setQuestions] = useState([]);
-  const getRepair = async () => {
-    setShowLoad(true);
+
+  const [showGuidesModal, setShowGuidesModal] = useState(false);
+  const [guides, setGuides] = useState([]);
+  const [showAddGuideModal, setShowAddGuideModal] = useState(false);
+  const [newGuide, setNewGuide] = useState({
+    title: "",
+    type: "text",
+    content: "",
+    videoUrl: "",
+    tags: [],
+  });
+  const [guideSearchText, setGuideSearchText] = useState("");
+  const [guideTypeFilter, setGuideTypeFilter] = useState("all");
+  const [guideTagFilter, setGuideTagFilter] = useState("All");
+  const [showViewGuideModal, setShowViewGuideModal] = useState(false);
+  const [selectedGuide, setSelectedGuide] = useState(null);
+  const [highlightUpdate, setHighlightUpdate] = useState(false);
+
+  const editor = useEditor({
+    extensions: [
+      StarterKit,
+      Link,
+      Table.configure({
+        resizable: true,
+      }),
+      TableRow,
+      TableHeader,
+      TableCell,
+    ],
+    content: newGuide.content,
+    onUpdate: ({ editor }) => {
+      setNewGuide((prev) => ({ ...prev, content: editor.getHTML() }));
+    },
+  });
+  useEffect(() => {
+    if (socket) {
+      socket.on("updatedRepair", (res) => {
+        setHighlightUpdate(true);
+        setTimeout(() => setHighlightUpdate(false), 2000);
+        setnewMinutes(Math.round(res.data.repairTime * 60));
+        setrepairDetails(res.data);
+        setrepairHistory(res.history);
+        setrepairImages(res.images);
+        setAllRepairNotes(res.notes);
+        setAllParts(res.parts);
+        setPartsOrdered(res.partsOrdered || []);
+      });
+
+      return () => {
+        socket.off("updatedRepair");
+      };
+    }
+  }, [socket]);
+
+  const getRepair = () => {
+    if (!socket) return;
     createInvoice();
     setRepairOrderReady(false);
-    const response = await fetch(`${vars.serverUrl}/repairs/repairDetails`, {
-      method: "POST",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ id: id }),
-      credentials: "include",
-    });
-    const res = await response.json();
-    if (res.res === 401) {
-      setLoginState(false);
-      setSnackBar({
-        type: "error",
-        title: "Unauthorized",
-        message: "redirecting to login",
-        show: true,
-        icon: "warning",
-      });
-    } else if (res.res === 500) {
-      setSnackBar({
-        type: "error",
-        title: "Server error occured",
-        message: "Please try again later",
-        show: true,
-        icon: "error",
-      });
-    } else {
-      setLoading(false);
-      setnewMinutes(Math.round(res.data.repairTime * 60));
-      setrepairDetails(res.data);
-      setrepairHistory(res.history);
-      setrepairImages(res.images);
-      setAllRepairNotes(res.notes);
-      setAllParts(res.parts);
-      setPartsOrdered(res.partsOrdered || []);
-      RepairRerender();
-      setShowLoad(false);
-
-      //setRepairOrderReady(true);
-    }
-  };
-
-  const getQuestions = async () => {
-    try {
-      const response = await fetch(`${vars.serverUrl}/checklist/questions`, {
-        credentials: "include",
-      });
-      const res = await response.json();
-      if (res.res === 200) {
-        setQuestions(res.data);
+    socket.emit("getRepairDetails", { id: id }, (res) => {
+      if (res.res === 401) {
+        setLoginState(false);
+        setSnackBar({
+          type: "error",
+          title: "Unauthorized",
+          message: "redirecting to login",
+          show: true,
+          icon: "warning",
+        });
+      } else if (res.res === 500) {
+        setSnackBar({
+          type: "error",
+          title: "Server error occured",
+          message: "Please try again later",
+          show: true,
+          icon: "error",
+        });
+      } else {
+        setLoading(false);
+        setnewMinutes(Math.round(res.data.repairTime * 60));
+        setrepairDetails(res.data);
+        setrepairHistory(res.history);
+        setrepairImages(res.images);
+        setAllRepairNotes(res.notes);
+        setAllParts(res.parts);
+        setPartsOrdered(res.partsOrdered || []);
+        RepairRerender();
+        setShowLoad(false);
       }
-    } catch (error) {
-      console.error(error);
+    });
+  };
+
+  const getQuestions = () => {
+    if (socket) {
+      socket.emit("getChecklist", {}, (res) => {
+        if (res.res === 200) {
+          setQuestions(res.data);
+        }
+      });
     }
   };
 
-  const createInvoice = async () => {
+  const createInvoice = () => {
     setShowLoad(true);
-    const response = await fetch(`${vars.serverUrl}/repairs/getRepairOrder`, {
-      method: "POST",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-      body: JSON.stringify({ id: repairID }),
-    });
-    const json = await response.json();
-    if (json.res == 200) {
-      setRepairOrder(json.data[0]);
-      setRepairOrderReady(true);
-    } else {
-      setSnackBar({
-        type: "error",
-        title: "Server error occured",
-        message: "Please try again later",
-        show: true,
-        icon: "error",
+    if (socket) {
+      socket.emit("getRepairOrder", { id: repairID }, (json) => {
+        if (json.res == 200) {
+          setRepairOrder(json.data[0]);
+          setRepairOrderReady(true);
+        } else {
+          setSnackBar({
+            type: "error",
+            title: "Server error occured",
+            message: "Please try again later",
+            show: true,
+            icon: "error",
+          });
+        }
+        setShowLoad(false);
       });
+    } else {
+      setShowLoad(false);
     }
-    setShowLoad(false);
   };
 
   const saveNotes = async () => {
@@ -660,7 +812,7 @@ const RepairDetails = () => {
       });
     } else {
       setnewRepairNotes(false);
-      getRepair();
+      //getRepair();
       setSnackBar({
         type: "success",
         title: "Notes saved",
@@ -672,232 +824,291 @@ const RepairDetails = () => {
     setShowLoad(false);
   };
 
-  const removeParts = async (id, status) => {
+  const removeParts = (id, status) => {
     toggleconfirmOpen({ removePart: false });
     setShowLoad(true);
-    const response = await fetch(`${vars.serverUrl}/repairs/removeParts`, {
-      method: "POST",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-      body: JSON.stringify({
-        id: repairID,
-        partId: id,
-        name: partName,
-        status: status,
-      }),
-    });
-    const json = await response.json();
-    setShowLoad(false);
-    if (json.res == 200) {
-      setSnackBar({
-        type: "success",
-        title: "Part removed from repair",
-        message: "The part has been successfully removed from the repair",
-        show: true,
-        icon: "check",
-      });
-      getRepair();
-      if (status == 4) {
-        createInvoice();
-      }
-    } else {
-      setSnackBar({
-        type: "error",
-        title: "Server error occured",
-        message: "Please try again later",
-        show: true,
-        icon: "error",
-      });
+    if (socket) {
+      socket.emit(
+        "removeParts",
+        {
+          id: repairID,
+          partId: id,
+          name: partName,
+          status: status,
+        },
+        (json) => {
+          setShowLoad(false);
+          if (json.res == 200) {
+            setSnackBar({
+              type: "success",
+              title: "Part removed from repair",
+              message: "The part has been successfully removed from the repair",
+              show: true,
+              icon: "check",
+            });
+            //getRepair();
+            if (status == 4) {
+              createInvoice();
+            }
+          } else {
+            setSnackBar({
+              type: "error",
+              title: "Server error occured",
+              message: "Please try again later",
+              show: true,
+              icon: "error",
+            });
+          }
+        }
+      );
     }
   };
 
-  const saveTime = async (id, status) => {
-    toggleconfirmOpen({ editTime: false });
-    setShowLoad(true);
-    const response = await fetch(`${vars.serverUrl}/repairs/removeParts`, {
-      method: "POST",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-      body: JSON.stringify({
-        id: repairID,
-        time: (newMinutes / 60).toFixed(2),
-      }),
-    });
-    const json = await response.json();
-    setShowLoad(false);
-    if (json.res == 200) {
-      setSnackBar({
-        type: "success",
-        title: "Repair time adjusted",
-        message: "The repair time has been successfully adjusted",
-        show: true,
-        icon: "check",
-      });
-      getRepair();
-    } else {
-      setSnackBar({
-        type: "error",
-        title: "Server error occured",
-        message: "Please try again later",
-        show: true,
-        icon: "error",
-      });
-    }
-  };
-
-  const removeOrderedPart = async () => {
+  const removeOrderedPart = () => {
     toggleconfirmOpen({ ...confirmOpen, removeOrderedPart: false });
     setShowLoad(true);
-    try {
-      const response = await fetch(`${vars.serverUrl}/repairs/removeOrderedPart`, {
-        method: "POST",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify({
+    if (socket) {
+      socket.emit(
+        "removeOrderedPart",
+        {
           repairId: repairID,
           partId: orderedPartToDelete._id,
-        }),
-      });
-      const json = await response.json();
-      setShowLoad(false);
-      if (json.res == 200) {
-        setSnackBar({
-          type: "success",
-          title: "Success",
-          message: "Ordered part removed",
-          show: true,
-          icon: "check",
-        });
-        getRepair();
-      } else {
-        setSnackBar({
-          type: "error",
-          title: "Error",
-          message: json.message || "Error removing part",
-          show: true,
-          icon: "error",
-        });
-      }
-    } catch (e) {
-      setShowLoad(false);
-      setSnackBar({
-        type: "error",
-        title: "Error",
-        message: "Server error",
-        show: true,
-        icon: "error",
-      });
-    }
-  };
-
-  const receivePart = async (part) => {
-    setShowLoad(true);
-    const response = await fetch(`${vars.serverUrl}/repairs/receivePart`, {
-      method: "POST",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-      body: JSON.stringify({
-        repairId: repairID,
-        partId: part._id,
-      }),
-    });
-    const json = await response.json();
-    setShowLoad(false);
-    if (json.res == 200) {
-      setSnackBar({
-        type: "success",
-        title: "Part Received",
-        message: "Part has been moved to repair parts list",
-        show: true,
-        icon: "check",
-      });
-      getRepair();
-      if (repairDetails.status == 4) {
-        createInvoice();
-      }
-    } else {
-      setSnackBar({
-        type: "error",
-        title: "Error",
-        message: json.message,
-        show: true,
-        icon: "error",
-      });
-    }
-  };
-
-  const updateChecklistAnswer = async (checklistType, questionId, value) => {
-    try {
-      const response = await fetch(`${vars.serverUrl}/checklist/updateAnswer`, {
-        method: "POST",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
         },
-        body: JSON.stringify({ repairId: id, checklistType, questionId, answer: value }),
+        (json) => {
+          setShowLoad(false);
+          if (json.res == 200) {
+            setSnackBar({
+              type: "success",
+              title: "Success",
+              message: "Ordered part removed",
+              show: true,
+              icon: "check",
+            });
+            //getRepair();
+          } else {
+            setSnackBar({
+              type: "error",
+              title: "Error",
+              message: json.message || "Error removing part",
+              show: true,
+              icon: "error",
+            });
+          }
+        }
+      );
+    }
+  };
+
+  const receivePart = (part) => {
+    setShowLoad(true);
+    if (socket) {
+      socket.emit(
+        "receivePart",
+        {
+          repairId: repairID,
+          partId: part._id,
+        },
+        (json) => {
+          setShowLoad(false);
+          if (json.res == 200) {
+            setSnackBar({
+              type: "success",
+              title: "Part Received",
+              message: "Part has been moved to repair parts list",
+              show: true,
+              icon: "check",
+            });
+            //getRepair();
+            if (repairDetails.status == 4) {
+              createInvoice();
+            }
+          } else {
+            setSnackBar({
+              type: "error",
+              title: "Error",
+              message: json.message,
+              show: true,
+              icon: "error",
+            });
+          }
+        }
+      );
+    }
+  };
+
+  const updateChecklistAnswer = (checklistType, questionId, value) => {
+    if (socket) {
+      socket.emit(
+        "updateChecklistAnswer",
+        { repairId: id, checklistType, questionId, answer: value },
+        (res) => {
+          if (res.res === 200) {
+            setrepairDetails((prev) => {
+              const listKey =
+                checklistType === "Pre-Repair"
+                  ? "preRepairChecklist"
+                  : checklistType === "In Progress"
+                  ? "inProgressChecklist"
+                  : "postRepairChecklist";
+
+              const currentList = prev[listKey] || { answers: [] };
+              const answers = currentList.answers || [];
+              const existingIndex = answers.findIndex((a) => a.questionId === questionId);
+
+              let newAnswers = [...answers];
+              if (existingIndex >= 0) {
+                newAnswers[existingIndex] = { ...newAnswers[existingIndex], answer: value };
+              } else {
+                newAnswers.push({ questionId, answer: value });
+              }
+
+              return {
+                ...prev,
+                [listKey]: {
+                  ...currentList,
+                  answers: newAnswers,
+                },
+              };
+            });
+            setSnackBar({
+              type: "success",
+              title: "Success",
+              message: "Answer saved successfully",
+              show: true,
+              icon: "check",
+            });
+          } else {
+            setSnackBar({
+              type: "error",
+              title: "Error",
+              message: "Error saving answer",
+              show: true,
+              icon: "warning",
+            });
+          }
+        }
+      );
+    }
+  };
+
+  const fetchGuides = async (showLoader = true) => {
+    if (showLoader) setShowLoad(true);
+    try {
+      if (!repairDetails?.pev?._id) return;
+      const response = await fetch(
+        `${vars.serverUrl}/repairGuides/model/${repairDetails.pev._id}`,
+        {
+          credentials: "include",
+        }
+      );
+      const res = await response.json();
+      if (res.res === 200) {
+        setGuides(res.data);
+      } else {
+        setGuides([]);
+      }
+    } catch (error) {
+      console.error(error);
+      setGuides([]);
+    }
+    if (showLoader) setShowLoad(false);
+  };
+
+  const handleOpenGuides = async () => {
+    await fetchGuides();
+    setGuideSearchText("");
+    setGuideTypeFilter("all");
+    setGuideTagFilter("All");
+    setShowGuidesModal(true);
+  };
+
+  const handleAddGuide = () => {
+    setNewGuide({ title: "", type: "text", content: "", videoUrl: "", tags: [] });
+    setShowAddGuideModal(true);
+  };
+
+  const handleSaveGuide = async () => {
+    if (!newGuide.title || (!newGuide.content && !newGuide.videoUrl)) {
+      setSnackBar({
+        type: "error",
+        title: "Error",
+        message: "Please fill in title and content/url",
+        show: true,
+        icon: "warning",
+      });
+      return;
+    }
+
+    setShowLoad(true);
+    try {
+      const payload = {
+        ...newGuide,
+        pev: repairDetails.pev._id,
+      };
+      const response = await fetch(`${vars.serverUrl}/repairGuides/create`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
         credentials: "include",
       });
       const res = await response.json();
       if (res.res === 200) {
-        setrepairDetails((prev) => {
-          const listKey =
-            checklistType === "Pre-Repair"
-              ? "preRepairChecklist"
-              : checklistType === "In Progress"
-              ? "inProgressChecklist"
-              : "postRepairChecklist";
-
-          const currentList = prev[listKey] || { answers: [] };
-          const answers = currentList.answers || [];
-          const existingIndex = answers.findIndex((a) => a.questionId === questionId);
-
-          let newAnswers = [...answers];
-          if (existingIndex >= 0) {
-            newAnswers[existingIndex] = { ...newAnswers[existingIndex], answer: value };
-          } else {
-            newAnswers.push({ questionId, answer: value });
-          }
-
-          return {
-            ...prev,
-            [listKey]: {
-              ...currentList,
-              answers: newAnswers,
-            },
-          };
-        });
-        getRepair();
         setSnackBar({
           type: "success",
           title: "Success",
-          message: "Answer saved successfully",
+          message: "Guide added successfully",
           show: true,
           icon: "check",
         });
+        setShowAddGuideModal(false);
+        setNewGuide({ title: "", type: "text", content: "", videoUrl: "", tags: [] });
+        fetchGuides();
       } else {
         setSnackBar({
           type: "error",
           title: "Error",
-          message: "Error saving answer",
+          message: "Failed to add guide",
           show: true,
           icon: "warning",
         });
       }
     } catch (e) {
       console.error(e);
+      setSnackBar({
+        type: "error",
+        title: "Error",
+        message: "Server error",
+        show: true,
+        icon: "warning",
+      });
     }
+    setShowLoad(false);
+  };
+
+  useEffect(() => {
+    if (showAddGuideModal && editor) {
+      editor.commands.setContent(newGuide.content);
+    }
+  }, [showAddGuideModal, editor]);
+
+  useEffect(() => {
+    if (repairDetails?.pev?._id) {
+      fetchGuides(false);
+    }
+  }, [repairDetails?.pev?._id]);
+
+  const filteredGuides = guides.filter((guide) => {
+    const matchesSearch = guide.title.toLowerCase().includes(guideSearchText.toLowerCase());
+    const effectiveType = guide.type === "video" || guide.videoUrl ? "video" : "text";
+    const matchesType = guideTypeFilter === "all" || effectiveType === guideTypeFilter;
+    const matchesTag =
+      guideTagFilter === "All" || (guide.tags && guide.tags.includes(guideTagFilter));
+    return matchesSearch && matchesType && matchesTag;
+  });
+
+  const handleViewGuide = (guide) => {
+    setSelectedGuide(guide);
+    setShowViewGuideModal(true);
   };
 
   const { showUploadFunc, addPhotoModal, setRepairId } = AddPhotos({
@@ -908,10 +1119,61 @@ const RepairDetails = () => {
     setShowLoad(true);
     setrepairID(repairID);
     setRepairId(repairID);
-    getRepair();
+    if (socket) {
+      setShowLoad(true);
+      getRepair();
+    }
     getQuestions();
     createInvoice();
-  }, [id]);
+  }, [id, socket]);
+
+  const guidesColumns = [
+    {
+      name: "Type",
+      selector: (row) => row.type,
+      width: "100px",
+      sortable: true,
+      cell: (row) => (
+        <MDBox
+          display="flex"
+          alignItems="center"
+          onClick={() => handleViewGuide(row)}
+          sx={{ cursor: "pointer", width: "100%" }}
+        >
+          <Icon fontSize="medium" color={row.type === "video" || row.videoUrl ? "error" : "info"}>
+            {row.type === "video" || row.videoUrl ? "play_circle_filled" : "description"}
+          </Icon>
+          <MDTypography variant="caption" ml={1} fontWeight="medium">
+            {row.type === "video" || row.videoUrl ? "Video" : "Text"}
+          </MDTypography>
+        </MDBox>
+      ),
+    },
+    {
+      name: "Tags",
+      selector: (row) => (row.tags ? row.tags.join(", ") : ""),
+      sortable: false,
+      cell: (row) =>
+        row.tags && row.tags.length > 0 ? (
+          <MDBox display="flex" gap={0.5} flexWrap="wrap">
+            {row.tags.map((tag) => (
+              <Chip key={tag} label={tag} size="small" variant="outlined" />
+            ))}
+          </MDBox>
+        ) : null,
+    },
+    {
+      name: "Added By",
+      selector: (row) => row.createdBy?.name || row.createdBy || "Unknown",
+      sortable: true,
+    },
+    {
+      name: "Date Added",
+      selector: (row) => row.createdAt,
+      sortable: true,
+      format: (row) => new Date(row.createdAt).toLocaleDateString(),
+    },
+  ];
 
   if (loading) {
     return (
@@ -947,6 +1209,10 @@ const RepairDetails = () => {
       .sort((a, b) => (a.sequence || 0) - (b.sequence || 0));
   };
 
+  const cardAnimation = {
+    animation: highlightUpdate ? `${highlightAnimation} 2s ease` : "none",
+  };
+
   return (
     <DashboardLayout>
       <DashboardNavbar />
@@ -956,7 +1222,7 @@ const RepairDetails = () => {
             <Grid container spacing={1}>
               {/* Customer info */}
               <Grid item xs={12}>
-                <Card>
+                <Card sx={cardAnimation}>
                   <MDBox
                     mx={1}
                     mt={-3}
@@ -1005,7 +1271,7 @@ const RepairDetails = () => {
 
               {/* Repair Details */}
               <Grid item xs={12}>
-                <Card>
+                <Card sx={cardAnimation}>
                   <MDBox
                     mx={1}
                     mt={-3}
@@ -1028,9 +1294,19 @@ const RepairDetails = () => {
                     </Grid>
                   </MDBox>
                   <MDBox mx={2} py={3} px={2}>
-                    <MDTypography variant="body1">
-                      {repairDetails.pev.Brand.name} {repairDetails.pev.Model}
-                    </MDTypography>
+                    <MDBox display="flex" alignItems="center">
+                      <MDTypography variant="body1">
+                        {repairDetails.pev.Brand.name} {repairDetails.pev.Model}
+                      </MDTypography>
+                      <MDButton
+                        variant="text"
+                        color="info"
+                        onClick={handleOpenGuides}
+                        sx={{ ml: 2 }}
+                      >
+                        <Icon>menu_book</Icon>&nbsp;Troubleshooting & Guides ({guides.length})
+                      </MDButton>
+                    </MDBox>
                     <MDTypography variant="body1">Repair Type:</MDTypography>
                     <MDTypography variant="body2">
                       {repairDetails.RepairType.map((type) => {
@@ -1044,7 +1320,7 @@ const RepairDetails = () => {
               </Grid>
               {/* Checklists */}
               <Grid item xs={12}>
-                <Card>
+                <Card sx={cardAnimation}>
                   <MDBox
                     mx={1}
                     mt={-3}
@@ -1150,7 +1426,7 @@ const RepairDetails = () => {
               </Grid>
               {/* Repair notes */}
               <Grid item xs={12}>
-                <Card>
+                <Card sx={cardAnimation}>
                   <MDBox
                     mx={1}
                     mt={-3}
@@ -1189,7 +1465,7 @@ const RepairDetails = () => {
               </Grid>
               {/* Repair pictures */}
               <Grid item xs={12}>
-                <Card>
+                <Card sx={cardAnimation}>
                   <MDBox
                     mx={1}
                     mt={-3}
@@ -1226,7 +1502,7 @@ const RepairDetails = () => {
               {/* Parts on Order */}
               {partsOrdered && partsOrdered.length > 0 && (
                 <Grid item xs={12}>
-                  <Card>
+                  <Card sx={cardAnimation}>
                     <MDBox
                       mx={1}
                       mt={-3}
@@ -1273,7 +1549,7 @@ const RepairDetails = () => {
               )}
               {/* Repair parts */}
               <Grid item xs={12}>
-                <Card>
+                <Card sx={cardAnimation}>
                   <MDBox
                     mx={1}
                     mt={-3}
@@ -1357,7 +1633,7 @@ const RepairDetails = () => {
             repairDetails.status !== 998 ||
             repairDetails.status !== 999 ? (
               <Grid item xs={12}>
-                <Card>
+                <Card sx={cardAnimation}>
                   <MDBox
                     mx={1}
                     mt={-3}
@@ -1393,7 +1669,7 @@ const RepairDetails = () => {
             ) : null}
             {/* Repair History */}
             <Grid item xs={12}>
-              <Card>
+              <Card sx={cardAnimation}>
                 <MDBox
                   mx={1}
                   mt={-3}
@@ -1458,6 +1734,225 @@ const RepairDetails = () => {
         openState={confirmOpen.removeOrderedPart}
         closeState={() => toggleconfirmOpen({ ...confirmOpen, removeOrderedPart: false })}
       />
+
+      {/* Guides List Modal */}
+      <Modal
+        open={showGuidesModal}
+        onClose={() => setShowGuidesModal(false)}
+        aria-labelledby="guides-modal-title"
+      >
+        <MDBox sx={modalStyle}>
+          <Grid container justifyContent="space-between" alignItems="center" mb={2}>
+            <MDTypography id="guides-modal-title" variant="h5" component="h2">
+              Guides for {repairDetails.pev?.Brand?.name} {repairDetails.pev?.Model}
+            </MDTypography>
+            <MDButton
+              variant="contained"
+              color="success"
+              onClick={handleAddGuide}
+              startIcon={<Icon>add</Icon>}
+            >
+              Add Guide
+            </MDButton>
+          </Grid>
+
+          <MDBox mb={2} display="flex" gap={2}>
+            <TextField
+              label="Search Guides"
+              variant="outlined"
+              fullWidth
+              value={guideSearchText}
+              onChange={(e) => setGuideSearchText(e.target.value)}
+            />
+            <FormControl sx={{ minWidth: 150 }}>
+              <InputLabel>Type</InputLabel>
+              <Select
+                value={guideTypeFilter}
+                label="Type"
+                onChange={(e) => setGuideTypeFilter(e.target.value)}
+                sx={{ height: "44px" }}
+              >
+                <MenuItem value="all">All</MenuItem>
+                <MenuItem value="text">Text</MenuItem>
+                <MenuItem value="video">Video</MenuItem>
+              </Select>
+            </FormControl>
+            <FormControl sx={{ minWidth: 150 }}>
+              <InputLabel>Tag</InputLabel>
+              <Select
+                value={guideTagFilter}
+                label="Tag"
+                onChange={(e) => setGuideTagFilter(e.target.value)}
+                sx={{ height: "44px" }}
+              >
+                <MenuItem value="All">All Tags</MenuItem>
+                <MenuItem value="Troubleshooting">Troubleshooting</MenuItem>
+                <MenuItem value="Guide">Guide</MenuItem>
+              </Select>
+            </FormControl>
+          </MDBox>
+
+          <MDBox mt={2}>
+            {guides.length === 0 ? (
+              <MDTypography>No guides available for this model.</MDTypography>
+            ) : (
+              <DataTable
+                columns={guidesColumns}
+                data={filteredGuides}
+                pagination
+                onRowClicked={handleViewGuide}
+                pointerOnHover
+                highlightOnHover
+              />
+            )}
+          </MDBox>
+          <MDBox mt={3} display="flex" justifyContent="flex-end">
+            <MDButton color="secondary" onClick={() => setShowGuidesModal(false)}>
+              Close
+            </MDButton>
+          </MDBox>
+        </MDBox>
+      </Modal>
+
+      {/* View Guide Modal */}
+      <Modal
+        open={showViewGuideModal}
+        onClose={() => setShowViewGuideModal(false)}
+        aria-labelledby="view-guide-modal-title"
+      >
+        <MDBox sx={modalStyle}>
+          <Grid container justifyContent="space-between" alignItems="center" mb={2}>
+            <MDTypography id="view-guide-modal-title" variant="h5" component="h2">
+              {selectedGuide?.title}
+            </MDTypography>
+            <IconButton onClick={() => setShowViewGuideModal(false)}>
+              <Icon>close</Icon>
+            </IconButton>
+          </Grid>
+          <MDBox sx={{ maxHeight: "70vh", overflowY: "auto" }}>
+            {selectedGuide && <GuideDetail data={selectedGuide} />}
+          </MDBox>
+          <MDBox mt={3} display="flex" justifyContent="flex-end">
+            <MDButton color="secondary" onClick={() => setShowViewGuideModal(false)}>
+              Close
+            </MDButton>
+          </MDBox>
+        </MDBox>
+      </Modal>
+
+      {/* Add Guide Modal */}
+      <Dialog
+        open={showAddGuideModal}
+        onClose={() => setShowAddGuideModal(false)}
+        fullWidth
+        maxWidth="md"
+      >
+        <DialogTitle>Add New Guide</DialogTitle>
+        <DialogContent>
+          <Grid container spacing={2} mt={1}>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Guide Title"
+                value={newGuide.title}
+                onChange={(e) => setNewGuide({ ...newGuide, title: e.target.value })}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <FormControl fullWidth>
+                <InputLabel>Tags</InputLabel>
+                <Select
+                  multiple
+                  value={newGuide.tags}
+                  onChange={(e) =>
+                    setNewGuide({
+                      ...newGuide,
+                      tags:
+                        typeof e.target.value === "string"
+                          ? e.target.value.split(",")
+                          : e.target.value,
+                    })
+                  }
+                  input={<OutlinedInput label="Tags" />}
+                  renderValue={(selected) => (
+                    <MDBox sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
+                      {selected.map((value) => (
+                        <Chip key={value} label={value} size="small" />
+                      ))}
+                    </MDBox>
+                  )}
+                >
+                  <MenuItem value="Troubleshooting">Troubleshooting</MenuItem>
+                  <MenuItem value="Guide">Guide</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12}>
+              <FormControl fullWidth>
+                <InputLabel>Type</InputLabel>
+                <Select
+                  value={newGuide.type}
+                  label="Type"
+                  onChange={(e) => setNewGuide({ ...newGuide, type: e.target.value })}
+                  sx={{ height: "44px" }}
+                >
+                  <MenuItem value="text">Text / Rich Content</MenuItem>
+                  <MenuItem value="video">Video (YouTube)</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+            {newGuide.type === "video" ? (
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="YouTube URL"
+                  value={newGuide.videoUrl}
+                  onChange={(e) => setNewGuide({ ...newGuide, videoUrl: e.target.value })}
+                  helperText="e.g. https://www.youtube.com/watch?v=..."
+                />
+              </Grid>
+            ) : (
+              <Grid item xs={12}>
+                <MDBox>
+                  {editor && (
+                    <RichTextEditorProvider editor={editor}>
+                      <RichTextField
+                        controls={
+                          <MenuControlsContainer>
+                            <MenuSelectHeading />
+                            <MenuDivider />
+                            <MenuButtonBold />
+                            <MenuButtonItalic />
+                            <MenuDivider />
+                            <MenuButtonOrderedList />
+                            <MenuButtonBulletedList />
+                            <MenuDivider />
+                            <MenuButtonEditLink />
+                            <MenuDivider />
+                            <MenuButtonAddTable />
+                            <MenuDivider />
+                            <MenuButtonUndo />
+                            <MenuButtonRedo />
+                          </MenuControlsContainer>
+                        }
+                      />
+                    </RichTextEditorProvider>
+                  )}
+                </MDBox>
+              </Grid>
+            )}
+          </Grid>
+        </DialogContent>
+        <DialogActions>
+          <MDButton onClick={() => setShowAddGuideModal(false)} color="secondary">
+            Cancel
+          </MDButton>
+          <MDButton onClick={handleSaveGuide} color="success">
+            Save Guide
+          </MDButton>
+        </DialogActions>
+      </Dialog>
+
       <Footer />
     </DashboardLayout>
   );

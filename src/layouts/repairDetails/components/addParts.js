@@ -14,6 +14,7 @@ import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
 import DialogActions from "@mui/material/DialogActions";
+import { useSocket } from "context/socket";
 const filter = createFilterOptions();
 const style = {
   position: "absolute",
@@ -39,6 +40,7 @@ const PartsAdd = ({
   status,
 }) => {
   const { setSnackBar, setShowLoad } = globalFuncs();
+  const socket = useSocket();
   const [newRepairPart, setnewRepairPart] = useState(false);
   const [parts, setParts] = useState([]);
   const [allparts, setAllParts] = useState();
@@ -98,44 +100,39 @@ const PartsAdd = ({
     }
   };
 
-  const getParts = async () => {
+  const getParts = () => {
     toggleloadingOpen(true);
-    const response = await fetch(`${vars.serverUrl}/repairs/getParts`, {
-      method: "POST",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-    });
-    const json = await response.json();
-    if (json.res == 200) {
-      let itemList = [];
-      setAllParts(json.data);
-      json.data.map((item) => {
-        item.itemData.variations.map((variant) => {
-          itemList.push({
-            label: `${variant.itemVariationData.sku} | ${item.itemData.name} - ${
-              variant.itemVariationData.name
-            } ${
-              variant.itemVariationData != undefined &&
-              variant.itemVariationData.priceMoney != undefined
-                ? `- $${(Number(variant.itemVariationData.priceMoney.amount) / 100).toFixed(2)}`
-                : ""
-            }`,
-            id: variant.id,
+    if (socket) {
+      socket.emit("getParts", {}, (json) => {
+        if (json.res == 200) {
+          let itemList = [];
+          setAllParts(json.data);
+          json.data.map((item) => {
+            item.itemData.variations.map((variant) => {
+              itemList.push({
+                label: `${variant.itemVariationData.sku} | ${item.itemData.name} - ${
+                  variant.itemVariationData.name
+                } ${
+                  variant.itemVariationData != undefined &&
+                  variant.itemVariationData.priceMoney != undefined
+                    ? `- $${(Number(variant.itemVariationData.priceMoney.amount) / 100).toFixed(2)}`
+                    : ""
+                }`,
+                id: variant.id,
+              });
+            });
           });
-        });
+          setParts(itemList);
+          setPartDetails({
+            qty: 1,
+            cost: 0,
+            name: "",
+          });
+          setPartDetail(false);
+          setnewRepairPart(true);
+        }
+        toggleloadingOpen(false);
       });
-      setParts(itemList);
-      setPartDetails({
-        qty: 1,
-        cost: 0,
-        name: "",
-      });
-      setPartDetail(false);
-      setnewRepairPart(true);
-      toggleloadingOpen(false);
     }
   };
 

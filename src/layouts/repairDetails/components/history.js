@@ -29,28 +29,6 @@ import { useState } from "react";
 function RepairHistory({ data, repairTime, getRepair, repairID }) {
   const [showDialog, setShowDialog] = useState(false);
 
-  //   return (
-  //     <Dialog open={showDialog}>
-  //       <DialogTitle>Enter adjusted hours</DialogTitle>
-  //       <DialogContent>
-  //         <TextField
-  //           value={newMinutes}
-  //           label="Minutes"
-  //           type="number"
-  //           onChange={(e) => {
-  //             updateTime(e.target.value);
-  //           }}
-  //         />
-  //       </DialogContent>
-  //       <DialogActions>
-  //         <MDButton onClick={() => setShowDialog(false)}>No</MDButton>
-  //         <MDButton onClick={() => saveTime()} autoFocus>
-  //           Yes
-  //         </MDButton>
-  //       </DialogActions>
-  //     </Dialog>
-  //   );
-  // };
   return (
     <>
       <MDBox p={2}>

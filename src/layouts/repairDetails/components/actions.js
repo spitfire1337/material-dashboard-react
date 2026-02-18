@@ -28,6 +28,7 @@ import PartsButton from "../../../components/PartsButton";
 import AddNotes from "../../../components/NotesButton";
 import ChecklistModal from "./checklist";
 import PauseRepairPartsButton from "../../../components/PauseRepairPartsButton";
+import { useSocket } from "context/socket";
 
 const style = {
   position: "absolute",
@@ -51,6 +52,7 @@ function Actions({
   repair,
 }) {
   let redirect = useNavigate();
+  const socket = useSocket();
   const [state, setState] = useState({
     Labor: 100,
     Tax: 0,
@@ -89,71 +91,65 @@ function Actions({
     setState((s) => ({ ...s, repairTime: repairTime.toFixed(2) }));
   }, [repairTime]);
 
-  const getDocuments = async () => {
-    const response = await fetch(`${vars.serverUrl}/repairs/documents`, {
-      method: "POST",
-      credentials: "include",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ repairID: repairID }),
-    });
-    const json = await response.json();
-    if (json.res == 200) {
-      setState((s) => ({ ...s, printDialogOpen: true, documents: json.data }));
-    } else {
-      setState((s) => ({ ...s, documents: [] }));
+  const getDocuments = () => {
+    if (socket) {
+      socket.emit("getDocuments", { repairID: repairID }, (json) => {
+        if (json.res == 200) {
+          setState((s) => ({ ...s, printDialogOpen: true, documents: json.data }));
+        } else {
+          setState((s) => ({ ...s, documents: [] }));
+        }
+      });
     }
   };
 
-  const repairAction = async (status, Event, icon, color) => {
+  const repairAction = (status, Event, icon, color) => {
     setShowLoad(true);
-    const response = await fetch(`${vars.serverUrl}/repairs/updateRepairStatus`, {
-      method: "POST",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        id: repairID,
-        status: status,
-        history: {
-          repairId: repairID,
-          Event: Event,
-          Details: "",
-          icon: icon,
-          color: color,
+    if (socket) {
+      socket.emit(
+        "updateRepairStatus",
+        {
+          id: repairID,
+          status: status,
+          history: {
+            repairId: repairID,
+            Event: Event,
+            Details: "",
+            icon: icon,
+            color: color,
+          },
         },
-      }),
-      credentials: "include",
-    });
-    const json = await response.json();
-    if (json.res == 200) {
-      setSnackBar({
-        type: "success",
-        title: "Repair Updated",
-        message: "Repair status updated successfully",
-        show: true,
-        icon: "check",
-      });
-      getRepair();
-    } else if (json.res == 501) {
-      setState((s) => ({ ...s, activeRepair: json.repairID, dialogOpen: true }));
+        (json) => {
+          if (json.res == 200) {
+            setSnackBar({
+              type: "success",
+              title: "Repair Updated",
+              message: "Repair status updated successfully",
+              show: true,
+              icon: "check",
+            });
+            getRepair();
+          } else if (json.res == 501) {
+            setState((s) => ({ ...s, activeRepair: json.repairID, dialogOpen: true }));
+          } else {
+            setSnackBar({
+              type: "error",
+              title: "Server error occured",
+              message: json.message,
+              show: true,
+              icon: "error",
+            });
+          }
+        }
+      );
     } else {
-      setSnackBar({
-        type: "error",
-        title: "Server error occured",
-        message: json.message,
-        show: true,
-        icon: "error",
-      });
+      console.log("socket not connected");
     }
     setShowLoad(false);
     return null;
   };
 
-  const doCreateInvoice = async () => {
+  const doCreateInvoice = () => {
     setShowLoad(true);
     let dueTaxes;
     if (state.Taxable) {
@@ -168,83 +164,73 @@ function Actions({
         ],
       };
     }
-    const response = await fetch(`${vars.serverUrl}/repairs/createInvoice`, {
-      method: "POST",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-      body: JSON.stringify({
-        id: repairID,
-        parts: {
-          quantity: 1,
-          name: "Labor",
-          note: `${state.timeUsed} hours @ $${state.Labor}/hr`,
-          basePriceMoney: {
-            amount: Math.round(state.Labor * state.timeUsed) * 100,
+    if (socket) {
+      socket.emit(
+        "createInvoice",
+        {
+          id: repairID,
+          parts: {
+            quantity: 1,
+            name: "Labor",
+            note: `${state.timeUsed} hours @ $${state.Labor}/hr`,
+            basePriceMoney: {
+              amount: Math.round(state.Labor * state.timeUsed) * 100,
+            },
           },
+          tax: dueTaxes,
         },
-        tax: dueTaxes,
-      }),
-    });
-    const json = await response.json();
-    if (json.res == 200) {
-      setSnackBar({
-        type: "success",
-        title: "Invoice created",
-        message: "Invoice created successfully",
-        show: true,
-        icon: "check",
-      });
-      setState((s) => ({ ...s, showInvoice: false }));
-      getRepair();
-    } else {
-      setSnackBar({
-        type: "error",
-        title: "Server error occured",
-        message: "Server error occured",
-        show: true,
-        icon: "error",
-      });
+        (json) => {
+          if (json.res == 200) {
+            setSnackBar({
+              type: "success",
+              title: "Invoice created",
+              message: "Invoice created successfully",
+              show: true,
+              icon: "check",
+            });
+            setState((s) => ({ ...s, showInvoice: false }));
+            getRepair();
+          } else {
+            setSnackBar({
+              type: "error",
+              title: "Server error occured",
+              message: "Server error occured",
+              show: true,
+              icon: "error",
+            });
+          }
+          setShowLoad(false);
+        }
+      );
     }
-    setShowLoad(false);
   };
 
-  const doCancelInvoice = async () => {
+  const doCancelInvoice = () => {
     setState((s) => ({ ...s, confirmOpen: { cancelInvoice: false } }));
     setShowLoad(true);
-    const response = await fetch(`${vars.serverUrl}/repairs/cancelInvoice`, {
-      method: "POST",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-      body: JSON.stringify({
-        id: repairID,
-      }),
-    });
-    const json = await response.json();
-    if (json.res == 200) {
-      setSnackBar({
-        type: "success",
-        title: "Invoice Cancelled",
-        message: "Invoice cancelled successfully",
-        show: true,
-        icon: "check",
-      });
-    } else {
-      setSnackBar({
-        type: "error",
-        title: "Server error occured",
-        message: "Server error occured",
-        show: true,
-        icon: "error",
+    if (socket) {
+      socket.emit("cancelInvoice", { id: repairID }, (json) => {
+        if (json.res == 200) {
+          setSnackBar({
+            type: "success",
+            title: "Invoice Cancelled",
+            message: "Invoice cancelled successfully",
+            show: true,
+            icon: "check",
+          });
+        } else {
+          setSnackBar({
+            type: "error",
+            title: "Server error occured",
+            message: "Server error occured",
+            show: true,
+            icon: "error",
+          });
+        }
+        getRepair();
+        setShowLoad(false);
       });
     }
-    getRepair();
-    setShowLoad(false);
   };
 
   const reprintPaperwork = async (docid = null) => {
@@ -355,83 +341,82 @@ function Actions({
     </Tooltip>
   );
 
-  const handleStartRepair = async () => {
+  const handleStartRepair = () => {
     setShowLoad(true);
-    const response = await fetch(`${vars.serverUrl}/repairs/activeRepair`, {
-      credentials: "include",
-    });
-    const json = await response.json();
-    if (json.res == 501) {
-      setShowLoad(false);
-      setState((s) => ({ ...s, activeRepair: json.data._id, dialogOpen: true }));
-    } else {
-      let showChecklist = false;
-      if (
-        repair &&
-        repair.RepairType &&
-        repair.RepairType.some((t) => t.toLowerCase() !== "other")
-      ) {
-        try {
-          const qResponse = await fetch(`${vars.serverUrl}/checklist/questions`, {
-            credentials: "include",
-          });
-          const qRes = await qResponse.json();
-          if (qRes.res === 200) {
-            const checklistType = "Pre-Repair";
-            const applicableQuestions = qRes.data.filter((q) => {
-              if (!q.isActive) return false;
-              if (q.checklistType !== checklistType) return false;
+    if (socket) {
+      socket.emit("activeRepair", {}, async (json) => {
+        if (json.res == 501) {
+          setShowLoad(false);
+          setState((s) => ({ ...s, activeRepair: json.data._id, dialogOpen: true }));
+        } else {
+          let showChecklist = false;
+          if (
+            repair &&
+            repair.RepairType &&
+            repair.RepairType.some((t) => t.toLowerCase() !== "other")
+          ) {
+            try {
+              const qRes = await new Promise((resolve) => {
+                socket.emit("getChecklistQuestions", {}, (res) => resolve(res));
+              });
+              if (qRes.res === 200) {
+                const checklistType = "Pre-Repair";
+                const applicableQuestions = qRes.data.filter((q) => {
+                  if (!q.isActive) return false;
+                  if (q.checklistType !== checklistType) return false;
 
-              if (q.deviceType && q.deviceType !== "All" && q.deviceType !== "") {
-                const deviceType = repair.pev?.PevType || repair.pev?.type;
-                if (deviceType && q.deviceType !== deviceType) return false;
+                  if (q.deviceType && q.deviceType !== "All" && q.deviceType !== "") {
+                    const deviceType = repair.pev?.PevType || repair.pev?.type;
+                    if (deviceType && q.deviceType !== deviceType) return false;
+                  }
+
+                  if (q.repairType && q.repairType !== "All" && q.repairType !== "") {
+                    if (repair.RepairType && !repair.RepairType.includes(q.repairType))
+                      return false;
+                  }
+                  return true;
+                });
+
+                let answeredIds = [];
+                if (repair.preRepairChecklist && repair.preRepairChecklist.answers) {
+                  answeredIds = repair.preRepairChecklist.answers.map((a) => a.questionId);
+                } else if (repair.checklistAnswers) {
+                  answeredIds = repair.checklistAnswers
+                    .filter((a) => a.checklistType === checklistType)
+                    .map((a) => a.questionId);
+                }
+
+                const hasUnanswered = applicableQuestions.some((q) => !answeredIds.includes(q._id));
+
+                if (hasUnanswered && applicableQuestions.length > 0) {
+                  showChecklist = true;
+                }
+              } else {
+                showChecklist = true;
               }
-
-              if (q.repairType && q.repairType !== "All" && q.repairType !== "") {
-                if (repair.RepairType && !repair.RepairType.includes(q.repairType)) return false;
-              }
-              return true;
-            });
-
-            let answeredIds = [];
-            if (repair.preRepairChecklist && repair.preRepairChecklist.answers) {
-              answeredIds = repair.preRepairChecklist.answers.map((a) => a.questionId);
-            } else if (repair.checklistAnswers) {
-              answeredIds = repair.checklistAnswers
-                .filter((a) => a.checklistType === checklistType)
-                .map((a) => a.questionId);
-            }
-
-            const hasUnanswered = applicableQuestions.some((q) => !answeredIds.includes(q._id));
-
-            if (hasUnanswered && applicableQuestions.length > 0) {
+            } catch (e) {
+              console.error(e);
               showChecklist = true;
             }
-          } else {
-            showChecklist = true;
           }
-        } catch (e) {
-          console.error(e);
-          showChecklist = true;
-        }
-      }
 
-      setShowLoad(false);
-      if (showChecklist) {
-        setState((s) => ({ ...s, checklistOpen: true }));
-      } else {
-        repairAction(2, "Repair started", "construction", "success");
-      }
+          setShowLoad(false);
+          if (showChecklist) {
+            setState((s) => ({ ...s, checklistOpen: true }));
+          } else {
+            repairAction(2, "Repair started", "construction", "success");
+          }
+        }
+      });
     }
   };
 
   const handleCompleteRepair = async () => {
     setShowLoad(true);
     try {
-      const qResponse = await fetch(`${vars.serverUrl}/checklist/questions`, {
-        credentials: "include",
+      const qRes = await new Promise((resolve) => {
+        socket.emit("getChecklistQuestions", {}, (res) => resolve(res));
       });
-      const qRes = await qResponse.json();
       if (qRes.res === 200) {
         const checklistType = "In Progress";
         const applicableQuestions = qRes.data.filter((q) => {

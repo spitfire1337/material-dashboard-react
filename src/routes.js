@@ -37,7 +37,6 @@ Coded by www.creative-tim.com
 
 // Material Dashboard 2 React layouts
 import Dashboard from "layouts/dashboard";
-import Repairs from "layouts/repairs";
 import Customers from "layouts/customers";
 import RepairDetails from "layouts/repairDetails";
 import CustomerDetails from "layouts/customerDetails";
@@ -52,6 +51,8 @@ import PEVDatabase from "layouts/pevs";
 import ETags from "layouts/inventoryTags";
 import Checklist from "layouts/checklist";
 import PartsOnOrder from "layouts/partsOnOrder";
+import RepairGuides from "layouts/repairGuides";
+import ActiveRepairs from "layouts/activeRepairs";
 // @mui icons
 import RepairReport from "layouts/reports/RepairReport";
 import SalesTrends from "layouts/reports/SalesTrends";
@@ -73,7 +74,7 @@ const devRoutes = (stats) => {
       name: "Repairs",
       key: "repairs3",
       route: "/repairs/:repairstatus",
-      component: <Repairs />,
+      component: <ActiveRepairs />,
     },
     {
       type: "collapse",
@@ -106,7 +107,7 @@ const devRoutes = (stats) => {
           key: "repairs",
           icon: <Icon fontSize="small">assignment</Icon>,
           route: "/repairs",
-          component: <Repairs />,
+          component: <ActiveRepairs />,
         },
         {
           type: "collapse",
@@ -116,6 +117,15 @@ const devRoutes = (stats) => {
           icon: <Icon fontSize="small">shopping_cart</Icon>,
           route: "/parts-on-order",
           component: <PartsOnOrder />,
+        },
+        {
+          type: "collapse",
+          name: "Repair Guides",
+          key: "repair-guides",
+          noCollapse: true,
+          icon: <Icon fontSize="small">menu_book</Icon>,
+          route: "/repair-guides",
+          component: <RepairGuides />,
         },
       ],
     },
@@ -356,7 +366,7 @@ const adminRoutes = (stats) => {
           key: "repairs",
           icon: <Icon fontSize="small">assignment</Icon>,
           route: "/repairs",
-          component: <Repairs />,
+          component: <ActiveRepairs />,
         },
         {
           type: "collapse",
@@ -565,7 +575,7 @@ const techRoutes = (stats) => {
           key: "repairs",
           icon: <Icon fontSize="small">assignment</Icon>,
           route: "/repairs",
-          component: <Repairs />,
+          component: <ActiveRepairs />,
         },
         {
           type: "collapse",
@@ -575,6 +585,15 @@ const techRoutes = (stats) => {
           icon: <Icon fontSize="small">shopping_cart</Icon>,
           route: "/parts-on-order",
           component: <PartsOnOrder />,
+        },
+        {
+          type: "collapse",
+          name: "Repair Guides",
+          key: "repair-guides",
+          noCollapse: true,
+          icon: <Icon fontSize="small">menu_book</Icon>,
+          route: "/repair-guides",
+          component: <RepairGuides />,
         },
       ],
     },

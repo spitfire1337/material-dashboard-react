@@ -29,6 +29,7 @@ import AddNotes from "components/NotesButton";
 import PartsButton from "components/PartsButton";
 import ChecklistModal from "../../repairDetails/components/checklist";
 import PauseRepairPartsButton from "components/PauseRepairPartsButton";
+import { useSocket } from "context/socket";
 
 const style = {
   position: "absolute",
@@ -55,6 +56,7 @@ function Actions({
 }) {
   const navigate = useNavigate();
   const { setSnackBar, setShowLoad } = globalFuncs();
+  const socket = useSocket();
   const [Labor, setLabor] = useState(100);
   const [Tax, setTax] = useState(0);
   const [TaxRate, setTaxRate] = useState(7);
@@ -134,107 +136,92 @@ function Actions({
     }
   };
 
-  const getParts = async () => {
+  const getParts = () => {
     setShowLoad(true);
-    const response = await fetch(`${vars.serverUrl}/repairs/getParts`, {
-      method: "POST",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-    });
-    const json = await response.json();
-    if (json.res == 200) {
-      let itemList = [];
-      setAllParts(json.data);
-      json.data.map((item) => {
-        item.itemData.variations.map((variant) => {
-          itemList.push({
-            label: `${item.itemData.name} - ${variant.itemVariationData.name} ${
-              variant.itemVariationData != undefined &&
-              variant.itemVariationData.priceMoney != undefined
-                ? `- $${(Number(variant.itemVariationData.priceMoney.amount) / 100).toFixed(2)}`
-                : ""
-            }`,
-            id: variant.id,
+    if (socket) {
+      socket.emit("getParts", {}, (json) => {
+        if (json.res == 200) {
+          let itemList = [];
+          setAllParts(json.data);
+          json.data.map((item) => {
+            item.itemData.variations.map((variant) => {
+              itemList.push({
+                label: `${item.itemData.name} - ${variant.itemVariationData.name} ${
+                  variant.itemVariationData != undefined &&
+                  variant.itemVariationData.priceMoney != undefined
+                    ? `- $${(Number(variant.itemVariationData.priceMoney.amount) / 100).toFixed(2)}`
+                    : ""
+                }`,
+                id: variant.id,
+              });
+            });
           });
-        });
+          setParts(itemList);
+          setPartDetails({
+            qty: 1,
+            cost: 0,
+            name: "",
+          });
+          setPartDetail(false);
+          setnewRepairPart(true);
+        }
+        setShowLoad(false);
       });
-      setParts(itemList);
-      setPartDetails({
-        qty: 1,
-        cost: 0,
-        name: "",
-      });
-      setPartDetail(false);
-      setnewRepairPart(true);
-      setShowLoad(false);
     }
   };
 
-  const getDocuments = async () => {
-    const response = await fetch(`${vars.serverUrl}/repairs/documents`, {
-      method: "POST",
-      credentials: "include",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ repairID: repairID }),
-    });
-    const json = await response.json();
-    if (json.res == 200) {
-      setDocuments(json.data);
-      toggleprintDialogOpen(true);
-    } else {
-      setDocuments([]);
+  const getDocuments = () => {
+    if (socket) {
+      socket.emit("getDocuments", { repairID: repairID }, (json) => {
+        if (json.res == 200) {
+          setDocuments(json.data);
+          toggleprintDialogOpen(true);
+        } else {
+          setDocuments([]);
+        }
+      });
     }
   };
 
-  const repairAction = async (status, Event, icon, color) => {
+  const repairAction = (status, Event, icon, color) => {
     setShowLoad(true);
-    const response = await fetch(`${vars.serverUrl}/repairs/updateRepairStatus`, {
-      method: "POST",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        id: repairID,
-        status: status,
-        history: {
-          repairId: repairID,
-          Event: Event,
-          Details: "",
-          icon: icon,
-          color: color,
+    if (socket) {
+      socket.emit(
+        "updateRepairStatus",
+        {
+          id: repairID,
+          status: status,
+          history: {
+            repairId: repairID,
+            Event: Event,
+            Details: "",
+            icon: icon,
+            color: color,
+          },
         },
-      }),
-      credentials: "include",
-    });
-    const json = await response.json();
-    if (json.res == 200) {
-      setSnackBar({
-        type: "success",
-        title: "Repair Updated",
-        message: "Repair status Updated",
-        show: true,
-        icon: "check",
-      });
-      reRender();
-      setShowLoad(false);
-    } else {
-      setSnackBar({
-        type: "error",
-        title: "Server error occured",
-        message: json.message,
-        show: true,
-        icon: "error",
-      });
-      setShowLoad(false);
+        (json) => {
+          if (json.res == 200) {
+            setSnackBar({
+              type: "success",
+              title: "Repair Updated",
+              message: "Repair status Updated",
+              show: true,
+              icon: "check",
+            });
+            reRender();
+          } else {
+            setSnackBar({
+              type: "error",
+              title: "Server error occured",
+              message: json.message,
+              show: true,
+              icon: "error",
+            });
+          }
+          setShowLoad(false);
+        }
+      );
     }
-    setShowLoad(false);
     return null;
   };
 
@@ -287,7 +274,7 @@ function Actions({
 
   //const selectedValues = useMemo(() => parts.filter((v) => v.selected), [parts]);
 
-  const doCreateInvoice = async () => {
+  const doCreateInvoice = () => {
     setShowLoad(true);
     let dueTaxes;
     if (Taxable) {
@@ -302,83 +289,73 @@ function Actions({
         ],
       };
     }
-    const response = await fetch(`${vars.serverUrl}/repairs/createInvoice`, {
-      method: "POST",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-      body: JSON.stringify({
-        id: repairID,
-        parts: {
-          quantity: 1,
-          name: "Labor",
-          note: `${timeUsed} hours @ $${Labor}/hr`,
-          basePriceMoney: {
-            amount: Math.round(Labor * timeUsed) * 100,
+    if (socket) {
+      socket.emit(
+        "createInvoice",
+        {
+          id: repairID,
+          parts: {
+            quantity: 1,
+            name: "Labor",
+            note: `${timeUsed} hours @ $${Labor}/hr`,
+            basePriceMoney: {
+              amount: Math.round(Labor * timeUsed) * 100,
+            },
           },
+          tax: dueTaxes,
         },
-        tax: dueTaxes,
-      }),
-    });
-    const json = await response.json();
-    if (json.res == 200) {
-      setSnackBar({
-        type: "success",
-        title: "Invoice created",
-        message: "Invoice created",
-        show: true,
-        icon: "check",
-      });
-      setShowInvoice(false);
-      getRepair();
-    } else {
-      setSnackBar({
-        type: "error",
-        title: "Server error occured",
-        message: json.message,
-        show: true,
-        icon: "error",
-      });
+        (json) => {
+          if (json.res == 200) {
+            setSnackBar({
+              type: "success",
+              title: "Invoice created",
+              message: "Invoice created",
+              show: true,
+              icon: "check",
+            });
+            setShowInvoice(false);
+            getRepair();
+          } else {
+            setSnackBar({
+              type: "error",
+              title: "Server error occured",
+              message: json.message,
+              show: true,
+              icon: "error",
+            });
+          }
+          setShowLoad(false);
+        }
+      );
     }
-    setShowLoad(false);
   };
 
-  const doCancelInvoice = async () => {
+  const doCancelInvoice = () => {
     toggleconfirmOpen({ cancelInvoice: false });
     setShowLoad(true);
-    const response = await fetch(`${vars.serverUrl}/repairs/cancelInvoice`, {
-      method: "POST",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-      body: JSON.stringify({
-        id: repairID,
-      }),
-    });
-    const json = await response.json();
-    if (json.res == 200) {
-      setSnackBar({
-        type: "success",
-        title: "Invoice Cancelled",
-        message: "Invoice Cancelled",
-        show: true,
-        icon: "check",
-      });
-    } else {
-      setSnackBar({
-        type: "error",
-        title: "Server error occured",
-        message: json.message,
-        show: true,
-        icon: "error",
+    if (socket) {
+      socket.emit("cancelInvoice", { id: repairID }, (json) => {
+        if (json.res == 200) {
+          setSnackBar({
+            type: "success",
+            title: "Invoice Cancelled",
+            message: "Invoice Cancelled",
+            show: true,
+            icon: "check",
+          });
+        } else {
+          setSnackBar({
+            type: "error",
+            title: "Server error occured",
+            message: json.message,
+            show: true,
+            icon: "error",
+          });
+        }
+        getRepair();
+        setShowLoad(false);
       });
     }
-    getRepair();
-    setShowLoad(false);
   };
 
   const reprintPaperwork = async (docid = null) => {
@@ -501,74 +478,75 @@ function Actions({
     </Tooltip>
   );
 
-  const handleStartRepair = async () => {
+  const handleStartRepair = () => {
     setShowLoad(true);
-    const response = await fetch(`${vars.serverUrl}/repairs/activeRepair`, {
-      credentials: "include",
-    });
-    const json = await response.json();
-    if (json.res == 501) {
-      setShowLoad(false);
-      setActiveRepairId(json.data._id);
-      setShowActiveRepairDialog(true);
-    } else {
-      let showChecklist = false;
-      if (
-        repair &&
-        repair.RepairType &&
-        repair.RepairType.some((t) => t.toLowerCase() !== "other")
-      ) {
-        try {
-          const qResponse = await fetch(`${vars.serverUrl}/checklist/questions`, {
-            credentials: "include",
-          });
-          const qRes = await qResponse.json();
-          if (qRes.res === 200) {
-            const checklistType = "Pre-Repair";
-            const applicableQuestions = qRes.data.filter((q) => {
-              if (!q.isActive) return false;
-              if (q.checklistType !== checklistType) return false;
+    if (socket) {
+      socket.emit("activeRepair", {}, async (json) => {
+        if (json.res == 501) {
+          setShowLoad(false);
+          setActiveRepairId(json.data._id);
+          setShowActiveRepairDialog(true);
+        } else {
+          let showChecklist = false;
+          if (
+            repair &&
+            repair.RepairType &&
+            repair.RepairType.some((t) => t.toLowerCase() !== "other")
+          ) {
+            try {
+              const qResponse = await fetch(`${vars.serverUrl}/checklist/questions`, {
+                credentials: "include",
+              });
+              const qRes = await qResponse.json();
+              if (qRes.res === 200) {
+                const checklistType = "Pre-Repair";
+                const applicableQuestions = qRes.data.filter((q) => {
+                  if (!q.isActive) return false;
+                  if (q.checklistType !== checklistType) return false;
 
-              if (q.deviceType && q.deviceType !== "All" && q.deviceType !== "") {
-                const deviceType = repair.pev?.PevType || repair.pev?.type;
-                if (deviceType && q.deviceType !== deviceType) return false;
+                  if (q.deviceType && q.deviceType !== "All" && q.deviceType !== "") {
+                    const deviceType = repair.pev?.PevType || repair.pev?.type;
+                    if (deviceType && q.deviceType !== deviceType) return false;
+                  }
+
+                  if (q.repairType && q.repairType !== "All" && q.repairType !== "") {
+                    if (repair.RepairType && !repair.RepairType.includes(q.repairType))
+                      return false;
+                  }
+                  return true;
+                });
+
+                let answeredIds = [];
+                if (repair.preRepairChecklist && repair.preRepairChecklist.answers) {
+                  answeredIds = repair.preRepairChecklist.answers.map((a) => a.questionId);
+                } else if (repair.checklistAnswers) {
+                  answeredIds = repair.checklistAnswers
+                    .filter((a) => a.checklistType === checklistType)
+                    .map((a) => a.questionId);
+                }
+
+                const hasUnanswered = applicableQuestions.some((q) => !answeredIds.includes(q._id));
+
+                if (hasUnanswered && applicableQuestions.length > 0) {
+                  showChecklist = true;
+                }
+              } else {
+                showChecklist = true;
               }
-
-              if (q.repairType && q.repairType !== "All" && q.repairType !== "") {
-                if (repair.RepairType && !repair.RepairType.includes(q.repairType)) return false;
-              }
-              return true;
-            });
-
-            let answeredIds = [];
-            if (repair.preRepairChecklist && repair.preRepairChecklist.answers) {
-              answeredIds = repair.preRepairChecklist.answers.map((a) => a.questionId);
-            } else if (repair.checklistAnswers) {
-              answeredIds = repair.checklistAnswers
-                .filter((a) => a.checklistType === checklistType)
-                .map((a) => a.questionId);
-            }
-
-            const hasUnanswered = applicableQuestions.some((q) => !answeredIds.includes(q._id));
-
-            if (hasUnanswered && applicableQuestions.length > 0) {
+            } catch (e) {
+              console.error(e);
               showChecklist = true;
             }
-          } else {
-            showChecklist = true;
           }
-        } catch (e) {
-          console.error(e);
-          showChecklist = true;
-        }
-      }
 
-      setShowLoad(false);
-      if (showChecklist) {
-        setChecklistOpen(true);
-      } else {
-        repairAction(2, "Repair started", "construction", "success");
-      }
+          setShowLoad(false);
+          if (showChecklist) {
+            setChecklistOpen(true);
+          } else {
+            repairAction(2, "Repair started", "construction", "success");
+          }
+        }
+      });
     }
   };
 

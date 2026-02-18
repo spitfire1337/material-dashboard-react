@@ -31,6 +31,7 @@ import QrCodeScannerIcon from "@mui/icons-material/QrCodeScanner";
 // Material Dashboard 2 React components
 import MDBox from "components/MDBox";
 import MDInput from "components/MDInput";
+import NewRepairButton from "components/NewRepairButton";
 
 // Material Dashboard 2 React example components
 import Breadcrumbs from "examples/Breadcrumbs";
@@ -140,6 +141,7 @@ function DashboardNavbar({ absolute, light, isMini }) {
                   <Icon sx={iconsStyle}>account_circle</Icon>
                 </IconButton>
               </Link> */}
+              <NewRepairButton size="icon" />
               <IconButton
                 size="small"
                 disableRipple

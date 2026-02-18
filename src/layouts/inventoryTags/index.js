@@ -47,6 +47,7 @@ import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import Footer from "examples/Footer";
 import DataTable from "examples/Tables/DataTable";
 import Autocomplete, { createFilterOptions } from "@mui/material/Autocomplete";
+import { useSocket } from "context/socket";
 const filter = createFilterOptions();
 
 // Data
@@ -77,6 +78,7 @@ const useStyles = makeStyles((theme) => ({
 // eslint-disable-next-line react/prop-types
 const ETags = () => {
   const { setShowLoad } = globalFuncs();
+  const socket = useSocket();
   const classes = useStyles();
   const [parts, setParts] = useState([]);
   const [allparts, setAllParts] = useState();
@@ -91,36 +93,31 @@ const ETags = () => {
     sku: "",
   });
 
-  const getParts = async () => {
+  const getParts = () => {
     setShowLoad(true);
-    const response = await fetch(`${vars.serverUrl}/repairs/getParts`, {
-      method: "POST",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-    });
-    const json = await response.json();
-    if (json.res == 200) {
-      let itemList = [];
-      setAllParts(json.data);
-      json.data.map((item) => {
-        item.itemData.variations.map((variant) => {
-          itemList.push({
-            label: `${item.itemData.name} - ${variant.itemVariationData.name} ${
-              variant.itemVariationData != undefined &&
-              variant.itemVariationData.priceMoney != undefined
-                ? `- $${(variant.itemVariationData.priceMoney.amount / 100).toFixed(2)}`
-                : ""
-            }`,
-            id: variant.id,
+    if (socket) {
+      socket.emit("getParts", {}, (json) => {
+        if (json.res == 200) {
+          let itemList = [];
+          setAllParts(json.data);
+          json.data.map((item) => {
+            item.itemData.variations.map((variant) => {
+              itemList.push({
+                label: `${item.itemData.name} - ${variant.itemVariationData.name} ${
+                  variant.itemVariationData != undefined &&
+                  variant.itemVariationData.priceMoney != undefined
+                    ? `- $${(variant.itemVariationData.priceMoney.amount / 100).toFixed(2)}`
+                    : ""
+                }`,
+                id: variant.id,
+              });
+            });
           });
-        });
+          setParts(itemList);
+          setShowLoad(false);
+          setShowPartsModal(true);
+        }
       });
-      setParts(itemList);
-      setShowLoad(false);
-      setShowPartsModal(true);
     }
   };
 

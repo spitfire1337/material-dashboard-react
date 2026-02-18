@@ -240,6 +240,100 @@ function RepairTimeAnalysis() {
               </MDBox>
             </Card>
           </Grid>
+          <Grid item xs={12}>
+            <Card>
+              <MDBox p={3}>
+                <MDTypography variant="h6">Repair Time Analysis (By Repair Type)</MDTypography>
+                {timeData.byRepairType && timeData.byRepairType.length > 0 ? (
+                  <Chart data={timeData.byRepairType}>
+                    <ArgumentAxis />
+                    <ValueAxis />
+                    <BarSeries
+                      valueField="avgTurnaroundHours"
+                      argumentField="repairType"
+                      name="Average Turnaround Time"
+                    />
+                    <BarSeries
+                      valueField="avgDwellHours"
+                      argumentField="repairType"
+                      name="Average Dwell Time"
+                    />
+                    <Title text="Average Repair Turnaround and Dwell Time (Hours)" />
+                    <Animation />
+                    <Legend />
+                    <EventTracker />
+                    <Tooltip
+                      contentComponent={(props) => {
+                        const item = timeData.byRepairType[props.targetItem.point];
+                        return (
+                          <MDBox p={2} bgcolor="white" border="1px solid #ccc">
+                            <MDTypography variant="button" fontWeight="bold">
+                              {item.repairType}
+                            </MDTypography>
+                            <MDTypography variant="body2">
+                              Avg Turnaround: {item.avgTurnaroundHours} hrs
+                            </MDTypography>
+                            <MDTypography variant="body2">
+                              Avg Dwell: {item.avgDwellHours} hrs
+                            </MDTypography>
+                          </MDBox>
+                        );
+                      }}
+                    />
+                  </Chart>
+                ) : (
+                  <MDTypography>No data available</MDTypography>
+                )}
+              </MDBox>
+            </Card>
+          </Grid>
+          <Grid item xs={12}>
+            <Card>
+              <MDBox p={3}>
+                <MDTypography variant="h6">Repair Time Analysis (By Brand)</MDTypography>
+                {timeData.byBrand && timeData.byBrand.length > 0 ? (
+                  <Chart data={timeData.byBrand.slice(0, 20)}>
+                    <ArgumentAxis />
+                    <ValueAxis />
+                    <BarSeries
+                      valueField="avgTurnaroundHours"
+                      argumentField="brand"
+                      name="Average Turnaround Time"
+                    />
+                    <BarSeries
+                      valueField="avgDwellHours"
+                      argumentField="brand"
+                      name="Average Dwell Time"
+                    />
+                    <Title text="Average Repair Turnaround and Dwell Time (Hours)" />
+                    <Animation />
+                    <Legend />
+                    <EventTracker />
+                    <Tooltip
+                      contentComponent={(props) => {
+                        const item = timeData.byBrand[props.targetItem.point];
+                        return (
+                          <MDBox p={2} bgcolor="white" border="1px solid #ccc">
+                            <MDTypography variant="button" fontWeight="bold">
+                              {item.brand}
+                            </MDTypography>
+                            <MDTypography variant="body2">
+                              Avg Turnaround: {item.avgTurnaroundHours} hrs
+                            </MDTypography>
+                            <MDTypography variant="body2">
+                              Avg Dwell: {item.avgDwellHours} hrs
+                            </MDTypography>
+                          </MDBox>
+                        );
+                      }}
+                    />
+                  </Chart>
+                ) : (
+                  <MDTypography>No data available</MDTypography>
+                )}
+              </MDBox>
+            </Card>
+          </Grid>
         </Grid>
       </MDBox>
       <Footer />

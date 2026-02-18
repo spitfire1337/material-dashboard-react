@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import Footer from "examples/Footer";
@@ -27,6 +28,7 @@ import DataTable from "react-data-table-component";
 import vars from "../../config";
 import { globalFuncs } from "../../context/global";
 import moment from "moment";
+import { useSocket } from "context/socket";
 
 const style = {
   position: "absolute",
@@ -43,6 +45,8 @@ const style = {
 
 function Checklist() {
   const { setSnackBar, setShowLoad } = globalFuncs();
+  const socket = useSocket();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [questions, setQuestions] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [newQuestion, setNewQuestion] = useState({
@@ -84,46 +88,35 @@ function Checklist() {
     setDeleteConfirmation({ open: true, id });
   };
 
-  const executeDelete = async () => {
+  const executeDelete = () => {
     const id = deleteConfirmation.id;
     setDeleteConfirmation({ open: false, id: null });
     setShowLoad(true);
-    try {
-      const response = await fetch(`${vars.serverUrl}/checklist/delete`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id }),
-        credentials: "include",
+    if (socket) {
+      socket.emit("deleteChecklistQuestion", { id }, (res) => {
+        if (res.res === 200) {
+          setSnackBar({
+            type: "success",
+            title: "Success",
+            message: "Question deleted",
+            show: true,
+            icon: "check",
+          });
+          getQuestions();
+        } else {
+          setSnackBar({
+            type: "error",
+            title: "Error",
+            message: "Error deleting question",
+            show: true,
+            icon: "warning",
+          });
+        }
+        setShowLoad(false);
       });
-      const res = await response.json();
-      if (res.res === 200) {
-        setSnackBar({
-          type: "success",
-          title: "Success",
-          message: "Question deleted",
-          show: true,
-          icon: "check",
-        });
-        getQuestions();
-      } else {
-        setSnackBar({
-          type: "error",
-          title: "Error",
-          message: "Error deleting question",
-          show: true,
-          icon: "warning",
-        });
-      }
-    } catch (e) {
-      setSnackBar({
-        type: "error",
-        title: "Error",
-        message: "Server error",
-        show: true,
-        icon: "warning",
-      });
+    } else {
+      setShowLoad(false);
     }
-    setShowLoad(false);
   };
 
   const handleCopy = (row) => {
@@ -135,7 +128,7 @@ function Checklist() {
     setCopyDialog({ open: true, question: row });
   };
 
-  const executeCopy = async () => {
+  const executeCopy = () => {
     if (!copyTarget.repairType || !copyTarget.deviceType || !copyTarget.checklistType) {
       setSnackBar({
         type: "error",
@@ -148,7 +141,7 @@ function Checklist() {
     }
 
     setShowLoad(true);
-    try {
+    if (socket) {
       const filtered = questions.filter(
         (q) =>
           q.repairType === copyTarget.repairType &&
@@ -175,43 +168,31 @@ function Checklist() {
         sequence: nextSeq,
       };
 
-      const response = await fetch(`${vars.serverUrl}/checklist/create`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newQ),
-        credentials: "include",
+      socket.emit("addChecklistQuestion", newQ, (res) => {
+        if (res.res === 200) {
+          setSnackBar({
+            type: "success",
+            title: "Success",
+            message: "Question copied successfully",
+            show: true,
+            icon: "check",
+          });
+          setCopyDialog({ open: false, question: null });
+          getQuestions();
+        } else {
+          setSnackBar({
+            type: "error",
+            title: "Error",
+            message: "Error copying question",
+            show: true,
+            icon: "warning",
+          });
+        }
+        setShowLoad(false);
       });
-      const res = await response.json();
-      if (res.res === 200) {
-        setSnackBar({
-          type: "success",
-          title: "Success",
-          message: "Question copied successfully",
-          show: true,
-          icon: "check",
-        });
-        setCopyDialog({ open: false, question: null });
-        getQuestions();
-      } else {
-        setSnackBar({
-          type: "error",
-          title: "Error",
-          message: "Error copying question",
-          show: true,
-          icon: "warning",
-        });
-      }
-    } catch (e) {
-      console.error(e);
-      setSnackBar({
-        type: "error",
-        title: "Error",
-        message: "Server error",
-        show: true,
-        icon: "warning",
-      });
+    } else {
+      setShowLoad(false);
     }
-    setShowLoad(false);
   };
 
   const columns = [
@@ -281,25 +262,41 @@ function Checklist() {
     },
   ];
 
-  const getQuestions = async () => {
+  const getQuestions = () => {
     setShowLoad(true);
-    try {
-      const response = await fetch(`${vars.serverUrl}/checklist/questions`, {
-        credentials: "include",
+    if (socket) {
+      socket.emit("getChecklist", {}, (res) => {
+        if (res.res === 200) {
+          setQuestions(res.data.sort((a, b) => (a.sequence || 0) - (b.sequence || 0)));
+        }
+        setShowLoad(false);
       });
-      const res = await response.json();
-      if (res.res === 200) {
-        setQuestions(res.data.sort((a, b) => (a.sequence || 0) - (b.sequence || 0)));
-      }
-    } catch (error) {
-      console.error(error);
     }
-    setShowLoad(false);
   };
 
   useEffect(() => {
-    getQuestions();
-  }, []);
+    if (socket) getQuestions();
+  }, [socket]);
+
+  useEffect(() => {
+    if (searchParams.get("action") === "add") {
+      setNewQuestion({
+        question: { required: true, text: "" },
+        repairType: filterRepairType || "",
+        deviceType: filterDeviceType || "",
+        isActive: true,
+        answerType: "",
+        selectOptions: [],
+        checklistType: filterChecklistType || "",
+        sequence: 1,
+      });
+      setShowModal(true);
+      setSearchParams((params) => {
+        params.delete("action");
+        return params;
+      });
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     if (
@@ -394,11 +391,11 @@ function Checklist() {
       try {
         for (const q of questionsToUpdate) {
           const updatedQ = { ...q, sequence: parseInt(q.sequence) + 1 };
-          await fetch(`${vars.serverUrl}/checklist/updateSequence`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(updatedQ),
-            credentials: "include",
+          await new Promise((resolve, reject) => {
+            socket.emit("updateChecklistSequence", updatedQ, (res) => {
+              if (res.res === 200) resolve();
+              else reject(new Error("Failed to update sequence"));
+            });
           });
         }
       } catch (e) {
@@ -416,57 +413,43 @@ function Checklist() {
     }
 
     setShowLoad(true);
-    try {
-      let url = `${vars.serverUrl}/checklist/create`;
-      if (newQuestion._id) {
-        url = `${vars.serverUrl}/checklist/update`;
-      }
-      const response = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newQuestion),
-        credentials: "include",
+    if (socket) {
+      const event = newQuestion._id ? "updateChecklistQuestion" : "addChecklistQuestion";
+      socket.emit(event, newQuestion, (res) => {
+        if (res.res === 200) {
+          setSnackBar({
+            type: "success",
+            title: "Success",
+            message: newQuestion._id ? "Question updated" : "Question added",
+            show: true,
+            icon: "check",
+          });
+          setShowModal(false);
+          setNewQuestion({
+            question: { required: true, text: "" },
+            repairType: "",
+            deviceType: "",
+            isActive: true,
+            answerType: "",
+            selectOptions: [],
+            checklistType: "",
+            sequence: 1,
+          });
+          getQuestions();
+        } else {
+          setSnackBar({
+            type: "error",
+            title: "Error",
+            message: "Error saving question",
+            show: true,
+            icon: "warning",
+          });
+        }
+        setShowLoad(false);
       });
-      const res = await response.json();
-      if (res.res === 200) {
-        setSnackBar({
-          type: "success",
-          title: "Success",
-          message: newQuestion._id ? "Question updated" : "Question added",
-          show: true,
-          icon: "check",
-        });
-        setShowModal(false);
-        setNewQuestion({
-          question: { required: true, text: "" },
-          repairType: "",
-          deviceType: "",
-          isActive: true,
-          answerType: "",
-          selectOptions: [],
-          checklistType: "",
-          sequence: 1,
-        });
-        getQuestions();
-      } else {
-        setSnackBar({
-          type: "error",
-          title: "Error",
-          message: "Error saving question",
-          show: true,
-          icon: "warning",
-        });
-      }
-    } catch (e) {
-      setSnackBar({
-        type: "error",
-        title: "Error",
-        message: "Server error",
-        show: true,
-        icon: "warning",
-      });
+    } else {
+      setShowLoad(false);
     }
-    setShowLoad(false);
   };
 
   return (

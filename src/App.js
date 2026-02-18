@@ -56,6 +56,7 @@ import routes from "routes";
 import { useMaterialUIController, setMiniSidenav, setOpenConfigurator } from "context";
 import SignIn from "layouts/authentication/sign-in";
 import Cookies from "universal-cookie";
+import { useSocket } from "context/socket";
 // Images
 import brandWhite from "assets/images/logos/Logo-Dark.png";
 import brandDark from "assets/images/logos/Logo-Light.png";
@@ -67,6 +68,8 @@ import MDButton from "components/MDButton";
 import "./scanner.css";
 import "./assets/style.css";
 import MDTypography from "components/MDTypography";
+import SocketStatus from "components/SocketStatus";
+import SocketDisconnectBanner from "components/SocketDisconnectBanner";
 const style = {
   position: "absolute",
   top: "50%",
@@ -123,6 +126,7 @@ export default function App() {
   const [location, setLocation] = useState(null);
   const [loading, setLoading] = useState(true);
   const { pathname } = useLocation();
+  const socket = useSocket();
   const cookies = new Cookies(null, { path: "/" });
   // Cache for the rtl
   const [successSB, setSuccessSB] = useState(false);
@@ -209,11 +213,7 @@ export default function App() {
     />
   );
 
-  const getSales = async () => {
-    const response = await fetch(`${vars.serverUrl}/square/getsales`, {
-      credentials: "include",
-    });
-    const res = await response.json();
+  const getSales = (res) => {
     if (res.res === 200) {
       let monthlySales = [];
       let saleMonths = [];
@@ -336,14 +336,14 @@ export default function App() {
         //setLoading(false);
       }
       if (location !== undefined) {
-        const response = await fetch(`${vars.serverUrl}/square/getSquare?action=getSales`, {
-          credentials: "include",
-        });
-        const res = await response.json();
-        if (res.res === 200) {
-          setSaless(res.sales);
-          setLoading(false);
-        }
+        // const response = await fetch(`${vars.serverUrl}/square/getSquare?action=getSales`, {
+        //   credentials: "include",
+        // });
+        // const res = await response.json();
+        // if (res.res === 200) {
+        //   setSaless(res.sales);
+        //   setLoading(false);
+        // }
       }
     } else {
       //setLoading(false);
@@ -371,9 +371,45 @@ export default function App() {
       setLocation(cookies.get("mylocation"));
       getWhatsnew();
       getInitData();
-      getSales();
     }
   }, [loginState.loggedin]);
+
+  useEffect(() => {
+    if (socket && loginState.loggedin) {
+      socket.on("stats", (data) => {
+        getSales(data);
+      });
+
+      socket.on("update", () => {
+        getInitData();
+        getWhatsnew();
+      });
+
+      return () => {
+        socket.off("stats");
+        socket.off("update");
+      };
+    }
+  }, [socket, loginState.loggedin]);
+
+  useEffect(() => {
+    if (socket) {
+      socket.on("unauthorized", () => {
+        console.log("unauthorized");
+        setLoginState((s) => ({ ...s, loggedin: false }));
+        setSnackBar({
+          type: "error",
+          title: "Session expired",
+          message: "Please log in again.",
+          show: true,
+          icon: "error",
+        });
+      });
+      return () => {
+        socket.off("unauthorized");
+      };
+    }
+  }, [socket]);
 
   // Setting page scroll to 0 when changing the route
   useEffect(() => {
@@ -519,7 +555,8 @@ export default function App() {
                 doSearch={doSearch}
               />
               <Configurator />
-              {configsButton}
+              <SocketStatus />
+              <SocketDisconnectBanner />
             </>
           )}
           {layout === "vr" && <Configurator />}
@@ -549,12 +586,13 @@ export default function App() {
               doSearch={doSearch}
             />
             <Configurator />
+            <SocketStatus />
+            <SocketDisconnectBanner />
             <LoadDialog />
             {RenderSb}
             {renderSuccessSB}
             {renderErrorSB}
             {renderWhatsNew}
-            {configsButton}
           </>
         )}
         {layout === "vr" && <Configurator />}

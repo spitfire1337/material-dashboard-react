@@ -13,9 +13,11 @@ import DataTable from "react-data-table-component";
 // Context & Config
 import vars from "../../config";
 import { globalFuncs } from "../../context/global";
+import { useSocket } from "context/socket";
 
 function PartsOnOrder() {
   const { setSnackBar, setShowLoad } = globalFuncs();
+  const socket = useSocket();
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -86,50 +88,37 @@ function PartsOnOrder() {
     fetchData();
   }, []);
 
-  const receivePart = async (row) => {
+  const receivePart = (row) => {
     setShowLoad(true);
-    try {
-      const response = await fetch(`${vars.serverUrl}/repairs/receivePart`, {
-        method: "POST",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify({
-          repairId: row.repairId,
+    if (socket) {
+      socket.emit(
+        "receivePart",
+        {
+          repairId: row.repairId._id,
           partId: row._id,
-        }),
-      });
-      const json = await response.json();
-      setShowLoad(false);
-      if (json.res == 200) {
-        setSnackBar({
-          type: "success",
-          title: "Part Received",
-          message: "Part has been moved to repair parts list",
-          show: true,
-          icon: "check",
-        });
-        fetchData();
-      } else {
-        setSnackBar({
-          type: "error",
-          title: "Error",
-          message: json.message,
-          show: true,
-          icon: "error",
-        });
-      }
-    } catch (e) {
-      setShowLoad(false);
-      setSnackBar({
-        type: "error",
-        title: "Error",
-        message: "Server error occurred",
-        show: true,
-        icon: "error",
-      });
+        },
+        (json) => {
+          setShowLoad(false);
+          if (json.res == 200) {
+            setSnackBar({
+              type: "success",
+              title: "Part Received",
+              message: "Part has been moved to repair parts list",
+              show: true,
+              icon: "check",
+            });
+            fetchData();
+          } else {
+            setSnackBar({
+              type: "error",
+              title: "Error",
+              message: json.message,
+              show: true,
+              icon: "error",
+            });
+          }
+        }
+      );
     }
   };
 

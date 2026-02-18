@@ -41,12 +41,12 @@ import MDButton from "components/MDButton";
 import BasicLayout from "layouts/authentication/components/BasicLayout";
 
 // Images
-import bgImage from "assets/images/bg-sign-in-basic.jpeg";
+import bgImage from "assets/images/pevcxnbg.png";
 
 function Basic() {
   return (
     <BasicLayout image={bgImage}>
-      <Card>
+      {/* <Card>
         <MDBox
           variant="gradient"
           bgColor="info"
@@ -61,19 +61,19 @@ function Basic() {
           <MDTypography variant="h4" fontWeight="medium" color="white" mt={1}>
             Sign in
           </MDTypography>
-        </MDBox>
-        <MDBox pt={4} pb={3} px={3}>
-          <MDBox component="form" role="form">
-            <MDBox mt={4} mb={1}>
-              <MuiLink href={vars.serverUrl + "/auth/signin?redirect=" + window.location.href}>
-                <MDButton variant="gradient" color="info" fullWidth>
-                  <MicrosoftIcon /> Sign in with Microsoft
-                </MDButton>
-              </MuiLink>
-            </MDBox>
+        </MDBox> */}
+      <MDBox pt={4} pb={3} px={3}>
+        <MDBox component="form" role="form">
+          <MDBox mt={4} mb={1}>
+            <MuiLink href={vars.serverUrl + "/auth/signin?redirect=" + window.location.href}>
+              <MDButton variant="gradient" color="info" fullWidth>
+                <MicrosoftIcon /> Sign in with Microsoft
+              </MDButton>
+            </MuiLink>
           </MDBox>
         </MDBox>
-      </Card>
+      </MDBox>
+      {/* </Card> */}
     </BasicLayout>
   );
 }

@@ -42,7 +42,7 @@ import { useNavigate } from "react-router-dom";
 import BasicLayout from "layouts/authentication/components/BasicLayout";
 
 // Images
-import bgImage from "assets/images/bg-sign-in-basic.jpeg";
+import bgImage from "assets/images/pevcxnbg.png";
 import { use } from "react";
 
 function Signout() {

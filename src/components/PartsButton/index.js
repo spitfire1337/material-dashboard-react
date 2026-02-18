@@ -13,6 +13,7 @@ import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
 import DialogActions from "@mui/material/DialogActions";
+import { useSocket } from "context/socket";
 const filter = createFilterOptions();
 const style = {
   position: "absolute",
@@ -29,6 +30,7 @@ const style = {
 const PartsButton = ({ size = "full", status, getRepair = undefined, repairId }) => {
   console.log("Showing add parts to repair id: ", repairId);
   const { setSnackBar, setShowLoad } = globalFuncs();
+  const socket = useSocket();
   const [newRepairPart, setnewRepairPart] = useState(false);
   const [parts, setParts] = useState([]);
   const [allparts, setAllParts] = useState();
@@ -90,49 +92,46 @@ const PartsButton = ({ size = "full", status, getRepair = undefined, repairId })
     }
   };
 
-  const getParts = async () => {
+  const getParts = () => {
     setShowLoad(true);
-    const response = await fetch(`${vars.serverUrl}/repairs/getParts`, {
-      method: "POST",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-    });
-    const json = await response.json();
-    if (json.res == 200) {
-      let itemList = [];
-      setAllParts(json.data);
-      json.data.map((item) => {
-        item.itemData.variations.map((variant) => {
-          itemList.push({
-            label: `${variant.itemVariationData.sku} | ${item.itemData.name} - ${
-              variant.itemVariationData.name
-            } ${
-              variant.itemVariationData != undefined &&
-              variant.itemVariationData.priceMoney != undefined
-                ? `- $${(Number(variant.itemVariationData.priceMoney.amount) / 100).toFixed(2)}`
-                : ""
-            }`,
-            id: variant.id,
+    if (socket) {
+      socket.emit("getParts", {}, (json) => {
+        if (json.res == 200) {
+          let itemList = [];
+          setAllParts(json.data);
+          json.data.map((item) => {
+            item.itemData.variations.map((variant) => {
+              itemList.push({
+                label: `${variant.itemVariationData.sku} | ${item.itemData.name} - ${
+                  variant.itemVariationData.name
+                } ${
+                  variant.itemVariationData != undefined &&
+                  variant.itemVariationData.priceMoney != undefined
+                    ? `- $${(Number(variant.itemVariationData.priceMoney.amount) / 100).toFixed(2)}`
+                    : ""
+                }`,
+                id: variant.id,
+              });
+            });
           });
-        });
+          setParts(itemList);
+          setPartDetails({
+            qty: 1,
+            cost: 0,
+            name: "",
+          });
+          setPartDetail(false);
+          setnewRepairPart(true);
+          setshowPartsModal(true);
+        }
+        setShowLoad(false);
       });
-      setParts(itemList);
-      setPartDetails({
-        qty: 1,
-        cost: 0,
-        name: "",
-      });
-      setPartDetail(false);
-      setnewRepairPart(true);
+    } else {
       setShowLoad(false);
-      setshowPartsModal(true);
     }
   };
 
-  const addParts = async (e) => {
+  const addParts = (e) => {
     if (e && e.preventDefault) {
       e.preventDefault();
     }
@@ -147,56 +146,54 @@ const PartsButton = ({ size = "full", status, getRepair = undefined, repairId })
       return;
     }
     setShowLoad(true);
-    const response = await fetch(`${vars.serverUrl}/repairs/addParts`, {
-      method: "POST",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-      body: JSON.stringify({
-        id: repairId,
-        status: status,
-        parts: {
-          quantity: partDetails.qty,
-          name: partDetails.name,
-          basePriceMoney: {
-            amount: Math.round(partDetails.cost * 100),
+    if (socket) {
+      socket.emit(
+        "addParts",
+        {
+          id: repairId,
+          status: status,
+          parts: {
+            quantity: partDetails.qty,
+            name: partDetails.name,
+            basePriceMoney: {
+              amount: Math.round(partDetails.cost * 100),
+            },
+            catalogObjectId: part,
           },
-          catalogObjectId: part,
         },
-      }),
-    });
-    const json = await response.json();
-    setShowLoad(false);
-    if (json.res == 200) {
-      setSnackBar({
-        type: "success",
-        title: "Success",
-        message: "Part added to repair",
-        show: true,
-        icon: "check",
-      });
-      if (getRepair != undefined) {
-        getRepair();
-      }
-      if (status == 4) {
-        createInvoice();
-      }
-      setnewRepairPart(false);
-      setSearchedpart();
-      setPartDetails({ cost: 0, name: "", qty: 0 });
-      setPartCost((0).toFixed(2));
-      setPartName();
-      setshowPartsModal(false);
-    } else {
-      setSnackBar({
-        type: "error",
-        title: "Error",
-        message: "Server error occurred",
-        show: true,
-        icon: "check",
-      });
+        (json) => {
+          setShowLoad(false);
+          if (json.res == 200) {
+            setSnackBar({
+              type: "success",
+              title: "Success",
+              message: "Part added to repair",
+              show: true,
+              icon: "check",
+            });
+            if (getRepair != undefined) {
+              getRepair();
+            }
+            if (status == 4) {
+              createInvoice();
+            }
+            setnewRepairPart(false);
+            setSearchedpart();
+            setPartDetails({ cost: 0, name: "", qty: 0 });
+            setPartCost((0).toFixed(2));
+            setPartName();
+            setshowPartsModal(false);
+          } else {
+            setSnackBar({
+              type: "error",
+              title: "Error",
+              message: "Server error occurred",
+              show: true,
+              icon: "check",
+            });
+          }
+        }
+      );
     }
   };
   useEffect(() => {

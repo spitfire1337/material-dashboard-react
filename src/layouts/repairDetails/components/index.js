@@ -19,6 +19,7 @@ import {
 import DataTable from "react-data-table-component";
 import vars from "../../config";
 import { globalFuncs } from "../../context/global";
+import { useSocket } from "context/socket";
 
 const style = {
   position: "absolute",
@@ -35,6 +36,7 @@ const style = {
 
 function Checklist() {
   const { setSnackBar, setShowLoad } = globalFuncs();
+  const socket = useSocket();
   const [questions, setQuestions] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [newQuestion, setNewQuestion] = useState({
@@ -52,66 +54,49 @@ function Checklist() {
     { name: "Device Type", selector: (row) => row.deviceType, sortable: true },
   ];
 
-  const getQuestions = async () => {
+  const getQuestions = () => {
     setShowLoad(true);
-    try {
-      const response = await fetch(`${vars.serverUrl}/checklist/getQuestions`, {
-        credentials: "include",
+    if (socket) {
+      socket.emit("getChecklistQuestions", {}, (res) => {
+        if (res.res === 200) {
+          setQuestions(res.data);
+        }
+        setShowLoad(false);
       });
-      const res = await response.json();
-      if (res.res === 200) {
-        setQuestions(res.data);
-      }
-    } catch (error) {
-      console.error(error);
     }
-    setShowLoad(false);
   };
 
   useEffect(() => {
-    getQuestions();
-  }, []);
+    if (socket) getQuestions();
+  }, [socket]);
 
-  const addQuestion = async () => {
+  const addQuestion = () => {
     setShowLoad(true);
-    try {
-      const response = await fetch(`${vars.serverUrl}/checklist/addQuestion`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newQuestion),
-        credentials: "include",
-      });
-      const res = await response.json();
-      if (res.res === 200) {
-        setSnackBar({
-          type: "success",
-          title: "Success",
-          message: "Question added",
-          show: true,
-          icon: "check",
-        });
-        setShowModal(false);
-        setNewQuestion({ question: "", repairType: "", deviceType: "" });
-        getQuestions();
-      } else {
-        setSnackBar({
-          type: "error",
-          title: "Error",
-          message: "Error adding question",
-          show: true,
-          icon: "warning",
-        });
-      }
-    } catch (e) {
-      setSnackBar({
-        type: "error",
-        title: "Error",
-        message: "Server error",
-        show: true,
-        icon: "warning",
+    if (socket) {
+      socket.emit("addChecklistQuestion", newQuestion, (res) => {
+        if (res.res === 200) {
+          setSnackBar({
+            type: "success",
+            title: "Success",
+            message: "Question added",
+            show: true,
+            icon: "check",
+          });
+          setShowModal(false);
+          setNewQuestion({ question: "", repairType: "", deviceType: "" });
+          getQuestions();
+        } else {
+          setSnackBar({
+            type: "error",
+            title: "Error",
+            message: "Error adding question",
+            show: true,
+            icon: "warning",
+          });
+        }
+        setShowLoad(false);
       });
     }
-    setShowLoad(false);
   };
 
   return (

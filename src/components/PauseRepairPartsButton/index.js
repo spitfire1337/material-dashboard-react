@@ -16,9 +16,11 @@ import MDButton from "components/MDButton";
 import MDTypography from "components/MDTypography";
 import { globalFuncs } from "context/global";
 import vars from "config";
+import { useSocket } from "context/socket";
 
 function PauseRepairPartsButton({ repairId, onPause, size = "full" }) {
   const { setSnackBar, setShowLoad } = globalFuncs();
+  const socket = useSocket();
   const [open, setOpen] = useState(false);
   const [vendors, setVendors] = useState([]);
   const [partsList, setPartsList] = useState([]);
@@ -103,19 +105,25 @@ function PauseRepairPartsButton({ repairId, onPause, size = "full" }) {
 
     for (const part of partsToSave) {
       try {
-        const response = await fetch(`${vars.serverUrl}/repairs/saveRepairPartOrdered`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            repairId,
-            ...part,
-          }),
-          credentials: "include",
+        await new Promise((resolve) => {
+          if (socket) {
+            socket.emit(
+              "saveRepairPartOrdered",
+              {
+                repairId,
+                ...part,
+              },
+              (json) => {
+                if (json.res === 200) {
+                  successCount++;
+                }
+                resolve();
+              }
+            );
+          } else {
+            resolve();
+          }
         });
-        const json = await response.json();
-        if (json.res === 200) {
-          successCount++;
-        }
       } catch (e) {
         console.error("Error saving part", e);
       }

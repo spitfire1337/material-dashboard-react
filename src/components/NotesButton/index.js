@@ -3,12 +3,12 @@ import { Modal, Grid, Icon, Tooltip, FormControlLabel, Checkbox } from "@mui/mat
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 import MDButton from "components/MDButton";
-import vars from "../../config";
 import { EditorState, convertToRaw } from "draft-js";
 import { Editor } from "react-draft-wysiwyg";
 import draftToHtml from "draftjs-to-html";
 import { globalFuncs } from "../../context/global";
 import { useLoginState } from "../../context/loginContext";
+import { useSocket } from "context/socket";
 
 import "../../../node_modules/react-draft-wysiwyg/dist/react-draft-wysiwyg.css";
 const style = {
@@ -27,6 +27,7 @@ const style = {
 const AddNotes = ({ callback, repairId, size = "full" }) => {
   const { setSnackBar, setShowLoad } = globalFuncs();
   const { setLoginState } = useLoginState();
+  const socket = useSocket();
   const [newRepairNotes, setnewRepairNotes] = useState(false);
   const [value, setValue] = useState({ editorState: EditorState.createEmpty() });
   const [customerVisible, setCustomerVisible] = useState(false);
@@ -36,7 +37,7 @@ const AddNotes = ({ callback, repairId, size = "full" }) => {
     setValue({ editorState });
   };
 
-  const saveNotes = async () => {
+  const saveNotes = () => {
     if (!value.editorState.getCurrentContent().hasText()) {
       setSnackBar({
         type: "error",
@@ -48,51 +49,49 @@ const AddNotes = ({ callback, repairId, size = "full" }) => {
       return;
     }
     setShowLoad(true);
-    const response = await fetch(`${vars.serverUrl}/repairs/repairNotes`, {
-      method: "POST",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        repairId: repairId,
-        notes: draftToHtml(convertToRaw(value.editorState.getCurrentContent())),
-        customerVisible: customerVisible,
-      }),
-      credentials: "include",
-    });
-    const res = await response.json();
-    if (res.res === 401) {
-      setLoginState(false);
-      setSnackBar({
-        type: "error",
-        title: "Unauthorized",
-        message: "redirecting to login",
-        show: true,
-        icon: "warning",
-      });
-    } else if (res.res === 500) {
-      setSnackBar({
-        type: "error",
-        title: "Server error occured",
-        message: "Please try again later",
-        show: true,
-        icon: "error",
-      });
-    } else {
-      setnewRepairNotes(false);
-      setValue({ editorState: EditorState.createEmpty() });
-      setCustomerVisible(false);
-      if (callback) callback();
-      setSnackBar({
-        type: "success",
-        title: "Notes saved",
-        message: "Your notes have been saved successfully",
-        show: true,
-        icon: "check",
-      });
+    if (socket) {
+      socket.emit(
+        "repairNotes",
+        {
+          repairId: repairId,
+          notes: draftToHtml(convertToRaw(value.editorState.getCurrentContent())),
+          customerVisible: customerVisible,
+        },
+        (res) => {
+          if (res.res === 401) {
+            setLoginState(false);
+            setSnackBar({
+              type: "error",
+              title: "Unauthorized",
+              message: "redirecting to login",
+              show: true,
+              icon: "warning",
+            });
+          } else if (res.res === 500) {
+            setSnackBar({
+              type: "error",
+              title: "Server error occured",
+              message: "Please try again later",
+              show: true,
+              icon: "error",
+            });
+          } else {
+            setnewRepairNotes(false);
+            setValue({ editorState: EditorState.createEmpty() });
+            setCustomerVisible(false);
+            if (callback) callback();
+            setSnackBar({
+              type: "success",
+              title: "Notes saved",
+              message: "Your notes have been saved successfully",
+              show: true,
+              icon: "check",
+            });
+          }
+          setShowLoad(false);
+        }
+      );
     }
-    setShowLoad(false);
   };
 
   const notesModal = (
