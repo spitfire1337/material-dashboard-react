@@ -641,25 +641,25 @@ function Actions({
     return (
       <>
         <Grid container spacing={2} mb={3}>
-          <Grid item xs={4} md={2}>
+          <Grid item xs={3} sm={2} md={4} lg={3} xl={3}>
             {startRepairButton}
           </Grid>
-          <Grid item xs={4} md={2}>
+          <Grid item xs={3} sm={2} md={4} lg={3} xl={3}>
             {pauseRepairPartsButton}
           </Grid>
-          <Grid item xs={4} md={2}>
+          <Grid item xs={3} sm={2} md={4} lg={3} xl={3}>
             <PartsButton size="icon" status={status} getRepair={getRepair} repairId={repairID} />
           </Grid>
-          <Grid item xs={4} md={2}>
+          <Grid item xs={3} sm={2} md={4} lg={3} xl={3}>
             {returnToCustomerButton}
           </Grid>
-          <Grid item xs={4} md={2}>
+          <Grid item xs={3} sm={2} md={4} lg={3} xl={3}>
             {cancelRepairButton}
           </Grid>
-          <Grid item xs={4} md={2}>
+          <Grid item xs={3} sm={2} md={4} lg={3} xl={3}>
             <AddNotes repairId={repairID} size="icon" callback={getRepair} />
           </Grid>
-          <Grid item xs={4} md={2}>
+          <Grid item xs={3} sm={2} md={4} lg={3} xl={3}>
             {reprintButton}
           </Grid>
           <ChecklistModal
@@ -679,28 +679,28 @@ function Actions({
     return (
       <>
         <Grid container spacing={2} mb={3}>
-          <Grid item xs={4} md={2}>
+          <Grid item xs={3} sm={2} md={4} lg={3} xl={3}>
             {pauseRepairButton}
           </Grid>
-          <Grid item xs={4} md={2}>
+          <Grid item xs={3} sm={2} md={4} lg={3} xl={3}>
             {pauseRepairPartsButton}
           </Grid>
-          <Grid item xs={4} md={2}>
+          <Grid item xs={3} sm={2} md={4} lg={3} xl={3}>
             <PartsButton size="icon" status={status} getRepair={getRepair} repairId={repairID} />
           </Grid>
-          <Grid item xs={4} md={2}>
+          <Grid item xs={3} sm={2} md={4} lg={3} xl={3}>
             {completeRepairButton}
           </Grid>
-          <Grid item xs={4} md={2}>
+          <Grid item xs={3} sm={2} md={4} lg={3} xl={3}>
             {returnToCustomerButton}
           </Grid>
-          <Grid item xs={4} md={2}>
+          <Grid item xs={3} sm={2} md={4} lg={3} xl={3}>
             {cancelRepairButton}
           </Grid>
-          <Grid item xs={4} md={2}>
+          <Grid item xs={3} sm={2} md={4} lg={3} xl={3}>
             <AddNotes repairId={repairID} size="icon" callback={getRepair} />
           </Grid>
-          <Grid item xs={4} md={2}>
+          <Grid item xs={3} sm={2} md={4} lg={3} xl={3}>
             {reprintButton}
           </Grid>
         </Grid>
@@ -720,28 +720,28 @@ function Actions({
     return (
       <>
         <Grid container spacing={2} mb={3}>
-          <Grid item xs={4} md={2}>
+          <Grid item xs={3} sm={2} md={4} lg={3} xl={3}>
             {restartRepairButton}
           </Grid>
-          <Grid item xs={4} md={2}>
+          <Grid item xs={3} sm={2} md={4} lg={3} xl={3}>
             {pauseRepairPartsButton}
           </Grid>
-          <Grid item xs={4} md={2}>
+          <Grid item xs={3} sm={2} md={4} lg={3} xl={3}>
             <PartsButton size="icon" status={status} getRepair={getRepair} repairId={repairID} />
           </Grid>
-          <Grid item xs={4} md={2}>
+          <Grid item xs={3} sm={2} md={4} lg={3} xl={3}>
             {completeRepairButton}
           </Grid>
-          <Grid item xs={4} md={2}>
+          <Grid item xs={3} sm={2} md={4} lg={3} xl={3}>
             {returnToCustomerButton}
           </Grid>
-          <Grid item xs={4} md={2}>
+          <Grid item xs={3} sm={2} md={4} lg={3} xl={3}>
             {cancelRepairButton}
           </Grid>
-          <Grid item xs={4} md={2}>
+          <Grid item xs={3} sm={2} md={4} lg={3} xl={3}>
             <AddNotes repairId={repairID} size="icon" callback={getRepair} />
           </Grid>
-          <Grid item xs={4} md={2}>
+          <Grid item xs={3} sm={2} md={4} lg={3} xl={3}>
             {reprintButton}
           </Grid>
         </Grid>
@@ -761,16 +761,16 @@ function Actions({
     return (
       <>
         <Grid container spacing={2} mb={3}>
-          <Grid item xs={4} md={2}>
+          <Grid item xs={3} sm={2} md={4} lg={3} xl={3}>
             {restartRepairButton}
           </Grid>
-          <Grid item xs={4} md={2}>
+          <Grid item xs={3} sm={2} md={4} lg={3} xl={3}>
             {archiveRepairButton}
           </Grid>
-          <Grid item xs={4} md={2}>
+          <Grid item xs={3} sm={2} md={4} lg={3} xl={3}>
             <AddNotes repairId={repairID} size="icon" callback={getRepair} />
           </Grid>
-          <Grid item xs={4} md={2}>
+          <Grid item xs={3} sm={2} md={4} lg={3} xl={3}>
             {reprintButton}
           </Grid>
         </Grid>
@@ -783,22 +783,22 @@ function Actions({
     return (
       <>
         <Grid container spacing={2} mb={3}>
-          <Grid item xs={4} md={2}>
+          <Grid item xs={3} sm={2} md={4} lg={3} xl={3}>
             <PartsButton size="icon" status={status} getRepair={getRepair} repairId={repairID} />
           </Grid>
-          <Grid item xs={4} md={2}>
+          <Grid item xs={3} sm={2} md={4} lg={3} xl={3}>
             {createInvoiceButton}
           </Grid>
-          <Grid item xs={4} md={2}>
+          <Grid item xs={3} sm={2} md={4} lg={3} xl={3}>
             {restartRepairButton}
           </Grid>
-          <Grid item xs={4} md={2}>
+          <Grid item xs={3} sm={2} md={4} lg={3} xl={3}>
             {cancelRepairButton}
           </Grid>
-          <Grid item xs={4} md={2}>
+          <Grid item xs={3} sm={2} md={4} lg={3} xl={3}>
             <AddNotes repairId={repairID} size="icon" callback={getRepair} />
           </Grid>
-          <Grid item xs={4} md={2}>
+          <Grid item xs={3} sm={2} md={4} lg={3} xl={3}>
             {reprintButton}
           </Grid>
         </Grid>
@@ -995,13 +995,13 @@ function Actions({
     return (
       <>
         <Grid container spacing={2} mb={3}>
-          <Grid item xs={4} md={2}>
+          <Grid item xs={3} sm={2} md={4} lg={3} xl={3}>
             {cancelInvoiceButton}
           </Grid>
-          <Grid item xs={4} md={2}>
+          <Grid item xs={3} sm={2} md={4} lg={3} xl={3}>
             <AddNotes repairId={repairID} size="icon" callback={getRepair} />
           </Grid>
-          <Grid item xs={4} md={2}>
+          <Grid item xs={3} sm={2} md={4} lg={3} xl={3}>
             {reprintButton}
           </Grid>
         </Grid>

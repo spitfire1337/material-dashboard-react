@@ -309,44 +309,16 @@ export default function App() {
     </Dialog>
   );
 
-  const getWhatsnew = async () => {
-    if (loginState.loggedin) {
-      const response = await fetch(`${vars.serverUrl}/api/whatsNew`, {
-        credentials: "include",
-      });
-      const res = await response.json();
-      if (res.res === 200) {
-        if (res.new) {
-          setWhatsNew(res.data);
-          setShowWhatsNew(true);
+  const getWhatsnew = () => {
+    if (loginState.loggedin && socket) {
+      socket.emit("getWhatsNew", {}, (res) => {
+        if (res.res === 200) {
+          if (res.new) {
+            setWhatsNew(res.data);
+            setShowWhatsNew(true);
+          }
         }
-      }
-    }
-  };
-
-  const getInitData = async () => {
-    if (loginState.loggedin) {
-      const response = await fetch(`${vars.serverUrl}/square/getSquare?action=getInitData`, {
-        credentials: "same-origin",
       });
-      const res = await response.json();
-      if (res.res === 200) {
-        setCustomers(res.customers);
-        setLocations(res.locations);
-        //setLoading(false);
-      }
-      if (location !== undefined) {
-        // const response = await fetch(`${vars.serverUrl}/square/getSquare?action=getSales`, {
-        //   credentials: "include",
-        // });
-        // const res = await response.json();
-        // if (res.res === 200) {
-        //   setSaless(res.sales);
-        //   setLoading(false);
-        // }
-      }
-    } else {
-      //setLoading(false);
     }
   };
 
@@ -369,19 +341,19 @@ export default function App() {
   useEffect(() => {
     if (loginState.loggedin) {
       setLocation(cookies.get("mylocation"));
-      getWhatsnew();
-      getInitData();
+      // getInitData();
     }
   }, [loginState.loggedin]);
 
   useEffect(() => {
     if (socket && loginState.loggedin) {
+      getWhatsnew();
       socket.on("stats", (data) => {
         getSales(data);
       });
 
       socket.on("update", () => {
-        getInitData();
+        // getInitData();
         getWhatsnew();
       });
 

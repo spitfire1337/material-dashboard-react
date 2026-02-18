@@ -1,11 +1,12 @@
-import { useState } from "react";
-import { Modal, Grid, Icon, Tooltip, FormControlLabel, Checkbox } from "@mui/material";
+import { useState, useEffect } from "react";
+import { Modal, Grid, Icon, Tooltip, FormControlLabel, Checkbox, IconButton } from "@mui/material";
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 import MDButton from "components/MDButton";
-import { EditorState, convertToRaw } from "draft-js";
+import { EditorState, convertToRaw, ContentState } from "draft-js";
 import { Editor } from "react-draft-wysiwyg";
 import draftToHtml from "draftjs-to-html";
+import htmlToDraft from "html-to-draftjs";
 import { globalFuncs } from "../../context/global";
 import { useLoginState } from "../../context/loginContext";
 import { useSocket } from "context/socket";
@@ -24,13 +25,26 @@ const style = {
   borderRadius: "25px",
 };
 
-const AddNotes = ({ callback, repairId, size = "full" }) => {
+const AddNotes = ({ callback, repairId, size = "full", initialNote, noteId, editMode = false }) => {
   const { setSnackBar, setShowLoad } = globalFuncs();
   const { setLoginState } = useLoginState();
   const socket = useSocket();
   const [newRepairNotes, setnewRepairNotes] = useState(false);
   const [value, setValue] = useState({ editorState: EditorState.createEmpty() });
   const [customerVisible, setCustomerVisible] = useState(false);
+
+  useEffect(() => {
+    if (newRepairNotes && initialNote) {
+      const contentBlock = htmlToDraft(initialNote);
+      if (contentBlock) {
+        const contentState = ContentState.createFromBlockArray(contentBlock.contentBlocks);
+        const editorState = EditorState.createWithContent(contentState);
+        setValue({ editorState });
+      }
+    } else if (newRepairNotes && !initialNote) {
+      setValue({ editorState: EditorState.createEmpty() });
+    }
+  }, [newRepairNotes, initialNote]);
 
   const onEditorStateChange = (editorState) => {
     console.log("Editor state changed");
@@ -50,47 +64,51 @@ const AddNotes = ({ callback, repairId, size = "full" }) => {
     }
     setShowLoad(true);
     if (socket) {
-      socket.emit(
-        "repairNotes",
-        {
-          repairId: repairId,
-          notes: draftToHtml(convertToRaw(value.editorState.getCurrentContent())),
-          customerVisible: customerVisible,
-        },
-        (res) => {
-          if (res.res === 401) {
-            setLoginState(false);
-            setSnackBar({
-              type: "error",
-              title: "Unauthorized",
-              message: "redirecting to login",
-              show: true,
-              icon: "warning",
-            });
-          } else if (res.res === 500) {
-            setSnackBar({
-              type: "error",
-              title: "Server error occured",
-              message: "Please try again later",
-              show: true,
-              icon: "error",
-            });
-          } else {
-            setnewRepairNotes(false);
-            setValue({ editorState: EditorState.createEmpty() });
-            setCustomerVisible(false);
-            if (callback) callback();
-            setSnackBar({
-              type: "success",
-              title: "Notes saved",
-              message: "Your notes have been saved successfully",
-              show: true,
-              icon: "check",
-            });
+      const eventName = editMode ? "updateRepairNote" : "repairNotes";
+      const payload = editMode
+        ? {
+            _id: noteId,
+            notes: draftToHtml(convertToRaw(value.editorState.getCurrentContent())),
+            customerVisible: customerVisible,
           }
-          setShowLoad(false);
+        : {
+            repairId: repairId,
+            notes: draftToHtml(convertToRaw(value.editorState.getCurrentContent())),
+            customerVisible: customerVisible,
+          };
+      socket.emit(eventName, payload, (res) => {
+        if (res.res === 401) {
+          setLoginState(false);
+          setSnackBar({
+            type: "error",
+            title: "Unauthorized",
+            message: "redirecting to login",
+            show: true,
+            icon: "warning",
+          });
+        } else if (res.res === 500) {
+          setSnackBar({
+            type: "error",
+            title: "Server error occured",
+            message: "Please try again later",
+            show: true,
+            icon: "error",
+          });
+        } else {
+          setnewRepairNotes(false);
+          setValue({ editorState: EditorState.createEmpty() });
+          setCustomerVisible(false);
+          if (callback) callback();
+          setSnackBar({
+            type: "success",
+            title: "Notes saved",
+            message: "Your notes have been saved successfully",
+            show: true,
+            icon: "check",
+          });
         }
-      );
+        setShowLoad(false);
+      });
     }
   };
 
@@ -108,7 +126,7 @@ const AddNotes = ({ callback, repairId, size = "full" }) => {
         <Grid container spacing={3}>
           <Grid item xs={12}>
             <MDTypography id="modal-modal-title" variant="h6" component="h2">
-              Add notes
+              {editMode ? "Edit Note" : "Add notes"}
             </MDTypography>
           </Grid>
           <Grid item xs={12}>
@@ -181,16 +199,24 @@ const AddNotes = ({ callback, repairId, size = "full" }) => {
   } else if (size == "icon") {
     return (
       <>
-        <Tooltip title="Add Notes">
-          <MDButton
-            fullwidth
-            color="dark"
-            variant="contained"
-            onClick={() => setnewRepairNotes(true)}
-          >
-            <Icon>note_add</Icon>
-          </MDButton>
-        </Tooltip>
+        {editMode ? (
+          <Tooltip title="Edit Note">
+            <IconButton color="info" onClick={() => setnewRepairNotes(true)}>
+              <Icon>edit</Icon>
+            </IconButton>
+          </Tooltip>
+        ) : (
+          <Tooltip title="Add Notes">
+            <MDButton
+              fullwidth
+              color="dark"
+              variant="contained"
+              onClick={() => setnewRepairNotes(true)}
+            >
+              <Icon>note_add</Icon>
+            </MDButton>
+          </Tooltip>
+        )}
         {notesModal}
       </>
     );

@@ -20,6 +20,7 @@ import vars from "../../config";
 //Global
 import { globalFuncs } from "../../context/global";
 import { useLoginState } from "../../context/loginContext";
+import { useSocket } from "context/socket";
 
 import { EditorState, convertToRaw } from "draft-js";
 import { Editor } from "react-draft-wysiwyg";
@@ -42,51 +43,50 @@ import MDButton from "components/MDButton";
 const WhatsNew = () => {
   const { setSnackBar } = globalFuncs();
   const { setLoginState } = useLoginState();
+  const socket = useSocket();
   const [value, setValue] = useState({ editorState: EditorState.createEmpty() });
 
   const onEditorStateChange = (editorState) => {
     setValue({ editorState });
   };
 
-  const saveWhatsNew = async () => {
-    const response = await fetch(`${vars.serverUrl}/api/updateWhatsNew`, {
-      method: "POST",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        whatsnew: draftToHtml(convertToRaw(value.editorState.getCurrentContent())),
-      }),
-      credentials: "include",
-    });
-    const res = await response.json();
-    if (res.res === 401) {
-      setLoginState(false);
-      setSnackBar({
-        type: "error",
-        title: "Server error occured",
-        message: "Unauthorized, redirecting to login",
-        show: true,
-        icon: "error",
-      });
-    } else if (res.res === 500) {
-      setSnackBar({
-        type: "error",
-        title: "Server error occured",
-        message: "An unexpected error occurred",
-        show: true,
-        icon: "error",
-      });
-    } else {
-      setValue({ editorState: EditorState.createEmpty() });
-      setSnackBar({
-        type: "success",
-        title: "Whats new updated",
-        message: "Whats new content has been updated successfully",
-        show: true,
-        icon: "check",
-      });
+  const saveWhatsNew = () => {
+    if (socket) {
+      socket.emit(
+        "updateWhatsNew",
+        {
+          whatsnew: draftToHtml(convertToRaw(value.editorState.getCurrentContent())),
+        },
+        (res) => {
+          if (res.res === 401) {
+            setLoginState(false);
+            setSnackBar({
+              type: "error",
+              title: "Server error occured",
+              message: "Unauthorized, redirecting to login",
+              show: true,
+              icon: "error",
+            });
+          } else if (res.res === 500) {
+            setSnackBar({
+              type: "error",
+              title: "Server error occured",
+              message: "An unexpected error occurred",
+              show: true,
+              icon: "error",
+            });
+          } else {
+            setValue({ editorState: EditorState.createEmpty() });
+            setSnackBar({
+              type: "success",
+              title: "Whats new updated",
+              message: "Whats new content has been updated successfully",
+              show: true,
+              icon: "check",
+            });
+          }
+        }
+      );
     }
   };
 

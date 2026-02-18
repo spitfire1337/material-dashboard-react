@@ -46,7 +46,7 @@ const SocketStatus = () => {
 
   if (!socket) return null;
 
-  if (!isLarge && miniSidenav) return null;
+  if (miniSidenav) return null;
 
   return (
     <MDBox

@@ -64,6 +64,7 @@ import Icon from "@mui/material/Icon";
 import PartsAdd from "./components/addParts";
 import AddPhotos from "./components/addPhoto";
 import { useTableState } from "../../context/tableState";
+import EditRepairDetails from "./components/editRepairDetails";
 import PartsButton from "components/PartsButton";
 import AddNotes from "components/NotesButton";
 import { useEditor } from "@tiptap/react";
@@ -630,7 +631,7 @@ const GuideDetail = ({ data }) => {
 const RepairDetails = () => {
   const { setSnackBar, setShowLoad } = globalFuncs();
   const socket = useSocket();
-  const { setLoginState } = useLoginState();
+  const { loginState, setLoginState } = useLoginState();
   const { RepairRerender } = useTableState();
   const { id } = useParams();
   const [repairID, setrepairID] = useState(id);
@@ -651,8 +652,10 @@ const RepairDetails = () => {
     removePart: false,
     editTime: false,
     removeOrderedPart: false,
+    deleteNote: false,
   });
   const [orderedPartToDelete, setOrderedPartToDelete] = useState(null);
+  const [noteToDelete, setNoteToDelete] = useState(null);
   const [partId, setPartid] = useState();
   const [partName, setPartName] = useState();
   const [newMinutes, setnewMinutes] = useState();
@@ -674,6 +677,7 @@ const RepairDetails = () => {
   const [showViewGuideModal, setShowViewGuideModal] = useState(false);
   const [selectedGuide, setSelectedGuide] = useState(null);
   const [highlightUpdate, setHighlightUpdate] = useState(false);
+  const [showEditDetailsModal, setShowEditDetailsModal] = useState(false);
 
   const editor = useEditor({
     extensions: [
@@ -899,6 +903,36 @@ const RepairDetails = () => {
     }
   };
 
+  const confirmDeleteNote = () => {
+    toggleconfirmOpen({ ...confirmOpen, deleteNote: false });
+    setShowLoad(true);
+    if (socket) {
+      socket.emit("deleteRepairNote", { id: noteToDelete, repairId: repairID }, (res) => {
+        if (res.res === 200) {
+          setSnackBar({
+            type: "success",
+            title: "Success",
+            message: "Note deleted",
+            show: true,
+            icon: "check",
+          });
+          getRepair();
+        } else {
+          setSnackBar({
+            type: "error",
+            title: "Error",
+            message: "Error deleting note",
+            show: true,
+            icon: "warning",
+          });
+        }
+        setShowLoad(false);
+      });
+    } else {
+      setShowLoad(false);
+    }
+  };
+
   const receivePart = (part) => {
     setShowLoad(true);
     if (socket) {
@@ -1083,6 +1117,44 @@ const RepairDetails = () => {
       });
     }
     setShowLoad(false);
+  };
+
+  const handleSaveRepairDetails = (data) => {
+    setShowLoad(true);
+    if (socket) {
+      socket.emit("updateRepairDetails", data, (res) => {
+        if (res.res === 200) {
+          setSnackBar({
+            type: "success",
+            title: "Success",
+            message: "Repair details updated",
+            show: true,
+            icon: "check",
+          });
+          setShowEditDetailsModal(false);
+          getRepair();
+        } else if (res.res === 501) {
+          setSnackBar({
+            type: "success",
+            title: "Success",
+            message: "Repair details updated - Failed to update print files",
+            show: true,
+            icon: "check",
+          });
+          setShowEditDetailsModal(false);
+          getRepair();
+        } else {
+          setSnackBar({
+            type: "error",
+            title: "Error",
+            message: "Failed to update repair details",
+            show: true,
+            icon: "warning",
+          });
+        }
+        setShowLoad(false);
+      });
+    }
   };
 
   useEffect(() => {
@@ -1288,7 +1360,19 @@ const RepairDetails = () => {
                           Repair Details
                         </MDTypography>
                       </Grid>
-                      <Grid item xs={6} alignItems="center" textAlign="right">
+                      <Grid
+                        item
+                        xs={6}
+                        display="flex"
+                        alignItems="center"
+                        justifyContent="flex-end"
+                      >
+                        <IconButton
+                          onClick={() => setShowEditDetailsModal(true)}
+                          sx={{ color: "white", mr: 1 }}
+                        >
+                          <Icon>edit</Icon>
+                        </IconButton>
                         <Status repairStatus={repairDetails.status} />
                       </Grid>
                     </Grid>
@@ -1310,9 +1394,24 @@ const RepairDetails = () => {
                     <MDTypography variant="body1">Repair Type:</MDTypography>
                     <MDTypography variant="body2">
                       {repairDetails.RepairType.map((type) => {
-                        return ` ${type}, `;
+                        return ` ${type} `;
                       })}
                     </MDTypography>
+                    {repairDetails.warranty && (
+                      <MDTypography variant="body2" color="error" fontWeight="bold">
+                        Warranty Repair
+                      </MDTypography>
+                    )}
+                    {repairDetails.accessories && repairDetails.accessories.length > 0 && (
+                      <>
+                        <MDTypography variant="body1">Accessories:</MDTypography>
+                        <MDBox display="flex" gap={0.5} flexWrap="wrap" mb={1}>
+                          {repairDetails.accessories.map((acc, i) => (
+                            <Chip key={i} label={acc.name} size="small" />
+                          ))}
+                        </MDBox>
+                      </>
+                    )}
                     <MDTypography variant="body1">Details:</MDTypography>
                     <MDTypography variant="body2">{parse(repairDetails.Details)}</MDTypography>
                   </MDBox>
@@ -1450,13 +1549,54 @@ const RepairDetails = () => {
                   </MDBox>
                   <MDBox mx={2} py={3} px={2}>
                     {AllRepairNotes.map((note) => {
+                      const isAuthor =
+                        loginState.user &&
+                        ((loginState.user.account &&
+                          loginState.user.account.localAccountId === note.userId) ||
+                          loginState.user.username === note.user);
+                      const canDelete = isAuthor || (loginState.user && loginState.user.isAdmin);
                       return (
-                        <NotesItem
-                          key={note._id}
-                          user={note.user}
-                          notes={note.notes}
-                          dateTime={note.createdAt}
-                        />
+                        <MDBox key={note._id} position="relative">
+                          <Grid container spacing={1}>
+                            <Grid
+                              item
+                              xs={canDelete && isAuthor ? 10 : canDelete || isAuthor ? 11 : 12}
+                            >
+                              <NotesItem
+                                user={note.user}
+                                notes={note.notes}
+                                dateTime={note.createdAt}
+                              />
+                            </Grid>
+                            {isAuthor && (
+                              <Grid item xs={1}>
+                                <AddNotes
+                                  repairId={repairID}
+                                  size="icon"
+                                  callback={getRepair}
+                                  initialNote={note.notes}
+                                  noteId={note._id}
+                                  editMode={true}
+                                />
+                              </Grid>
+                            )}
+                            {canDelete && (
+                              <Grid item xs={1}>
+                                <Tooltip title="Delete Note">
+                                  <IconButton
+                                    color="error"
+                                    onClick={() => {
+                                      setNoteToDelete(note._id);
+                                      toggleconfirmOpen({ ...confirmOpen, deleteNote: true });
+                                    }}
+                                  >
+                                    <Icon>delete</Icon>
+                                  </IconButton>
+                                </Tooltip>
+                              </Grid>
+                            )}
+                          </Grid>
+                        </MDBox>
                       );
                     })}
                     <MDTypography variant="subtitle2"></MDTypography>
@@ -1734,7 +1874,20 @@ const RepairDetails = () => {
         openState={confirmOpen.removeOrderedPart}
         closeState={() => toggleconfirmOpen({ ...confirmOpen, removeOrderedPart: false })}
       />
+      <ConfirmActionDialog
+        title="Are you sure?"
+        content="Do you wish to delete this note?"
+        action={confirmDeleteNote}
+        openState={confirmOpen.deleteNote}
+        closeState={() => toggleconfirmOpen({ ...confirmOpen, deleteNote: false })}
+      />
 
+      <EditRepairDetails
+        open={showEditDetailsModal}
+        onClose={() => setShowEditDetailsModal(false)}
+        repair={repairDetails}
+        onSave={handleSaveRepairDetails}
+      />
       {/* Guides List Modal */}
       <Modal
         open={showGuidesModal}
