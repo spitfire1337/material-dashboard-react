@@ -24,7 +24,7 @@ import {
 import DataTable from "react-data-table-component";
 import vars from "../../config";
 import { globalFuncs } from "../../context/global";
-import Actions from "../repairs/components/quickActions";
+import Actions from "./quickActions";
 import NewRepairButton from "../../components/NewRepairButton";
 import { useSocket } from "context/socket";
 

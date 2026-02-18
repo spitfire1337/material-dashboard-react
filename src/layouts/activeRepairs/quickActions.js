@@ -1,10 +1,10 @@
 //Global
-import { globalFuncs } from "../../../context/global";
+import { globalFuncs } from "../../context/global";
 
 import MDButton from "components/MDButton";
 import MDBox from "components/MDBox";
 import { Grid } from "@mui/material";
-import vars from "../../../config";
+import vars from "../../config";
 import { useState, React } from "react";
 import { useNavigate } from "react-router-dom";
 import MDTypography from "components/MDTypography";
@@ -27,7 +27,7 @@ import DialogActions from "@mui/material/DialogActions";
 //Buttons
 import AddNotes from "components/NotesButton";
 import PartsButton from "components/PartsButton";
-import ChecklistModal from "../../repairDetails/components/checklist";
+import ChecklistModal from "../repairDetails/components/checklist";
 import PauseRepairPartsButton from "components/PauseRepairPartsButton";
 import { useSocket } from "context/socket";
 
