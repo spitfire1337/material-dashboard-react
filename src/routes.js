@@ -52,6 +52,8 @@ import PEVDatabase from "layouts/pevs";
 import ETags from "layouts/inventoryTags";
 import Checklist from "layouts/checklist";
 import PartsOnOrder from "layouts/partsOnOrder";
+import RepairGuides from "layouts/repairGuides";
+import ActiveRepairs from "layouts/activeRepairs";
 // @mui icons
 import RepairReport from "layouts/reports/RepairReport";
 import SalesTrends from "layouts/reports/SalesTrends";
@@ -116,6 +118,33 @@ const devRoutes = (stats) => {
           icon: <Icon fontSize="small">shopping_cart</Icon>,
           route: "/parts-on-order",
           component: <PartsOnOrder />,
+        },
+        {
+          type: "collapse",
+          name: "Repair Guides",
+          key: "repair-guides",
+          noCollapse: true,
+          icon: <Icon fontSize="small">menu_book</Icon>,
+          route: "/repair-guides",
+          component: <RepairGuides />,
+        },
+        {
+          type: "collapse",
+          name: "Active Repairs",
+          key: "active-repairs",
+          noCollapse: true,
+          icon: <Icon fontSize="small">build_circle</Icon>,
+          route: "/active-repairs",
+          component: <ActiveRepairs />,
+        },
+        {
+          type: "collapse",
+          name: "Active Repairs",
+          key: "active-repairs",
+          noCollapse: true,
+          icon: <Icon fontSize="small">build_circle</Icon>,
+          route: "/active-repairs",
+          component: <ActiveRepairs />,
         },
       ],
     },
@@ -575,6 +604,24 @@ const techRoutes = (stats) => {
           icon: <Icon fontSize="small">shopping_cart</Icon>,
           route: "/parts-on-order",
           component: <PartsOnOrder />,
+        },
+        {
+          type: "collapse",
+          name: "Repair Guides",
+          key: "repair-guides",
+          noCollapse: true,
+          icon: <Icon fontSize="small">menu_book</Icon>,
+          route: "/repair-guides",
+          component: <RepairGuides />,
+        },
+        {
+          type: "collapse",
+          name: "Active Repairs",
+          key: "active-repairs",
+          noCollapse: true,
+          icon: <Icon fontSize="small">build_circle</Icon>,
+          route: "/active-repairs",
+          component: <ActiveRepairs />,
         },
       ],
     },

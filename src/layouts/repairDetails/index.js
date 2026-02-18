@@ -37,6 +37,10 @@ import {
   FormControlLabel,
   FormControl,
   Tooltip,
+  Modal,
+  InputLabel,
+  Chip,
+  OutlinedInput,
 } from "@mui/material";
 
 // Material Dashboard 2 React components
@@ -60,6 +64,30 @@ import AddPhotos from "./components/addPhoto";
 import { useTableState } from "../../context/tableState";
 import PartsButton from "components/PartsButton";
 import AddNotes from "components/NotesButton";
+import { useEditor } from "@tiptap/react";
+import StarterKit from "@tiptap/starter-kit";
+import Link from "@tiptap/extension-link";
+import { Table } from "@tiptap/extension-table";
+import { TableCell } from "@tiptap/extension-table-cell";
+import { TableHeader } from "@tiptap/extension-table-header";
+import { TableRow } from "@tiptap/extension-table-row";
+import {
+  RichTextEditorProvider,
+  RichTextField,
+  RichTextReadOnly,
+  MenuControlsContainer,
+  MenuSelectHeading,
+  MenuDivider,
+  MenuButtonBold,
+  MenuButtonItalic,
+  MenuButtonOrderedList,
+  MenuButtonBulletedList,
+  MenuButtonUndo,
+  MenuButtonRedo,
+  MenuButtonEditLink,
+  MenuButtonAddTable,
+} from "mui-tiptap";
+import DataTable from "react-data-table-component";
 
 const iconsStyle = ({ palette: { dark, white, text }, functions: { rgba } }) => ({
   color: () => {
@@ -210,6 +238,24 @@ const Status = ({ repairStatus }) => {
               color: "#000",
               backgroundColor: "green",
               background: "linear-gradient(195deg, #329858, #00FF60)",
+            },
+          }}
+          size="sm"
+          bg=""
+        />
+      </MDBox>
+    );
+  }
+  if (repairStatus == 997) {
+    return (
+      <MDBox ml={-1}>
+        <MDBadge
+          badgeContent="Cancelled - Return to Customer"
+          sx={{
+            "& .MuiBadge-badge": {
+              color: "#fff",
+              backgroundColor: "green",
+              background: "linear-gradient(195deg, #984742, #FB0F00)",
             },
           }}
           size="sm"
@@ -511,6 +557,61 @@ const ChecklistQuestion = ({ question, answerObj, canEdit, onSave, id }) => {
   );
 };
 
+const modalStyle = {
+  position: "absolute",
+  top: "50%",
+  left: "50%",
+  transform: "translate(-50%, -50%)",
+  width: "80%",
+  maxHeight: "90vh",
+  overflowY: "auto",
+  bgcolor: "background.paper",
+  border: "2px solid #000",
+  boxShadow: 24,
+  p: 4,
+  borderRadius: "25px",
+};
+
+const getYoutubeEmbedUrl = (url) => {
+  if (!url) return "";
+  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+  const match = url.match(regExp);
+  return match && match[2].length === 11 ? `https://www.youtube.com/embed/${match[2]}` : null;
+};
+
+const GuideDetail = ({ data }) => {
+  return (
+    <MDBox p={3} bgcolor="#f8f9fa">
+      {data.type === "video" || data.videoUrl ? (
+        <MDBox
+          component="iframe"
+          src={getYoutubeEmbedUrl(data.videoUrl)}
+          width="100%"
+          height="400px"
+          frameBorder="0"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+          sx={{ borderRadius: "8px" }}
+        />
+      ) : (
+        <MDBox sx={{ border: "1px solid #eee", borderRadius: "8px", p: 2, bgcolor: "white" }}>
+          <RichTextReadOnly
+            content={data.content}
+            extensions={[
+              StarterKit,
+              Link,
+              Table.configure({ resizable: true }),
+              TableRow,
+              TableHeader,
+              TableCell,
+            ]}
+          />
+        </MDBox>
+      )}
+    </MDBox>
+  );
+};
+
 // eslint-disable-next-line react/prop-types
 const RepairDetails = () => {
   const { setSnackBar, setShowLoad } = globalFuncs();
@@ -541,6 +642,40 @@ const RepairDetails = () => {
   const [partName, setPartName] = useState();
   const [newMinutes, setnewMinutes] = useState();
   const [questions, setQuestions] = useState([]);
+
+  const [showGuidesModal, setShowGuidesModal] = useState(false);
+  const [guides, setGuides] = useState([]);
+  const [showAddGuideModal, setShowAddGuideModal] = useState(false);
+  const [newGuide, setNewGuide] = useState({
+    title: "",
+    type: "text",
+    content: "",
+    videoUrl: "",
+    tags: [],
+  });
+  const [guideSearchText, setGuideSearchText] = useState("");
+  const [guideTypeFilter, setGuideTypeFilter] = useState("all");
+  const [guideTagFilter, setGuideTagFilter] = useState("All");
+  const [showViewGuideModal, setShowViewGuideModal] = useState(false);
+  const [selectedGuide, setSelectedGuide] = useState(null);
+
+  const editor = useEditor({
+    extensions: [
+      StarterKit,
+      Link,
+      Table.configure({
+        resizable: true,
+      }),
+      TableRow,
+      TableHeader,
+      TableCell,
+    ],
+    content: newGuide.content,
+    onUpdate: ({ editor }) => {
+      setNewGuide((prev) => ({ ...prev, content: editor.getHTML() }));
+    },
+  });
+
   const getRepair = async () => {
     setShowLoad(true);
     createInvoice();
@@ -900,6 +1035,126 @@ const RepairDetails = () => {
     }
   };
 
+  const fetchGuides = async (showLoader = true) => {
+    if (showLoader) setShowLoad(true);
+    try {
+      if (!repairDetails?.pev?._id) return;
+      const response = await fetch(
+        `${vars.serverUrl}/repairGuides/model/${repairDetails.pev._id}`,
+        {
+          credentials: "include",
+        }
+      );
+      const res = await response.json();
+      if (res.res === 200) {
+        setGuides(res.data);
+      } else {
+        setGuides([]);
+      }
+    } catch (error) {
+      console.error(error);
+      setGuides([]);
+    }
+    if (showLoader) setShowLoad(false);
+  };
+
+  const handleOpenGuides = async () => {
+    await fetchGuides();
+    setGuideSearchText("");
+    setGuideTypeFilter("all");
+    setGuideTagFilter("All");
+    setShowGuidesModal(true);
+  };
+
+  const handleAddGuide = () => {
+    setNewGuide({ title: "", type: "text", content: "", videoUrl: "", tags: [] });
+    setShowAddGuideModal(true);
+  };
+
+  const handleSaveGuide = async () => {
+    if (!newGuide.title || (!newGuide.content && !newGuide.videoUrl)) {
+      setSnackBar({
+        type: "error",
+        title: "Error",
+        message: "Please fill in title and content/url",
+        show: true,
+        icon: "warning",
+      });
+      return;
+    }
+
+    setShowLoad(true);
+    try {
+      const payload = {
+        ...newGuide,
+        pev: repairDetails.pev._id,
+      };
+      const response = await fetch(`${vars.serverUrl}/repairGuides/create`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+        credentials: "include",
+      });
+      const res = await response.json();
+      if (res.res === 200) {
+        setSnackBar({
+          type: "success",
+          title: "Success",
+          message: "Guide added successfully",
+          show: true,
+          icon: "check",
+        });
+        setShowAddGuideModal(false);
+        setNewGuide({ title: "", type: "text", content: "", videoUrl: "", tags: [] });
+        fetchGuides();
+      } else {
+        setSnackBar({
+          type: "error",
+          title: "Error",
+          message: "Failed to add guide",
+          show: true,
+          icon: "warning",
+        });
+      }
+    } catch (e) {
+      console.error(e);
+      setSnackBar({
+        type: "error",
+        title: "Error",
+        message: "Server error",
+        show: true,
+        icon: "warning",
+      });
+    }
+    setShowLoad(false);
+  };
+
+  useEffect(() => {
+    if (showAddGuideModal && editor) {
+      editor.commands.setContent(newGuide.content);
+    }
+  }, [showAddGuideModal, editor]);
+
+  useEffect(() => {
+    if (repairDetails?.pev?._id) {
+      fetchGuides(false);
+    }
+  }, [repairDetails?.pev?._id]);
+
+  const filteredGuides = guides.filter((guide) => {
+    const matchesSearch = guide.title.toLowerCase().includes(guideSearchText.toLowerCase());
+    const effectiveType = guide.type === "video" || guide.videoUrl ? "video" : "text";
+    const matchesType = guideTypeFilter === "all" || effectiveType === guideTypeFilter;
+    const matchesTag =
+      guideTagFilter === "All" || (guide.tags && guide.tags.includes(guideTagFilter));
+    return matchesSearch && matchesType && matchesTag;
+  });
+
+  const handleViewGuide = (guide) => {
+    setSelectedGuide(guide);
+    setShowViewGuideModal(true);
+  };
+
   const { showUploadFunc, addPhotoModal, setRepairId } = AddPhotos({
     getRepair,
   });
@@ -912,6 +1167,54 @@ const RepairDetails = () => {
     getQuestions();
     createInvoice();
   }, [id]);
+
+  const guidesColumns = [
+    {
+      name: "Type",
+      selector: (row) => row.type,
+      width: "100px",
+      sortable: true,
+      cell: (row) => (
+        <MDBox
+          display="flex"
+          alignItems="center"
+          onClick={() => handleViewGuide(row)}
+          sx={{ cursor: "pointer", width: "100%" }}
+        >
+          <Icon fontSize="medium" color={row.type === "video" || row.videoUrl ? "error" : "info"}>
+            {row.type === "video" || row.videoUrl ? "play_circle_filled" : "description"}
+          </Icon>
+          <MDTypography variant="caption" ml={1} fontWeight="medium">
+            {row.type === "video" || row.videoUrl ? "Video" : "Text"}
+          </MDTypography>
+        </MDBox>
+      ),
+    },
+    {
+      name: "Tags",
+      selector: (row) => (row.tags ? row.tags.join(", ") : ""),
+      sortable: false,
+      cell: (row) =>
+        row.tags && row.tags.length > 0 ? (
+          <MDBox display="flex" gap={0.5} flexWrap="wrap">
+            {row.tags.map((tag) => (
+              <Chip key={tag} label={tag} size="small" variant="outlined" />
+            ))}
+          </MDBox>
+        ) : null,
+    },
+    {
+      name: "Added By",
+      selector: (row) => row.createdBy?.name || row.createdBy || "Unknown",
+      sortable: true,
+    },
+    {
+      name: "Date Added",
+      selector: (row) => row.createdAt,
+      sortable: true,
+      format: (row) => new Date(row.createdAt).toLocaleDateString(),
+    },
+  ];
 
   if (loading) {
     return (
@@ -1028,9 +1331,19 @@ const RepairDetails = () => {
                     </Grid>
                   </MDBox>
                   <MDBox mx={2} py={3} px={2}>
-                    <MDTypography variant="body1">
-                      {repairDetails.pev.Brand.name} {repairDetails.pev.Model}
-                    </MDTypography>
+                    <MDBox display="flex" alignItems="center">
+                      <MDTypography variant="body1">
+                        {repairDetails.pev.Brand.name} {repairDetails.pev.Model}
+                      </MDTypography>
+                      <MDButton
+                        variant="text"
+                        color="info"
+                        onClick={handleOpenGuides}
+                        sx={{ ml: 2 }}
+                      >
+                        <Icon>menu_book</Icon>&nbsp;Troubleshooting & Guides ({guides.length})
+                      </MDButton>
+                    </MDBox>
                     <MDTypography variant="body1">Repair Type:</MDTypography>
                     <MDTypography variant="body2">
                       {repairDetails.RepairType.map((type) => {
@@ -1458,6 +1771,225 @@ const RepairDetails = () => {
         openState={confirmOpen.removeOrderedPart}
         closeState={() => toggleconfirmOpen({ ...confirmOpen, removeOrderedPart: false })}
       />
+
+      {/* Guides List Modal */}
+      <Modal
+        open={showGuidesModal}
+        onClose={() => setShowGuidesModal(false)}
+        aria-labelledby="guides-modal-title"
+      >
+        <MDBox sx={modalStyle}>
+          <Grid container justifyContent="space-between" alignItems="center" mb={2}>
+            <MDTypography id="guides-modal-title" variant="h5" component="h2">
+              Guides for {repairDetails.pev?.Brand?.name} {repairDetails.pev?.Model}
+            </MDTypography>
+            <MDButton
+              variant="contained"
+              color="success"
+              onClick={handleAddGuide}
+              startIcon={<Icon>add</Icon>}
+            >
+              Add Guide
+            </MDButton>
+          </Grid>
+
+          <MDBox mb={2} display="flex" gap={2}>
+            <TextField
+              label="Search Guides"
+              variant="outlined"
+              fullWidth
+              value={guideSearchText}
+              onChange={(e) => setGuideSearchText(e.target.value)}
+            />
+            <FormControl sx={{ minWidth: 150 }}>
+              <InputLabel>Type</InputLabel>
+              <Select
+                value={guideTypeFilter}
+                label="Type"
+                onChange={(e) => setGuideTypeFilter(e.target.value)}
+                sx={{ height: "44px" }}
+              >
+                <MenuItem value="all">All</MenuItem>
+                <MenuItem value="text">Text</MenuItem>
+                <MenuItem value="video">Video</MenuItem>
+              </Select>
+            </FormControl>
+            <FormControl sx={{ minWidth: 150 }}>
+              <InputLabel>Tag</InputLabel>
+              <Select
+                value={guideTagFilter}
+                label="Tag"
+                onChange={(e) => setGuideTagFilter(e.target.value)}
+                sx={{ height: "44px" }}
+              >
+                <MenuItem value="All">All Tags</MenuItem>
+                <MenuItem value="Troubleshooting">Troubleshooting</MenuItem>
+                <MenuItem value="Guide">Guide</MenuItem>
+              </Select>
+            </FormControl>
+          </MDBox>
+
+          <MDBox mt={2}>
+            {guides.length === 0 ? (
+              <MDTypography>No guides available for this model.</MDTypography>
+            ) : (
+              <DataTable
+                columns={guidesColumns}
+                data={filteredGuides}
+                pagination
+                onRowClicked={handleViewGuide}
+                pointerOnHover
+                highlightOnHover
+              />
+            )}
+          </MDBox>
+          <MDBox mt={3} display="flex" justifyContent="flex-end">
+            <MDButton color="secondary" onClick={() => setShowGuidesModal(false)}>
+              Close
+            </MDButton>
+          </MDBox>
+        </MDBox>
+      </Modal>
+
+      {/* View Guide Modal */}
+      <Modal
+        open={showViewGuideModal}
+        onClose={() => setShowViewGuideModal(false)}
+        aria-labelledby="view-guide-modal-title"
+      >
+        <MDBox sx={modalStyle}>
+          <Grid container justifyContent="space-between" alignItems="center" mb={2}>
+            <MDTypography id="view-guide-modal-title" variant="h5" component="h2">
+              {selectedGuide?.title}
+            </MDTypography>
+            <IconButton onClick={() => setShowViewGuideModal(false)}>
+              <Icon>close</Icon>
+            </IconButton>
+          </Grid>
+          <MDBox sx={{ maxHeight: "70vh", overflowY: "auto" }}>
+            {selectedGuide && <GuideDetail data={selectedGuide} />}
+          </MDBox>
+          <MDBox mt={3} display="flex" justifyContent="flex-end">
+            <MDButton color="secondary" onClick={() => setShowViewGuideModal(false)}>
+              Close
+            </MDButton>
+          </MDBox>
+        </MDBox>
+      </Modal>
+
+      {/* Add Guide Modal */}
+      <Dialog
+        open={showAddGuideModal}
+        onClose={() => setShowAddGuideModal(false)}
+        fullWidth
+        maxWidth="md"
+      >
+        <DialogTitle>Add New Guide</DialogTitle>
+        <DialogContent>
+          <Grid container spacing={2} mt={1}>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Guide Title"
+                value={newGuide.title}
+                onChange={(e) => setNewGuide({ ...newGuide, title: e.target.value })}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <FormControl fullWidth>
+                <InputLabel>Tags</InputLabel>
+                <Select
+                  multiple
+                  value={newGuide.tags}
+                  onChange={(e) =>
+                    setNewGuide({
+                      ...newGuide,
+                      tags:
+                        typeof e.target.value === "string"
+                          ? e.target.value.split(",")
+                          : e.target.value,
+                    })
+                  }
+                  input={<OutlinedInput label="Tags" />}
+                  renderValue={(selected) => (
+                    <MDBox sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
+                      {selected.map((value) => (
+                        <Chip key={value} label={value} size="small" />
+                      ))}
+                    </MDBox>
+                  )}
+                >
+                  <MenuItem value="Troubleshooting">Troubleshooting</MenuItem>
+                  <MenuItem value="Guide">Guide</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12}>
+              <FormControl fullWidth>
+                <InputLabel>Type</InputLabel>
+                <Select
+                  value={newGuide.type}
+                  label="Type"
+                  onChange={(e) => setNewGuide({ ...newGuide, type: e.target.value })}
+                  sx={{ height: "44px" }}
+                >
+                  <MenuItem value="text">Text / Rich Content</MenuItem>
+                  <MenuItem value="video">Video (YouTube)</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+            {newGuide.type === "video" ? (
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="YouTube URL"
+                  value={newGuide.videoUrl}
+                  onChange={(e) => setNewGuide({ ...newGuide, videoUrl: e.target.value })}
+                  helperText="e.g. https://www.youtube.com/watch?v=..."
+                />
+              </Grid>
+            ) : (
+              <Grid item xs={12}>
+                <MDBox>
+                  {editor && (
+                    <RichTextEditorProvider editor={editor}>
+                      <RichTextField
+                        controls={
+                          <MenuControlsContainer>
+                            <MenuSelectHeading />
+                            <MenuDivider />
+                            <MenuButtonBold />
+                            <MenuButtonItalic />
+                            <MenuDivider />
+                            <MenuButtonOrderedList />
+                            <MenuButtonBulletedList />
+                            <MenuDivider />
+                            <MenuButtonEditLink />
+                            <MenuDivider />
+                            <MenuButtonAddTable />
+                            <MenuDivider />
+                            <MenuButtonUndo />
+                            <MenuButtonRedo />
+                          </MenuControlsContainer>
+                        }
+                      />
+                    </RichTextEditorProvider>
+                  )}
+                </MDBox>
+              </Grid>
+            )}
+          </Grid>
+        </DialogContent>
+        <DialogActions>
+          <MDButton onClick={() => setShowAddGuideModal(false)} color="secondary">
+            Cancel
+          </MDButton>
+          <MDButton onClick={handleSaveGuide} color="success">
+            Save Guide
+          </MDButton>
+        </DialogActions>
+      </Dialog>
+
       <Footer />
     </DashboardLayout>
   );

@@ -1,5 +1,5 @@
 const webpack = require("webpack");
-const NodePolyfillPlugin = require("node-polyfill-webpack-plugin");
+// const NodePolyfillPlugin = require("node-polyfill-webpack-plugin");
 
 module.exports = {
   webpack: {
@@ -7,6 +7,7 @@ module.exports = {
       add: [
         new webpack.ProvidePlugin({
           process: "process/browser.js",
+          Buffer: ["buffer", "Buffer"],
         }),
         new webpack.DefinePlugin({
           "process.env.NODE_ENV": JSON.stringify(process.env.NODE_ENV),
@@ -15,7 +16,7 @@ module.exports = {
     },
     configure: (webpackConfig) => {
       // Example: Add a custom loader
-      webpackConfig.plugins.push(new NodePolyfillPlugin());
+      // webpackConfig.plugins.push(new NodePolyfillPlugin());
       // webpackConfig.plugins.push(
       //   new webpackConfig.ProvidePlugin({
       //     process: "process/browser",
@@ -32,7 +33,7 @@ module.exports = {
         stream: require.resolve("stream-browserify"),
         assert: require.resolve("assert"),
         buffer: require.resolve("buffer"),
-        process: require.resolve("process"),
+        process: require.resolve("process/browser.js"),
       };
       return webpackConfig;
     },

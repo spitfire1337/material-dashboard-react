@@ -31,6 +31,7 @@ import Icon from "@mui/material/Icon";
 
 // Material Dashboard 2 React components
 import MDBox from "components/MDBox";
+import RepairTracker from "layouts/repairTracker";
 
 // Material Dashboard 2 React example components
 import Sidenav from "examples/Sidenav";
@@ -434,6 +435,17 @@ export default function App() {
     </MDBox>
   );
 
+  if (pathname.startsWith("/tracker")) {
+    return (
+      <ThemeProvider theme={darkMode ? themeDark : theme}>
+        <CssBaseline />
+        <Routes>
+          <Route path="/tracker/:repairId" element={<RepairTracker />} />
+        </Routes>
+      </ThemeProvider>
+    );
+  }
+
   const myScanner = (
     <Modal
       open={showVideoFeed}
@@ -519,7 +531,6 @@ export default function App() {
                 doSearch={doSearch}
               />
               <Configurator />
-              {configsButton}
             </>
           )}
           {layout === "vr" && <Configurator />}
@@ -554,7 +565,6 @@ export default function App() {
             {renderSuccessSB}
             {renderErrorSB}
             {renderWhatsNew}
-            {configsButton}
           </>
         )}
         {layout === "vr" && <Configurator />}

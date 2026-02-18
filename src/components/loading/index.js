@@ -1,5 +1,5 @@
 import BasicLayout from "../../layouts/authentication/components/BasicLayout";
-import bgImage from "../../assets/images/bg-sign-in-basic.jpeg";
+import bgImage from "../../assets/images/pe";
 import MDBox from "../MDBox";
 import CircularProgress from "@mui/material/CircularProgress";
 import Card from "@mui/material/Card";

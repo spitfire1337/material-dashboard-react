@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import Footer from "examples/Footer";
@@ -43,6 +44,7 @@ const style = {
 
 function Checklist() {
   const { setSnackBar, setShowLoad } = globalFuncs();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [questions, setQuestions] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [newQuestion, setNewQuestion] = useState({
@@ -300,6 +302,26 @@ function Checklist() {
   useEffect(() => {
     getQuestions();
   }, []);
+
+  useEffect(() => {
+    if (searchParams.get("action") === "add") {
+      setNewQuestion({
+        question: { required: true, text: "" },
+        repairType: filterRepairType || "",
+        deviceType: filterDeviceType || "",
+        isActive: true,
+        answerType: "",
+        selectOptions: [],
+        checklistType: filterChecklistType || "",
+        sequence: 1,
+      });
+      setShowModal(true);
+      setSearchParams((params) => {
+        params.delete("action");
+        return params;
+      });
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     if (

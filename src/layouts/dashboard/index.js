@@ -31,6 +31,7 @@ import ComplexStatisticsCard from "examples/Cards/StatisticsCards/ComplexStatist
 
 // Dashboard components
 import OrdersOverview from "layouts/dashboard/components/OrdersOverview";
+import QuickActions from "layouts/dashboard/components/QuickActions";
 import { useNavigate } from "react-router-dom";
 
 // eslint-disable-next-line react/prop-types
@@ -59,6 +60,13 @@ function Dashboard({ stats }) {
     <DashboardLayout>
       <DashboardNavbar />
       <MDBox py={3}>
+        <MDBox mb={3}>
+          <Grid container spacing={3}>
+            <Grid item xs={12}>
+              <QuickActions />
+            </Grid>
+          </Grid>
+        </MDBox>
         <Grid container spacing={3}>
           {loginState.user.isAdmin ? (
             <Grid item xs={12} md={6} lg={3}>
