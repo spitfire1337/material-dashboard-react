@@ -53,6 +53,7 @@ import Checklist from "layouts/checklist";
 import PartsOnOrder from "layouts/partsOnOrder";
 import RepairGuides from "layouts/repairGuides";
 import ActiveRepairs from "layouts/activeRepairs";
+import Techs from "layouts/techs";
 // @mui icons
 import RepairReport from "layouts/reports/RepairReport";
 import SalesTrends from "layouts/reports/SalesTrends";
@@ -295,6 +296,15 @@ const devRoutes = (stats) => {
         },
         {
           type: "collapse",
+          name: "Manage Techs",
+          noCollapse: true,
+          key: "techs",
+          icon: <Icon fontSize="small">people</Icon>,
+          route: "/techs",
+          component: <Techs />,
+        },
+        {
+          type: "collapse",
           name: "PEV Database",
           key: "pevs",
           route: "/pevDB",
@@ -519,6 +529,15 @@ const adminRoutes = (stats) => {
           icon: <Icon fontSize="small">checklist</Icon>,
           route: "/checklist",
           component: <Checklist />,
+        },
+        {
+          type: "collapse",
+          name: "Manage Techs",
+          noCollapse: true,
+          key: "techs",
+          icon: <Icon fontSize="small">people</Icon>,
+          route: "/techs",
+          component: <Techs />,
         },
         {
           type: "collapse",
