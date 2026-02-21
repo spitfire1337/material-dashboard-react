@@ -1,0 +1,294 @@
+import { useState, useEffect } from "react";
+import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
+import DashboardNavbar from "examples/Navbars/DashboardNavbar";
+import Footer from "examples/Footer";
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  Icon,
+  IconButton,
+  Card,
+  Grid,
+  TextField,
+} from "@mui/material";
+import MDBox from "components/MDBox";
+import MDTypography from "components/MDTypography";
+import MDButton from "components/MDButton";
+import DataTable from "react-data-table-component";
+import { useSocket } from "context/socket";
+import { globalFuncs } from "../../context/global";
+import vars from "../../config";
+import dayjs from "dayjs";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+
+const CallHistoryReport = () => {
+  const socket = useSocket();
+  const { setSnackBar, setShowLoad } = globalFuncs();
+  const [calls, setCalls] = useState([]);
+  const [audioSrc, setAudioSrc] = useState(null);
+  const [openPlayer, setOpenPlayer] = useState(false);
+  const [startDate, setStartDate] = useState(dayjs().subtract(7, "day").toDate());
+  const [endDate, setEndDate] = useState(new Date());
+
+  const getCalls = () => {
+    if (socket) {
+      setShowLoad(true);
+      socket.emit("getCallHistory", { startDate: startDate, endDate: endDate }, (res) => {
+        if (res.res === 200) {
+          setCalls(res.data);
+        } else {
+          setSnackBar({
+            type: "error",
+            message: "Failed to load call history",
+            show: true,
+            icon: "warning",
+          });
+        }
+        setShowLoad(false);
+      });
+    }
+  };
+
+  useEffect(() => {
+    if (socket) {
+      getCalls();
+    }
+  }, [socket]);
+
+  const handlePlay = (url) => {
+    if (url && !url.startsWith("http") && !url.startsWith("//")) {
+      setAudioSrc(`${vars.serverUrl}${url}`);
+    } else {
+      setAudioSrc(url);
+    }
+    setOpenPlayer(true);
+  };
+
+  const handleClosePlayer = () => {
+    setOpenPlayer(false);
+    setAudioSrc(null);
+  };
+
+  const setDateRange = (range) => {
+    const today = dayjs();
+    let start, end;
+    switch (range) {
+      case "today":
+        start = today.startOf("day").toDate();
+        end = today.endOf("day").toDate();
+        break;
+      case "yesterday":
+        start = today.subtract(1, "day").startOf("day").toDate();
+        end = today.subtract(1, "day").endOf("day").toDate();
+        break;
+      case "last7":
+        start = today.subtract(7, "day").startOf("day").toDate();
+        end = today.endOf("day").toDate();
+        break;
+      case "last30":
+        start = today.subtract(30, "day").startOf("day").toDate();
+        end = today.endOf("day").toDate();
+        break;
+      case "thisMonth":
+        start = today.startOf("month").toDate();
+        end = today.endOf("month").toDate();
+        break;
+      case "lastMonth":
+        start = today.subtract(1, "month").startOf("month").toDate();
+        end = today.subtract(1, "month").endOf("month").toDate();
+        break;
+      default:
+        return;
+    }
+    setStartDate(start);
+    setEndDate(end);
+  };
+
+  const columns = [
+    {
+      name: "Date",
+      selector: (row) => row.timestamp,
+      format: (row) => dayjs(row.timestamp).format("MM/DD/YYYY HH:mm"),
+      sortable: true,
+    },
+    {
+      name: "From",
+      selector: (row) =>
+        row.caller_customer != null
+          ? `${row.caller_id} (${row.caller_customer.given_name} ${row.caller_customer.family_name}`
+          : row.caller_id,
+      sortable: true,
+    },
+    {
+      name: "To",
+      selector: (row) =>
+        row.destination_customer != null
+          ? `${row.destination} (${row.destination_customer.given_name} ${row.destination_customer.family_name})`
+          : row.destination,
+      sortable: true,
+    },
+    {
+      name: "Duration",
+      selector: (row) => row.duration_seconds,
+      format: (row) => {
+        const totalSeconds = parseInt(row.duration_seconds || 0, 10);
+        if (!totalSeconds) return "0s";
+        const hours = Math.floor(totalSeconds / 3600);
+        const minutes = Math.floor((totalSeconds % 3600) / 60);
+        const seconds = totalSeconds % 60;
+        let result = "";
+        if (hours > 0) result += `${hours}h `;
+        if (minutes > 0 || hours > 0) result += `${minutes}m `;
+        result += `${seconds}s`;
+        return result;
+      },
+      sortable: true,
+    },
+    {
+      name: "Recording",
+      cell: (row) =>
+        row.filename ? (
+          <IconButton
+            onClick={() =>
+              handlePlay(
+                `https://api.pevconnection.com/asterisk/recordings/${encodeURIComponent(
+                  row.filename
+                )}`
+              )
+            }
+            color="info"
+          >
+            <Icon>play_circle</Icon>
+          </IconButton>
+        ) : (
+          "N/A"
+        ),
+      ignoreRowClick: true,
+      allowOverflow: true,
+      button: true,
+    },
+  ];
+
+  return (
+    <DashboardLayout>
+      <DashboardNavbar />
+      <MDBox pt={6} pb={3}>
+        <Grid container spacing={6}>
+          <Grid item xs={12}>
+            <Card>
+              <MDBox
+                mx={2}
+                mt={-3}
+                py={3}
+                px={2}
+                variant="gradient"
+                bgColor="info"
+                borderRadius="lg"
+                coloredShadow="info"
+              >
+                <MDTypography variant="h6" color="white">
+                  Call History Report
+                </MDTypography>
+              </MDBox>
+              <MDBox p={3}>
+                <Grid container spacing={2} alignItems="center" mb={3}>
+                  <Grid item>
+                    <MDButton
+                      variant="outlined"
+                      color="info"
+                      size="small"
+                      onClick={() => setDateRange("today")}
+                    >
+                      Today
+                    </MDButton>
+                  </Grid>
+                  <Grid item>
+                    <MDButton
+                      variant="outlined"
+                      color="info"
+                      size="small"
+                      onClick={() => setDateRange("yesterday")}
+                    >
+                      Yesterday
+                    </MDButton>
+                  </Grid>
+                  <Grid item>
+                    <MDButton
+                      variant="outlined"
+                      color="info"
+                      size="small"
+                      onClick={() => setDateRange("last7")}
+                    >
+                      Last 7 Days
+                    </MDButton>
+                  </Grid>
+                  <Grid item>
+                    <MDButton
+                      variant="outlined"
+                      color="info"
+                      size="small"
+                      onClick={() => setDateRange("thisMonth")}
+                    >
+                      This Month
+                    </MDButton>
+                  </Grid>
+                  <Grid item>
+                    <MDButton
+                      variant="outlined"
+                      color="info"
+                      size="small"
+                      onClick={() => setDateRange("lastMonth")}
+                    >
+                      Last Month
+                    </MDButton>
+                  </Grid>
+                  <Grid item>
+                    <DatePicker
+                      selected={startDate}
+                      onChange={(date) => setStartDate(date)}
+                      customInput={<TextField size="small" label="Start Date" />}
+                    />
+                  </Grid>
+                  <Grid item>
+                    <DatePicker
+                      selected={endDate}
+                      onChange={(date) => setEndDate(date)}
+                      customInput={<TextField size="small" label="End Date" />}
+                    />
+                  </Grid>
+                  <Grid item>
+                    <MDButton variant="gradient" color="info" size="small" onClick={getCalls}>
+                      Filter
+                    </MDButton>
+                  </Grid>
+                </Grid>
+                <DataTable columns={columns} data={calls} pagination persistTableHead noHeader />
+              </MDBox>
+            </Card>
+          </Grid>
+        </Grid>
+
+        <Dialog open={openPlayer} onClose={handleClosePlayer} maxWidth="sm" fullWidth>
+          <DialogTitle>
+            <MDBox display="flex" justifyContent="space-between" alignItems="center">
+              Call Recording
+              <IconButton onClick={handleClosePlayer}>
+                <Icon>close</Icon>
+              </IconButton>
+            </MDBox>
+          </DialogTitle>
+          <DialogContent>
+            <MDBox display="flex" justifyContent="center" p={2}>
+              {audioSrc && <audio controls src={audioSrc} autoPlay style={{ width: "100%" }} />}
+            </MDBox>
+          </DialogContent>
+        </Dialog>
+      </MDBox>
+      <Footer />
+    </DashboardLayout>
+  );
+};
+
+export default CallHistoryReport;

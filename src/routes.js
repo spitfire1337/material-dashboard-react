@@ -53,6 +53,7 @@ import Checklist from "layouts/checklist";
 import PartsOnOrder from "layouts/partsOnOrder";
 import RepairGuides from "layouts/repairGuides";
 import ActiveRepairs from "layouts/activeRepairs";
+import CallHistoryReport from "layouts/reports/CallHistory";
 import Techs from "layouts/techs";
 // @mui icons
 import RepairReport from "layouts/reports/RepairReport";
@@ -251,6 +252,15 @@ const devRoutes = (stats) => {
               component: <RevenueByDevice />,
             },
           ],
+        },
+        {
+          type: "collapse",
+          noCollapse: true,
+          name: "Call History",
+          key: "callHistory",
+          route: "/reports/call-history",
+          component: <CallHistoryReport />,
+          icon: <Icon fontSize="small">call</Icon>,
         },
       ],
     },
@@ -492,6 +502,15 @@ const adminRoutes = (stats) => {
               icon: <Icon fontSize="small">show_chart</Icon>,
             },
           ],
+        },
+        {
+          type: "collapse",
+          noCollapse: true,
+          name: "Call History",
+          key: "callHistory",
+          route: "/reports/call-history",
+          component: <CallHistoryReport />,
+          icon: <Icon fontSize="small">call</Icon>,
         },
       ],
     },
