@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import Footer from "examples/Footer";
@@ -11,6 +11,11 @@ import {
   Card,
   Grid,
   TextField,
+  Tooltip,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  Select,
 } from "@mui/material";
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
@@ -31,11 +36,15 @@ const CallHistoryReport = () => {
   const [openPlayer, setOpenPlayer] = useState(false);
   const [startDate, setStartDate] = useState(dayjs().subtract(7, "day").toDate());
   const [endDate, setEndDate] = useState(new Date());
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterType, setFilterType] = useState("ALL");
 
-  const getCalls = () => {
+  const getCalls = (start = undefined, end = undefined) => {
     if (socket) {
+      const startD = start != undefined ? start : startDate;
+      const endD = end != undefined ? end : endDate;
       setShowLoad(true);
-      socket.emit("getCallHistory", { startDate: startDate, endDate: endDate }, (res) => {
+      socket.emit("getCallHistory", { startDate: startD, endDate: endD }, (res) => {
         if (res.res === 200) {
           setCalls(res.data);
         } else {
@@ -102,11 +111,44 @@ const CallHistoryReport = () => {
       default:
         return;
     }
+    getCalls(start, end);
     setStartDate(start);
     setEndDate(end);
   };
 
+  const filteredCalls = useMemo(() => {
+    return calls.filter((call) => {
+      const matchesType = filterType === "ALL" || call.type === filterType;
+      const searchLower = searchTerm.toLowerCase();
+      const callerName = call.caller_customer
+        ? `${call.caller_customer.given_name} ${call.caller_customer.family_name}`.toLowerCase()
+        : "";
+      const destName = call.destination_customer
+        ? `${call.destination_customer.given_name} ${call.destination_customer.family_name}`.toLowerCase()
+        : "";
+      const matchesSearch =
+        (call.caller_id && call.caller_id.toLowerCase().includes(searchLower)) ||
+        (call.destination && call.destination.toLowerCase().includes(searchLower)) ||
+        callerName.includes(searchLower) ||
+        destName.includes(searchLower);
+      return matchesType && matchesSearch;
+    });
+  }, [calls, searchTerm, filterType]);
+
   const columns = [
+    {
+      name: "Type",
+      selector: (row) => row.type,
+      sortable: true,
+      width: "80px",
+      cell: (row) => (
+        <Tooltip title={row.type === "IN" ? "Incoming" : "Outgoing"}>
+          <Icon color={row.type === "IN" ? "success" : "info"}>
+            {row.type === "IN" ? "call_received" : "call_made"}
+          </Icon>
+        </Tooltip>
+      ),
+    },
     {
       name: "Date",
       selector: (row) => row.timestamp,
@@ -175,96 +217,120 @@ const CallHistoryReport = () => {
     <DashboardLayout>
       <DashboardNavbar />
       <MDBox pt={6} pb={3}>
-        <Grid container spacing={6}>
+        <Grid container spacing={3}>
           <Grid item xs={12}>
             <Card>
-              <MDBox
-                mx={2}
-                mt={-3}
-                py={3}
-                px={2}
-                variant="gradient"
-                bgColor="info"
-                borderRadius="lg"
-                coloredShadow="info"
-              >
-                <MDTypography variant="h6" color="white">
-                  Call History Report
-                </MDTypography>
-              </MDBox>
               <MDBox p={3}>
-                <Grid container spacing={2} alignItems="center" mb={3}>
-                  <Grid item>
+                <MDTypography variant="h6" gutterBottom>
+                  Filters
+                </MDTypography>
+                <Grid container spacing={2} alignItems="center">
+                  <Grid item xs={12} md={3}>
+                    <DatePicker
+                      selected={startDate}
+                      onChange={(date) => setStartDate(date)}
+                      customInput={<TextField fullWidth label="Start Date" />}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={3}>
+                    <DatePicker
+                      selected={endDate}
+                      onChange={(date) => setEndDate(date)}
+                      customInput={<TextField fullWidth label="End Date" />}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={2}>
+                    <MDButton fullWidth variant="contained" color="info" onClick={() => getCalls()}>
+                      Filter
+                    </MDButton>
+                  </Grid>
+                  <Grid item xs={12} md={2}>
+                    <TextField
+                      fullWidth
+                      label="Search"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={2}>
+                    <FormControl fullWidth size="small">
+                      <InputLabel>Type</InputLabel>
+                      <Select
+                        value={filterType}
+                        label="Type"
+                        onChange={(e) => setFilterType(e.target.value)}
+                        sx={{ height: "43px" }}
+                      >
+                        <MenuItem value="ALL">All</MenuItem>
+                        <MenuItem value="IN">Incoming</MenuItem>
+                        <MenuItem value="OUT">Outgoing</MenuItem>
+                      </Select>
+                    </FormControl>
+                  </Grid>
+
+                  <Grid item xs={12} md={2}>
                     <MDButton
                       variant="outlined"
                       color="info"
-                      size="small"
-                      onClick={() => setDateRange("today")}
+                      onClick={() => {
+                        setDateRange("today");
+                      }}
                     >
                       Today
                     </MDButton>
                   </Grid>
-                  <Grid item>
+                  <Grid item xs={12} md={2}>
                     <MDButton
                       variant="outlined"
                       color="info"
-                      size="small"
-                      onClick={() => setDateRange("yesterday")}
+                      onClick={() => {
+                        setDateRange("yesterday");
+                      }}
                     >
                       Yesterday
                     </MDButton>
                   </Grid>
-                  <Grid item>
-                    <MDButton
-                      variant="outlined"
-                      color="info"
-                      size="small"
-                      onClick={() => setDateRange("last7")}
-                    >
+                  <Grid item xs={12} md={2}>
+                    <MDButton variant="outlined" color="info" onClick={() => setDateRange("last7")}>
                       Last 7 Days
                     </MDButton>
                   </Grid>
-                  <Grid item>
+                  <Grid item xs={12} md={2}>
                     <MDButton
                       variant="outlined"
                       color="info"
-                      size="small"
-                      onClick={() => setDateRange("thisMonth")}
+                      onClick={() => {
+                        setDateRange("thisMonth");
+                      }}
                     >
                       This Month
                     </MDButton>
                   </Grid>
-                  <Grid item>
+                  <Grid item xs={12} md={2}>
                     <MDButton
                       variant="outlined"
                       color="info"
-                      size="small"
-                      onClick={() => setDateRange("lastMonth")}
+                      onClick={() => {
+                        setDateRange("lastMonth");
+                      }}
                     >
                       Last Month
                     </MDButton>
                   </Grid>
-                  <Grid item>
-                    <DatePicker
-                      selected={startDate}
-                      onChange={(date) => setStartDate(date)}
-                      customInput={<TextField size="small" label="Start Date" />}
-                    />
-                  </Grid>
-                  <Grid item>
-                    <DatePicker
-                      selected={endDate}
-                      onChange={(date) => setEndDate(date)}
-                      customInput={<TextField size="small" label="End Date" />}
-                    />
-                  </Grid>
-                  <Grid item>
-                    <MDButton variant="gradient" color="info" size="small" onClick={getCalls}>
-                      Filter
-                    </MDButton>
-                  </Grid>
                 </Grid>
-                <DataTable columns={columns} data={calls} pagination persistTableHead noHeader />
+              </MDBox>
+            </Card>
+          </Grid>
+          <Grid item xs={12}>
+            <Card>
+              <MDBox p={3}>
+                <DataTable
+                  columns={columns}
+                  data={filteredCalls}
+                  pagination
+                  persistTableHead
+                  noHeader
+                />
               </MDBox>
             </Card>
           </Grid>

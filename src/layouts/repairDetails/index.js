@@ -43,6 +43,7 @@ import {
   Chip,
   OutlinedInput,
   keyframes,
+  Pagination,
 } from "@mui/material";
 
 // Material Dashboard 2 React components
@@ -645,6 +646,10 @@ const RepairDetails = () => {
   const [AllRepairNotes, setAllRepairNotes] = useState();
   const [allparts, setAllParts] = useState();
   const [partsOrdered, setPartsOrdered] = useState([]);
+  const [callHistory, setCallHistory] = useState([]);
+  const [callHistoryPage, setCallHistoryPage] = useState(1);
+  const [audioSrc, setAudioSrc] = useState(null);
+  const [openPlayer, setOpenPlayer] = useState(false);
   const [newRepairPart, setnewRepairPart] = useState(false);
   const [dialogOpen, toggleDialogOpen] = useState(false);
   const [repairOrder, setRepairOrder] = useState();
@@ -709,6 +714,7 @@ const RepairDetails = () => {
         setAllRepairNotes(res.notes);
         setAllParts(res.parts);
         setPartsOrdered(res.partsOrdered || []);
+        setCallHistory(res.callhistory || []);
       });
 
       return () => {
@@ -716,6 +722,16 @@ const RepairDetails = () => {
       };
     }
   }, [socket]);
+
+  const handlePlay = (url) => {
+    setAudioSrc(url);
+    setOpenPlayer(true);
+  };
+
+  const handleClosePlayer = () => {
+    setOpenPlayer(false);
+    setAudioSrc(null);
+  };
 
   const getRepair = () => {
     if (!socket) return;
@@ -748,6 +764,7 @@ const RepairDetails = () => {
         setAllRepairNotes(res.notes);
         setAllParts(res.parts);
         setPartsOrdered(res.partsOrdered || []);
+        setCallHistory(res.callHistory || []);
         RepairRerender();
         setShowLoad(false);
       }
@@ -1651,6 +1668,94 @@ const RepairDetails = () => {
                   </MDBox>
                 </Card>
               </Grid>
+              {/* Call History */}
+              {(loginState.user?.isAdmin || loginState.user?.isDev) && (
+                <Grid item xs={12}>
+                  <Card sx={cardAnimation}>
+                    <MDBox
+                      mx={1}
+                      mt={-3}
+                      py={2}
+                      px={1}
+                      variant="gradient"
+                      bgColor="info"
+                      borderRadius="lg"
+                      coloredShadow="info"
+                    >
+                      <MDTypography variant="h6" color="white">
+                        Call History
+                      </MDTypography>
+                    </MDBox>
+                    <MDBox mx={2} py={3} px={2}>
+                      {callHistory && callHistory.length > 0 ? (
+                        <>
+                          {callHistory
+                            .slice((callHistoryPage - 1) * 5, callHistoryPage * 5)
+                            .map((call, index) => (
+                              <MDBox key={index} mb={1}>
+                                <MDBox
+                                  display="flex"
+                                  justifyContent="space-between"
+                                  alignItems="center"
+                                >
+                                  <MDBox>
+                                    <MDTypography
+                                      variant="button"
+                                      fontWeight="bold"
+                                      display="block"
+                                    >
+                                      {new Date(call.timestamp || call.createdAt).toLocaleString()}
+                                    </MDTypography>
+                                    <MDBox display="flex" alignItems="center">
+                                      <Tooltip title={call.type === "IN" ? "Incoming" : "Outgoing"}>
+                                        <Icon color={call.type === "IN" ? "success" : "info"}>
+                                          {call.type === "IN" ? "call_received" : "call_made"}
+                                        </Icon>
+                                      </Tooltip>
+                                      <MDTypography variant="body2" ml={1}>
+                                        {call.duration_seconds ? `(${call.duration_seconds}s)` : ""}
+                                        {call.caller_id && ` from ${call.caller_id}`}
+                                        {call.destination && ` to ${call.destination}`}
+                                      </MDTypography>
+                                    </MDBox>
+                                  </MDBox>
+                                  {(call.recordingUrl || call.filename) && (
+                                    <IconButton
+                                      onClick={() =>
+                                        handlePlay(
+                                          call.recordingUrl ||
+                                            `https://api.pevconnection.com/asterisk/recordings/${encodeURIComponent(
+                                              call.filename
+                                            )}`
+                                        )
+                                      }
+                                      color="info"
+                                    >
+                                      <Icon>play_circle</Icon>
+                                    </IconButton>
+                                  )}
+                                </MDBox>
+                                <Divider />
+                              </MDBox>
+                            ))}
+                          {callHistory.length > 5 && (
+                            <MDBox display="flex" justifyContent="center" mt={2}>
+                              <Pagination
+                                count={Math.ceil(callHistory.length / 5)}
+                                page={callHistoryPage}
+                                onChange={(event, value) => setCallHistoryPage(value)}
+                                color="info"
+                              />
+                            </MDBox>
+                          )}
+                        </>
+                      ) : (
+                        <MDTypography variant="body2">No call history available.</MDTypography>
+                      )}
+                    </MDBox>
+                  </Card>
+                </Grid>
+              )}
               {/* Repair pictures */}
               <Grid item xs={12}>
                 <Card sx={cardAnimation}>
@@ -2158,6 +2263,22 @@ const RepairDetails = () => {
             Save Guide
           </MDButton>
         </DialogActions>
+      </Dialog>
+
+      <Dialog open={openPlayer} onClose={handleClosePlayer} maxWidth="sm" fullWidth>
+        <DialogTitle>
+          <MDBox display="flex" justifyContent="space-between" alignItems="center">
+            Call Recording
+            <IconButton onClick={handleClosePlayer}>
+              <Icon>close</Icon>
+            </IconButton>
+          </MDBox>
+        </DialogTitle>
+        <DialogContent>
+          <MDBox display="flex" justifyContent="center" p={2}>
+            {audioSrc && <audio controls src={audioSrc} autoPlay style={{ width: "100%" }} />}
+          </MDBox>
+        </DialogContent>
       </Dialog>
 
       <Footer />

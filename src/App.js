@@ -70,6 +70,7 @@ import "./assets/style.css";
 import MDTypography from "components/MDTypography";
 import SocketStatus from "components/SocketStatus";
 import SocketDisconnectBanner from "components/SocketDisconnectBanner";
+import PhoneRingingPopup from "components/PhoneRingingPopup";
 const style = {
   position: "absolute",
   top: "50%",
@@ -529,6 +530,7 @@ export default function App() {
               <Configurator />
               <SocketStatus />
               <SocketDisconnectBanner />
+              <PhoneRingingPopup />
             </>
           )}
           {layout === "vr" && <Configurator />}
@@ -560,6 +562,7 @@ export default function App() {
             <Configurator />
             <SocketStatus />
             <SocketDisconnectBanner />
+            <PhoneRingingPopup />
             <LoadDialog />
             {RenderSb}
             {renderSuccessSB}
