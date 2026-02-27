@@ -666,6 +666,7 @@ const RepairDetails = () => {
   const [partName, setPartName] = useState();
   const [newMinutes, setnewMinutes] = useState();
   const [questions, setQuestions] = useState([]);
+  const [techs, setTechs] = useState([]);
 
   const [showGuidesModal, setShowGuidesModal] = useState(false);
   const [guides, setGuides] = useState([]);
@@ -721,6 +722,16 @@ const RepairDetails = () => {
       return () => {
         socket.off("updatedRepair");
       };
+    }
+  }, [socket]);
+
+  useEffect(() => {
+    if (socket) {
+      socket.emit("getTechs", { query: { active: true } }, (res) => {
+        if (res.res === 200) {
+          setTechs(res.data);
+        }
+      });
     }
   }, [socket]);
 
@@ -1042,6 +1053,42 @@ const RepairDetails = () => {
           }
         }
       );
+    }
+  };
+
+  const handleAssignTech = (event) => {
+    const techId = event.target.value;
+    if (socket) {
+      socket.emit("assignTech", { repairId: repairID, techId }, (res) => {
+        if (res.res === 200) {
+          setSnackBar({
+            type: "success",
+            title: "Success",
+            message: "Tech assigned successfully",
+            show: true,
+            icon: "check",
+          });
+          getRepair();
+        }
+      });
+    }
+  };
+
+  const handleUpdatePriority = (event) => {
+    const priority = event.target.value;
+    if (socket) {
+      socket.emit("updatePriority", { repairId: repairID, priority }, (res) => {
+        if (res.res === 200) {
+          setSnackBar({
+            type: "success",
+            title: "Success",
+            message: "Priority updated successfully",
+            show: true,
+            icon: "check",
+          });
+          getRepair();
+        }
+      });
     }
   };
 
@@ -1444,6 +1491,47 @@ const RepairDetails = () => {
                     </Grid>
                   </MDBox>
                   <MDBox mx={2} py={3} px={2}>
+                    <Grid container spacing={2} mb={2}>
+                      <Grid item xs={12} md={6}>
+                        <FormControl fullWidth variant="standard">
+                          <InputLabel>Assigned Tech</InputLabel>
+                          <Select
+                            value={
+                              repairDetails.assignedTech?._id || repairDetails.assignedTech || ""
+                            }
+                            onChange={handleAssignTech}
+                            label="Assigned Tech"
+                            disabled={!(loginState.user?.isAdmin || loginState.user?.isDev)}
+                          >
+                            <MenuItem value="">
+                              <em>None</em>
+                            </MenuItem>
+                            {techs.map((tech) => (
+                              <MenuItem key={tech._id} value={tech._id}>
+                                {tech.displayName}
+                              </MenuItem>
+                            ))}
+                          </Select>
+                        </FormControl>
+                      </Grid>
+                      <Grid item xs={12} md={6}>
+                        <FormControl fullWidth variant="standard">
+                          <InputLabel>Priority</InputLabel>
+                          <Select
+                            value={repairDetails.priority || ""}
+                            onChange={handleUpdatePriority}
+                            disabled={!(loginState.user?.isAdmin || loginState.user?.isDev)}
+                          >
+                            {[...Array(10)].map((_, i) => (
+                              <MenuItem key={i + 1} value={i + 1}>
+                                {i + 1}
+                                {i === 0 ? " (Highest)" : ""}
+                              </MenuItem>
+                            ))}
+                          </Select>
+                        </FormControl>
+                      </Grid>
+                    </Grid>
                     <MDBox display="flex" alignItems="center">
                       <MDTypography variant="body1">
                         {repairDetails.pev.Brand.name} {repairDetails.pev.Model}

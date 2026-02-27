@@ -12,14 +12,18 @@ Coded by www.creative-tim.com
 
 * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 */
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLoginState } from "../../context/loginContext";
+import { useSocket } from "../../context/socket";
 
 // @mui material components
 import Grid from "@mui/material/Grid";
+import Card from "@mui/material/Card";
 
 // Material Dashboard 2 React components
 import MDBox from "components/MDBox";
+import MDTypography from "components/MDTypography";
+import MDBadge from "components/MDBadge";
 
 // Material Dashboard 2 React example components
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
@@ -33,10 +37,94 @@ import ComplexStatisticsCard from "examples/Cards/StatisticsCards/ComplexStatist
 import OrdersOverview from "layouts/dashboard/components/OrdersOverview";
 import QuickActions from "layouts/dashboard/components/QuickActions";
 import { useNavigate } from "react-router-dom";
+import DataTable from "react-data-table-component";
+
+const Status = ({ repairStatus }) => {
+  if (repairStatus == 0) {
+    return (
+      <MDBox ml={-1}>
+        <MDBadge badgeContent="Created" color="success" container />
+      </MDBox>
+    );
+  }
+  if (repairStatus == 1) {
+    return (
+      <MDBox ml={-1}>
+        <MDBadge badgeContent="Not started" color="warning" container />
+      </MDBox>
+    );
+  }
+  if (repairStatus == 2) {
+    return (
+      <MDBox ml={-1}>
+        <MDBadge badgeContent="In Progress" color="info" container />
+      </MDBox>
+    );
+  }
+  if (repairStatus == 3) {
+    return (
+      <MDBox ml={-1}>
+        <MDBadge badgeContent="Paused" color="secondary" container />
+      </MDBox>
+    );
+  }
+  if (repairStatus == 4) {
+    return (
+      <MDBox ml={-1}>
+        <MDBadge badgeContent="Repair Complete" color="success" container />
+      </MDBox>
+    );
+  }
+  if (repairStatus == 5) {
+    return (
+      <MDBox ml={-1}>
+        <MDBadge badgeContent="Invoice Created" color="warning" container />
+      </MDBox>
+    );
+  }
+  if (repairStatus == 11) {
+    return (
+      <MDBox ml={-1}>
+        <MDBadge badgeContent="Paused - Awaiting parts" color="secondary" container />
+      </MDBox>
+    );
+  }
+  if (repairStatus == 6) {
+    return (
+      <MDBox ml={-1}>
+        <MDBadge badgeContent="Complete" color="success" container />
+      </MDBox>
+    );
+  }
+  if (repairStatus == 997) {
+    return (
+      <MDBox ml={-1}>
+        <MDBadge badgeContent="Cancelled - Return to Customer" color="error" container />
+      </MDBox>
+    );
+  }
+  if (repairStatus == 998) {
+    return (
+      <MDBox ml={-1}>
+        <MDBadge badgeContent="Cancelled" color="error" container />
+      </MDBox>
+    );
+  }
+  if (repairStatus == 999) {
+    return (
+      <MDBox ml={-1}>
+        <MDBadge badgeContent="Unrepairable" color="error" container />
+      </MDBox>
+    );
+  }
+  return null;
+};
 
 // eslint-disable-next-line react/prop-types
 function Dashboard({ stats }) {
   const { loginState } = useLoginState();
+  const socket = useSocket();
+  const [myRepairs, setMyRepairs] = useState([]);
 
   const [sales, setSalesData] = useState({
     labels: [],
@@ -55,6 +143,47 @@ function Dashboard({ stats }) {
     datasets: { label: "Sales", data: [] },
   });
   let redirect = useNavigate();
+
+  useEffect(() => {
+    if (socket) {
+      socket.emit("getMyRepairs", {}, (res) => {
+        if (res.res === 200) {
+          setMyRepairs(res.data);
+        }
+      });
+    }
+  }, [socket]);
+
+  const columns = [
+    {
+      name: "ID",
+      selector: (row) => row.repairID,
+      sortable: true,
+      width: "80px",
+    },
+    {
+      name: "Customer",
+      selector: (row) => `${row.Customer?.given_name} ${row.Customer?.family_name}`,
+      sortable: true,
+    },
+    {
+      name: "Device",
+      selector: (row) => `${row.pev?.Brand?.name} ${row.pev?.Model}`,
+      sortable: true,
+    },
+    {
+      name: "Status",
+      selector: (row) => row.status,
+      sortable: true,
+      cell: (row) => <Status repairStatus={row.status} />,
+    },
+    {
+      name: "Date In",
+      selector: (row) => row.createdAt,
+      sortable: true,
+      format: (row) => new Date(row.createdAt).toLocaleDateString(),
+    },
+  ];
 
   return (
     <DashboardLayout>
@@ -195,8 +324,29 @@ function Dashboard({ stats }) {
         </Grid>
         <Grid container spacing={3}>
           <Grid item xs={12} md={8}>
-            <MDBox mt={4.5}>
+            <MDBox>
               <Grid container spacing={3}>
+                <Grid item xs={12}>
+                  <Grid container spacing={3} mt={1} mb={1}>
+                    <Grid item xs={12}>
+                      <Card>
+                        <MDBox p={3}>
+                          <MDTypography variant="h6" gutterBottom>
+                            My Assigned Repairs
+                          </MDTypography>
+                          <DataTable
+                            columns={columns}
+                            data={myRepairs}
+                            pagination
+                            onRowClicked={(row) => redirect(`/repairdetails/${row._id}`)}
+                            pointerOnHover
+                            highlightOnHover
+                          />
+                        </MDBox>
+                      </Card>
+                    </Grid>
+                  </Grid>
+                </Grid>
                 {loginState.user.isAdmin ? (
                   <Grid item xs={12} md={6}>
                     <MDBox mb={3}>

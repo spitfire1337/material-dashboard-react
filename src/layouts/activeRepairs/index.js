@@ -253,6 +253,8 @@ function ActiveRepairs() {
   const [searchText, setSearchText] = useState(savedState.searchText || "");
   const [repairTypeFilter, setRepairTypeFilter] = useState(savedState.repairTypeFilter || "");
   const [deviceTypeFilter, setDeviceTypeFilter] = useState(savedState.deviceTypeFilter || "");
+  const [techFilter, setTechFilter] = useState(savedState.techFilter || "");
+  const [techs, setTechs] = useState([]);
   const [statusFilter, setStatusFilter] = useState(() => {
     const statusParam = searchParams.get("status");
     if (statusParam) {
@@ -313,6 +315,16 @@ function ActiveRepairs() {
   }, [socket]);
 
   useEffect(() => {
+    if (socket) {
+      socket.emit("getTechs", { query: { active: true } }, (res) => {
+        if (res.res === 200) {
+          setTechs(res.data);
+        }
+      });
+    }
+  }, [socket]);
+
+  useEffect(() => {
     const statusParam = searchParams.get("status");
     if (statusParam) {
       setStatusFilter([parseInt(statusParam)]);
@@ -329,9 +341,10 @@ function ActiveRepairs() {
         deviceTypeFilter,
         statusFilter,
         currentPage,
+        techFilter,
       })
     );
-  }, [searchText, repairTypeFilter, deviceTypeFilter, statusFilter, currentPage]);
+  }, [searchText, repairTypeFilter, deviceTypeFilter, statusFilter, currentPage, techFilter]);
 
   const filteredRepairs = useMemo(() => {
     return repairs.filter((repair) => {
@@ -343,6 +356,10 @@ function ActiveRepairs() {
         !deviceTypeFilter ||
         repair.pev?.type === deviceTypeFilter ||
         repair.pev?.PevType === deviceTypeFilter;
+      const matchesTech =
+        !techFilter ||
+        (repair.assignedTech &&
+          (repair.assignedTech._id === techFilter || repair.assignedTech === techFilter));
 
       const searchLower = searchText.toLowerCase();
       const matchesSearch =
@@ -352,9 +369,11 @@ function ActiveRepairs() {
         (repair.pev?.Brand?.name?.toLowerCase() || "").includes(searchLower) ||
         (repair.pev?.Model?.toLowerCase() || "").includes(searchLower);
 
-      return matchesStatus && matchesRepairType && matchesDeviceType && matchesSearch;
+      return (
+        matchesStatus && matchesRepairType && matchesDeviceType && matchesSearch && matchesTech
+      );
     });
-  }, [repairs, statusFilter, repairTypeFilter, deviceTypeFilter, searchText]);
+  }, [repairs, statusFilter, repairTypeFilter, deviceTypeFilter, searchText, techFilter]);
 
   const columns = [
     {
@@ -362,6 +381,17 @@ function ActiveRepairs() {
       selector: (row) => row.repairID,
       sortable: true,
       width: "80px",
+    },
+    {
+      name: "Assigned Tech",
+      selector: (row) => {
+        if (row.assignedTech && typeof row.assignedTech === "object") {
+          return row.assignedTech.displayName || row.assignedTech.name || "";
+        }
+        const tech = techs.find((t) => t._id === row.assignedTech);
+        return tech ? tech.displayName : "";
+      },
+      sortable: true,
     },
     {
       name: "Customer",
@@ -474,7 +504,7 @@ function ActiveRepairs() {
                       </Select>
                     </FormControl>
                   </Grid>
-                  <Grid item xs={12} md={3}>
+                  <Grid item xs={12} md={2}>
                     <FormControl fullWidth>
                       <InputLabel>Repair Type</InputLabel>
                       <Select
@@ -492,7 +522,7 @@ function ActiveRepairs() {
                       </Select>
                     </FormControl>
                   </Grid>
-                  <Grid item xs={12} md={3}>
+                  <Grid item xs={12} md={2}>
                     <FormControl fullWidth>
                       <InputLabel>Device Type</InputLabel>
                       <Select
@@ -505,6 +535,24 @@ function ActiveRepairs() {
                         {deviceTypes.map((type) => (
                           <MenuItem key={type} value={type}>
                             {type}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  </Grid>
+                  <Grid item xs={12} md={2}>
+                    <FormControl fullWidth>
+                      <InputLabel>Assigned Tech</InputLabel>
+                      <Select
+                        value={techFilter}
+                        label="Assigned Tech"
+                        onChange={(e) => setTechFilter(e.target.value)}
+                        sx={{ height: "44px" }}
+                      >
+                        <MenuItem value="">All</MenuItem>
+                        {techs.map((tech) => (
+                          <MenuItem key={tech._id} value={tech._id}>
+                            {tech.displayName}
                           </MenuItem>
                         ))}
                       </Select>

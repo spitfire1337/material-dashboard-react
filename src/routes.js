@@ -54,6 +54,8 @@ import PartsOnOrder from "layouts/partsOnOrder";
 import RepairGuides from "layouts/repairGuides";
 import ActiveRepairs from "layouts/activeRepairs";
 import CallHistoryReport from "layouts/reports/CallHistory";
+import BusinessEvents from "layouts/businessEvents";
+import BusinessEventInstancesReport from "layouts/reports/BusinessEventInstances";
 import Techs from "layouts/techs";
 // @mui icons
 import RepairReport from "layouts/reports/RepairReport";
@@ -262,6 +264,15 @@ const devRoutes = (stats) => {
           component: <CallHistoryReport />,
           icon: <Icon fontSize="small">call</Icon>,
         },
+        {
+          type: "collapse",
+          noCollapse: true,
+          name: "Event History",
+          key: "eventHistory",
+          route: "/reports/event-history",
+          component: <BusinessEventInstancesReport />,
+          icon: <Icon fontSize="small">event_note</Icon>,
+        },
       ],
     },
 
@@ -297,6 +308,15 @@ const devRoutes = (stats) => {
       collapse: [
         {
           type: "collapse",
+          name: "Business Events",
+          noCollapse: true,
+          key: "businessEvents",
+          icon: <Icon fontSize="small">event</Icon>,
+          route: "/businessEvents",
+          component: <BusinessEvents />,
+        },
+        {
+          type: "collapse",
           name: "Checklist Questions",
           noCollapse: true,
           key: "checklist",
@@ -309,7 +329,7 @@ const devRoutes = (stats) => {
           name: "Manage Techs",
           noCollapse: true,
           key: "techs",
-          icon: <Icon fontSize="small">people</Icon>,
+          icon: <Icon fontSize="small">person</Icon>,
           route: "/techs",
           component: <Techs />,
         },
@@ -512,6 +532,15 @@ const adminRoutes = (stats) => {
           component: <CallHistoryReport />,
           icon: <Icon fontSize="small">call</Icon>,
         },
+        {
+          type: "collapse",
+          noCollapse: true,
+          name: "Event History",
+          key: "eventHistory",
+          route: "/reports/event-history",
+          component: <BusinessEventInstancesReport />,
+          icon: <Icon fontSize="small">event_note</Icon>,
+        },
       ],
     },
     {
@@ -542,6 +571,15 @@ const adminRoutes = (stats) => {
       collapse: [
         {
           type: "collapse",
+          name: "Business Events",
+          noCollapse: true,
+          key: "businessEvents",
+          icon: <Icon fontSize="small">event</Icon>,
+          route: "/businessEvents",
+          component: <BusinessEvents />,
+        },
+        {
+          type: "collapse",
           noCollapse: true,
           name: "Checklist Questions",
           key: "checklist",
@@ -554,7 +592,7 @@ const adminRoutes = (stats) => {
           name: "Manage Techs",
           noCollapse: true,
           key: "techs",
-          icon: <Icon fontSize="small">people</Icon>,
+          icon: <Icon fontSize="small">person</Icon>,
           route: "/techs",
           component: <Techs />,
         },

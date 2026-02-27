@@ -45,7 +45,7 @@ function Techs() {
     isAdmin: false,
     isTech: true,
     isDev: false,
-    isActive: true,
+    active: true,
   });
   const [isEditing, setIsEditing] = useState(false);
 
@@ -66,16 +66,6 @@ function Techs() {
   }, [socket]);
 
   const handleSave = () => {
-    if (!newTech.displayName || !newTech.mail) {
-      setSnackBar({
-        type: "error",
-        message: "Name and Email are required",
-        show: true,
-        icon: "warning",
-      });
-      return;
-    }
-
     setShowLoad(true);
     const event = isEditing ? "updateTech" : "createTech";
     socket.emit(event, newTech, (res) => {
@@ -184,8 +174,8 @@ function Techs() {
               <FormControlLabel
                 control={
                   <Checkbox
-                    checked={newTech.isActive}
-                    onChange={(e) => setNewTech({ ...newTech, isActive: e.target.checked })}
+                    checked={newTech.active}
+                    onChange={(e) => setNewTech({ ...newTech, active: e.target.checked })}
                   />
                 }
                 label="Active"
