@@ -141,13 +141,25 @@ const CallHistoryReport = () => {
       selector: (row) => row.type,
       sortable: true,
       width: "80px",
-      cell: (row) => (
-        <Tooltip title={row.type === "IN" ? "Incoming" : "Outgoing"}>
-          <Icon color={row.type === "IN" ? "success" : "info"}>
-            {row.type === "IN" ? "call_received" : "call_made"}
-          </Icon>
-        </Tooltip>
-      ),
+      cell: (row) => {
+        let icon = "call_made";
+        let color = "info";
+        let title = "Outgoing";
+        if (row.type === "IN") {
+          icon = "call_received";
+          color = "success";
+          title = "Incoming";
+        } else if (row.type === "VOICEMAIL") {
+          icon = "voicemail";
+          color = "warning";
+          title = "Voicemail";
+        }
+        return (
+          <Tooltip title={title}>
+            <Icon color={color}>{icon}</Icon>
+          </Tooltip>
+        );
+      },
     },
     {
       name: "Date",
@@ -264,6 +276,7 @@ const CallHistoryReport = () => {
                         <MenuItem value="ALL">All</MenuItem>
                         <MenuItem value="IN">Incoming</MenuItem>
                         <MenuItem value="OUT">Outgoing</MenuItem>
+                        <MenuItem value="VOICEMAIL">Voicemail</MenuItem>
                       </Select>
                     </FormControl>
                   </Grid>

@@ -1708,9 +1708,29 @@ const RepairDetails = () => {
                                       {new Date(call.timestamp || call.createdAt).toLocaleString()}
                                     </MDTypography>
                                     <MDBox display="flex" alignItems="center">
-                                      <Tooltip title={call.type === "IN" ? "Incoming" : "Outgoing"}>
-                                        <Icon color={call.type === "IN" ? "success" : "info"}>
-                                          {call.type === "IN" ? "call_received" : "call_made"}
+                                      <Tooltip
+                                        title={
+                                          call.type === "IN"
+                                            ? "Incoming"
+                                            : call.type === "VOICEMAIL"
+                                            ? "Voicemail"
+                                            : "Outgoing"
+                                        }
+                                      >
+                                        <Icon
+                                          color={
+                                            call.type === "IN"
+                                              ? "success"
+                                              : call.type === "VOICEMAIL"
+                                              ? "warning"
+                                              : "info"
+                                          }
+                                        >
+                                          {call.type === "IN"
+                                            ? "call_received"
+                                            : call.type === "VOICEMAIL"
+                                            ? "voicemail"
+                                            : "call_made"}
                                         </Icon>
                                       </Tooltip>
                                       <MDTypography variant="body2" ml={1}>
