@@ -271,8 +271,15 @@ const PhoneRingingPopup = () => {
     if (!socket) return;
 
     const onPhoneRinging = (data) => {
-      setRinging(true);
-      setCallData(data);
+      let state = data.state;
+      if (state === "RINGING" || state === "ON_CALL") {
+        setRinging(true);
+        setCallData(data);
+      }
+      if (state === "HANGUP" || state === "STOPPED_RINGING") {
+        setRinging(false);
+        setCallData(null);
+      }
     };
 
     const onCallEnded = () => {
@@ -336,20 +343,20 @@ const PhoneRingingPopup = () => {
             </MDBox>
             <MDBox>
               <MDTypography variant="h6" color="white" fontWeight="medium">
-                {callData.state === "Up" ? "Call in Progress" : "Incoming Call"}
+                {callData.state === "ON_CALL" ? "Call in Progress" : "Incoming Call"}
               </MDTypography>
               <MDTypography variant="body2" color="white">
-                {callData.event?.calleridname || "Unknown Caller"}
+                {callData.event?.name || "Unknown Caller"}
               </MDTypography>
 
-              {callData.event?.connectedlinenum && (
+              {callData.event?.number && (
                 <MDTypography
                   variant="caption"
                   sx={{ p: 0.1, mt: 0, mb: 0 }}
                   color="white"
                   opacity={0.8}
                 >
-                  {callData.event.connectedlinenum}
+                  {callData.event.number}
                 </MDTypography>
               )}
               <MDTypography variant="body2" color="white">

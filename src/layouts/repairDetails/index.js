@@ -705,6 +705,7 @@ const RepairDetails = () => {
   useEffect(() => {
     if (socket) {
       socket.on("updatedRepair", (res) => {
+        if (res.data._id !== repairID) return;
         setHighlightUpdate(true);
         setTimeout(() => setHighlightUpdate(false), 2000);
         setnewMinutes(Math.round(res.data.repairTime * 60));
