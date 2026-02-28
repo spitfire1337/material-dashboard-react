@@ -745,6 +745,36 @@ const RepairDetails = () => {
     setAudioSrc(null);
   };
 
+  const handleCallCustomer = (phoneNumber) => {
+    if (!phoneNumber) return;
+    const cleanNumber = phoneNumber.replace(/[^0-9]/g, "");
+    setShowLoad(true);
+    if (socket) {
+      socket.emit("CallCustomer", { phoneNumber: cleanNumber }, (res) => {
+        setShowLoad(false);
+        if (res.res === 200) {
+          setSnackBar({
+            type: "success",
+            title: "Call Initiated",
+            message: "Calling customer...",
+            show: true,
+            icon: "call",
+          });
+        } else {
+          setSnackBar({
+            type: "error",
+            title: "Call Failed",
+            message: res.message || "Failed to initiate call",
+            show: true,
+            icon: "error",
+          });
+        }
+      });
+    } else {
+      setShowLoad(false);
+    }
+  };
+
   const getRepair = () => {
     if (!socket) return;
     createInvoice();
@@ -1446,9 +1476,26 @@ const RepairDetails = () => {
                       {repairDetails.Customer.email_address != undefined
                         ? [<br key="" />, repairDetails.Customer.email_address]
                         : ""}
-                      {repairDetails.Customer.phone_number != undefined
-                        ? [<br key="" />, repairDetails.Customer.phone_number]
-                        : ""}
+                      {repairDetails.Customer.phone_number != undefined ? (
+                        <>
+                          <br />
+                          {repairDetails.Customer.phone_number}
+                          <Tooltip title="Call Customer">
+                            <IconButton
+                              size="small"
+                              color="success"
+                              onClick={() =>
+                                handleCallCustomer(repairDetails.Customer.phone_number)
+                              }
+                              sx={{ ml: 1, padding: 0 }}
+                            >
+                              <Icon>call</Icon>
+                            </IconButton>
+                          </Tooltip>
+                        </>
+                      ) : (
+                        ""
+                      )}
                     </MDTypography>
                   </MDBox>
                 </Card>

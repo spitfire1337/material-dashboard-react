@@ -136,6 +136,7 @@ const AddNotes = ({ callback, repairId, size = "full", initialNote, noteId, edit
                 wrapperClassName="demo-wrapper"
                 editorClassName="demo-editor"
                 toolbarClassName="toolbar-class"
+                editorStyle={{ maxHeight: "310px", overflowY: "auto" }}
                 onEditorStateChange={onEditorStateChange}
                 toolbar={{
                   inline: { inDropdown: true },

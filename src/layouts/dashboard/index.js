@@ -268,7 +268,7 @@ function Dashboard({ stats }) {
                   color="primary"
                   icon="handyman"
                   title="Current Repairs"
-                  onClick={() => redirect(`/repairs`, { replace: false })}
+                  onClick={() => redirect(`/repairs?status=1|2|3|11|4|5`, { replace: false })}
                   count={stats.repairs}
                 />
               </MDBox>
@@ -283,7 +283,7 @@ function Dashboard({ stats }) {
                   color="success"
                   icon="check_box"
                   title="Repairs Ready for Pickup"
-                  onClick={() => redirect(`/repairs/5`, { replace: false })}
+                  onClick={() => redirect(`/repairs?status=5`, { replace: false })}
                   count={stats.repairsPickup}
                 />
               </MDBox>
@@ -298,7 +298,7 @@ function Dashboard({ stats }) {
                   color="primary"
                   icon="pause_circle"
                   title="Repairs paused"
-                  onClick={() => redirect(`/repairs/3`, { replace: false })}
+                  onClick={() => redirect(`/repairs?status=3|11`, { replace: false })}
                   count={stats.repairsPaused}
                 />
               </MDBox>
@@ -313,7 +313,7 @@ function Dashboard({ stats }) {
                   color="secondary"
                   icon="alarm_pause"
                   title="Repairs awaiting parts"
-                  onClick={() => redirect(`/repairs/11`, { replace: false })}
+                  onClick={() => redirect(`/repairs?status=11`, { replace: false })}
                   count={stats.repairsParts}
                 />
               </MDBox>

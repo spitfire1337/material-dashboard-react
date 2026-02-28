@@ -258,7 +258,7 @@ function ActiveRepairs() {
   const [statusFilter, setStatusFilter] = useState(() => {
     const statusParam = searchParams.get("status");
     if (statusParam) {
-      return [parseInt(statusParam)];
+      return statusParam.split("|").map((s) => parseInt(s));
     }
     return savedState.statusFilter || defaultStatusFilter;
   });
@@ -327,7 +327,7 @@ function ActiveRepairs() {
   useEffect(() => {
     const statusParam = searchParams.get("status");
     if (statusParam) {
-      setStatusFilter([parseInt(statusParam)]);
+      setStatusFilter(statusParam.split("|").map((s) => parseInt(s)));
     }
     if (socket) fetchRepairs();
   }, [searchParams, socket]);
