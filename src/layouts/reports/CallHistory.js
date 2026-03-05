@@ -225,6 +225,65 @@ const CallHistoryReport = () => {
     },
   ];
 
+  const exportToExcel = async () => {
+    try {
+      const ExcelJS = (await import("exceljs")).default;
+      const fileSaver = await import("file-saver");
+      const saveAs = fileSaver.saveAs || fileSaver.default;
+
+      const wb = new ExcelJS.Workbook();
+      const ws = wb.addWorksheet("Call History");
+
+      ws.columns = [
+        { header: "Type", key: "type", width: 15 },
+        { header: "Date", key: "date", width: 20 },
+        { header: "From", key: "from", width: 40 },
+        { header: "To", key: "to", width: 40 },
+        { header: "Duration", key: "duration", width: 15 },
+      ];
+
+      filteredCalls.forEach((row) => {
+        const totalSeconds = parseInt(row.duration_seconds || 0, 10);
+        let duration = "0s";
+        if (totalSeconds) {
+          const hours = Math.floor(totalSeconds / 3600);
+          const minutes = Math.floor((totalSeconds % 3600) / 60);
+          const seconds = totalSeconds % 60;
+          let result = "";
+          if (hours > 0) result += `${hours}h `;
+          if (minutes > 0 || hours > 0) result += `${minutes}m `;
+          result += `${seconds}s`;
+          duration = result;
+        }
+
+        ws.addRow({
+          type: row.type,
+          date: dayjs(row.timestamp).format("MM/DD/YYYY HH:mm"),
+          from:
+            row.caller_customer != null
+              ? `${row.caller_id} (${row.caller_customer.given_name} ${row.caller_customer.family_name})`
+              : row.caller_id,
+          to:
+            row.destination_customer != null
+              ? `${row.destination} (${row.destination_customer.given_name} ${row.destination_customer.family_name})`
+              : row.destination,
+          duration: duration,
+        });
+      });
+
+      const buffer = await wb.xlsx.writeBuffer();
+      saveAs(new Blob([buffer]), `Call_History_${dayjs().format("YYYY-MM-DD")}.xlsx`);
+    } catch (error) {
+      console.error("Error exporting to Excel:", error);
+      setSnackBar({
+        type: "error",
+        message: "Failed to export to Excel",
+        show: true,
+        icon: "warning",
+      });
+    }
+  };
+
   return (
     <DashboardLayout>
       <DashboardNavbar />
@@ -328,6 +387,11 @@ const CallHistoryReport = () => {
                       }}
                     >
                       Last Month
+                    </MDButton>
+                  </Grid>
+                  <Grid item xs={12} md={2}>
+                    <MDButton variant="contained" color="success" onClick={exportToExcel}>
+                      Export Excel
                     </MDButton>
                   </Grid>
                 </Grid>

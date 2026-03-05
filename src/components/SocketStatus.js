@@ -5,9 +5,11 @@ import MDTypography from "components/MDTypography";
 import { Tooltip, useTheme, useMediaQuery } from "@mui/material";
 import { useMaterialUIController } from "context";
 import zIndex from "@mui/material/styles/zIndex";
+import { globalFuncs } from "context/global";
 
 const SocketStatus = () => {
   const socket = useSocket();
+  const { asteriskStatus } = globalFuncs();
   const [connected, setConnected] = useState(false);
   const [localConnected, setLocalConnected] = useState(false);
   const [controller] = useMaterialUIController();
@@ -64,7 +66,7 @@ const SocketStatus = () => {
     >
       <MDBox display="flex" alignItems="center">
         <Tooltip
-          title={connected ? "Connected to Server" : "Disconnected from Server"}
+          title={connected ? "CRM Server Connected" : "CRM Server Disconnected"}
           placement="top"
           sx={{ zIndex: 1000 }}
         >
@@ -84,7 +86,7 @@ const SocketStatus = () => {
             ml={1}
             sx={{ userSelect: "none", zIndex: -1 }}
           >
-            {connected ? "Server Online" : "Server Offline"}
+            {connected ? "CRM Server Online" : "CRM Server Offline"}
           </MDTypography>
         )}
       </MDBox>
@@ -110,7 +112,33 @@ const SocketStatus = () => {
             ml={1}
             sx={{ userSelect: "none", zIndex: -1 }}
           >
-            {localConnected ? "Local Online" : "Local Offline"}
+            {localConnected ? "Local Server Online" : "Local Server Offline"}
+          </MDTypography>
+        )}
+      </MDBox>
+      <MDBox display="flex" alignItems="center">
+        <Tooltip
+          title={asteriskStatus ? "PBX Server Connected" : "PBX Server Disconnected"}
+          placement="top"
+          sx={{ zIndex: 1000 }}
+        >
+          <MDBox
+            bgColor={asteriskStatus ? "success" : "error"}
+            width="12px"
+            height="12px"
+            borderRadius="50%"
+            sx={{ cursor: "help", border: "1px solid white" }}
+          />
+        </Tooltip>
+        {!miniSidenav && (
+          <MDTypography
+            variant="caption"
+            color={darkMode ? "white" : "dark"}
+            fontWeight="medium"
+            ml={1}
+            sx={{ userSelect: "none", zIndex: -1 }}
+          >
+            {asteriskStatus ? "PBX Server Online" : "PBX Server Offline"}
           </MDTypography>
         )}
       </MDBox>

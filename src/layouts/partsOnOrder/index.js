@@ -7,8 +7,23 @@ import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import Footer from "examples/Footer";
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
-import { Card, Grid, Icon, IconButton, Tooltip } from "@mui/material";
+import {
+  Card,
+  Grid,
+  Icon,
+  IconButton,
+  Tooltip,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  List,
+  ListItem,
+  ListItemText,
+  Divider,
+} from "@mui/material";
 import DataTable from "react-data-table-component";
+import MDButton from "components/MDButton";
 
 // Context & Config
 import vars from "../../config";
@@ -20,6 +35,8 @@ function PartsOnOrder() {
   const socket = useSocket();
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showTrackingModal, setShowTrackingModal] = useState(false);
+  const [trackingPart, setTrackingPart] = useState(null);
 
   const getTrackingLink = (trackingNumber) => {
     if (!trackingNumber) return null;
@@ -52,41 +69,32 @@ function PartsOnOrder() {
     return null;
   };
 
-  const fetchData = async () => {
+  const fetchData = () => {
     setShowLoad(true);
-    try {
-      const response = await fetch(`${vars.serverUrl}/reports/partsOnOrder`, {
-        credentials: "include",
-      });
-      const res = await response.json();
-      if (res.res === 200) {
-        setData(res.data);
-      } else {
-        setSnackBar({
-          type: "error",
-          title: "Error",
-          message: "Failed to load parts on order",
-          show: true,
-          icon: "warning",
-        });
-      }
-    } catch (e) {
-      console.error(e);
-      setSnackBar({
-        type: "error",
-        title: "Error",
-        message: "Server error",
-        show: true,
-        icon: "warning",
+    if (socket) {
+      socket.emit("getPartsOnOrder", {}, (res) => {
+        if (res.res === 200) {
+          setData(res.data);
+        } else {
+          setSnackBar({
+            type: "error",
+            title: "Error",
+            message: "Failed to load parts on order",
+            show: true,
+            icon: "warning",
+          });
+        }
+        setShowLoad(false);
+        setLoading(false);
       });
     }
-    setShowLoad(false);
-    setLoading(false);
   };
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    if (socket) {
+      fetchData();
+    }
+  }, [socket]);
 
   const receivePart = (row) => {
     setShowLoad(true);
@@ -120,6 +128,11 @@ function PartsOnOrder() {
         }
       );
     }
+  };
+
+  const handleViewTracking = (part) => {
+    setTrackingPart(part);
+    setShowTrackingModal(true);
   };
 
   const columns = [
@@ -167,6 +180,25 @@ function PartsOnOrder() {
     {
       name: "Tracking",
       cell: (row) => {
+        if (row.trackingInfo) {
+          return (
+            <MDBox>
+              <MDTypography
+                component="span"
+                variant="body2"
+                color="info"
+                sx={{ textDecoration: "underline", cursor: "pointer" }}
+                onClick={() => handleViewTracking(row)}
+              >
+                {row.trackingNumber}
+              </MDTypography>
+              <MDTypography variant="caption" display="block" color="text">
+                {row.trackingInfo.tracking_status?.status_details ||
+                  row.trackingInfo.tracking_status?.status}
+              </MDTypography>
+            </MDBox>
+          );
+        }
         const link = getTrackingLink(row.trackingNumber);
         return link ? (
           <a
@@ -242,6 +274,90 @@ function PartsOnOrder() {
         </Grid>
       </MDBox>
       <Footer />
+      {/* Tracking Info Modal */}
+      <Dialog
+        open={showTrackingModal}
+        onClose={() => setShowTrackingModal(false)}
+        fullWidth
+        maxWidth="md"
+      >
+        <DialogTitle>Tracking Information - {trackingPart?.trackingNumber}</DialogTitle>
+        <DialogContent>
+          {trackingPart?.trackingInfo && (
+            <Grid container spacing={2} mt={1}>
+              <Grid item xs={12}>
+                <MDTypography variant="h6">
+                  Status: {trackingPart.trackingInfo.tracking_status?.status}
+                </MDTypography>
+                <MDTypography variant="body2">
+                  {trackingPart.trackingInfo.tracking_status?.status_details}
+                </MDTypography>
+                <MDTypography variant="caption" color="text">
+                  Last Updated:{" "}
+                  {new Date(
+                    trackingPart.trackingInfo.tracking_status?.status_date
+                  ).toLocaleString()}
+                </MDTypography>
+              </Grid>
+              {trackingPart.trackingInfo.eta && (
+                <Grid item xs={12}>
+                  <MDTypography variant="body2">
+                    ETA: {new Date(trackingPart.trackingInfo.eta).toLocaleString()}
+                  </MDTypography>
+                </Grid>
+              )}
+              {trackingPart.trackingInfo.servicelevel && (
+                <Grid item xs={12}>
+                  <MDTypography variant="body2">
+                    Service Level: {trackingPart.trackingInfo.servicelevel.name}
+                  </MDTypography>
+                </Grid>
+              )}
+              {trackingPart.trackingInfo.address_from && (
+                <Grid item xs={6}>
+                  <MDTypography variant="subtitle2">From:</MDTypography>
+                  <MDTypography variant="body2">
+                    {trackingPart.trackingInfo.address_from.city},{" "}
+                    {trackingPart.trackingInfo.address_from.state}{" "}
+                    {trackingPart.trackingInfo.address_from.zip}
+                  </MDTypography>
+                </Grid>
+              )}
+              {trackingPart.trackingInfo.address_to && (
+                <Grid item xs={6}>
+                  <MDTypography variant="subtitle2">To:</MDTypography>
+                  <MDTypography variant="body2">
+                    {trackingPart.trackingInfo.address_to.city},{" "}
+                    {trackingPart.trackingInfo.address_to.state}{" "}
+                    {trackingPart.trackingInfo.address_to.zip}
+                  </MDTypography>
+                </Grid>
+              )}
+              <Grid item xs={12}>
+                <Divider />
+                <MDTypography variant="h6">History</MDTypography>
+                <List dense>
+                  {trackingPart.trackingInfo.tracking_history?.map((history, index) => (
+                    <ListItem key={index}>
+                      <ListItemText
+                        primary={history.status_details || history.status}
+                        secondary={`${new Date(history.status_date).toLocaleString()} - ${
+                          history.location?.city
+                        }, ${history.location?.state}`}
+                      />
+                    </ListItem>
+                  ))}
+                </List>
+              </Grid>
+            </Grid>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <MDButton onClick={() => setShowTrackingModal(false)} color="secondary">
+            Close
+          </MDButton>
+        </DialogActions>
+      </Dialog>
     </DashboardLayout>
   );
 }

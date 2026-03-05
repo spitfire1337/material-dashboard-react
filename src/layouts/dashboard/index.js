@@ -226,6 +226,7 @@ function Dashboard({ stats }) {
                   icon="shopping_bag"
                   title="Open Orders"
                   count={stats.openOrders}
+                  onClick={() => redirect("/orders", { state: { status: "OPEN" }, replace: false })}
                 />
               </MDBox>
             </Grid>
@@ -315,6 +316,36 @@ function Dashboard({ stats }) {
                   title="Repairs awaiting parts"
                   onClick={() => redirect(`/repairs?status=11`, { replace: false })}
                   count={stats.repairsParts}
+                />
+              </MDBox>
+            </Grid>
+          ) : (
+            ""
+          )}
+          {loginState.user.isAdmin || loginState.user.isTech ? (
+            <Grid item xs={12} md={6} lg={3}>
+              <MDBox mb={1.5}>
+                <ComplexStatisticsCard
+                  color="warning"
+                  icon="shopping_cart"
+                  title="Parts on Order"
+                  onClick={() => redirect(`/parts-on-order`, { replace: false })}
+                  count={stats.partsonorder}
+                />
+              </MDBox>
+            </Grid>
+          ) : (
+            ""
+          )}
+          {loginState.user.isAdmin || loginState.user.isTech ? (
+            <Grid item xs={12} md={6} lg={3}>
+              <MDBox mb={1.5}>
+                <ComplexStatisticsCard
+                  color="info"
+                  icon="message"
+                  title="Unread Messages"
+                  onClick={() => redirect(`/messages`, { replace: false })}
+                  count={stats.unreadSMS}
                 />
               </MDBox>
             </Grid>

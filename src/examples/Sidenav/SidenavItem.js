@@ -70,7 +70,7 @@ function SidenavItem({
           })}
         >
           {icon && (
-            <ListItemIcon sx={{ minWidth: 0, mr: 1, color: "inherit" }}>
+            <ListItemIcon sx={{ minWidth: 0, mr: 2, color: "inherit" }}>
               {typeof icon === "string" ? <Icon>{icon}</Icon> : icon}
             </ListItemIcon>
           )}

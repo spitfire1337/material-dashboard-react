@@ -13,69 +13,100 @@ Coded by www.creative-tim.com
 * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 */
 // React components
-import { useState, React } from "react";
+import { useState, useEffect, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 
 // @mui material components
 import Grid from "@mui/material/Grid";
 import Card from "@mui/material/Card";
 import { TextField } from "@mui/material";
 
-import { makeStyles } from "@mui/styles";
 // Material Dashboard 2 React components
 import MDBox from "components/MDBox";
+import MDTypography from "components/MDTypography";
 
 // Material Dashboard 2 React example components
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import Footer from "examples/Footer";
-import DataTable from "examples/Tables/DataTable";
+import DataTable from "react-data-table-component";
+import { globalFuncs } from "../../context/global";
+import { useSocket } from "context/socket";
 
-// Data
-import customersTableData from "./data/customersTable";
+function Customers() {
+  const { setShowLoad } = globalFuncs();
+  const socket = useSocket();
+  const navigate = useNavigate();
 
-const style = {
-  position: "absolute",
-  top: "50%",
-  left: "50%",
-  transform: "translate(-50%, -50%)",
-  width: "80%",
-  minHeight: "50vh",
-  maxHeight: "80vh",
-  overflowY: "scroll",
-  bgcolor: "background.paper",
-  border: "2px solid #000",
-  boxShadow: 24,
-  p: 4,
-  borderRadius: "25px",
-};
+  const [customers, setCustomers] = useState([]);
+  const [searchText, setSearchText] = useState("");
 
-const useStyles = makeStyles((theme) => ({
-  input: {
-    background: "rgb(232, 241, 250)",
-  },
-}));
-
-// eslint-disable-next-line react/prop-types
-const Customers = () => {
-  const classes = useStyles();
-  const [repairData, setRepairData] = useState({});
-  const [repairID, setrepairID] = useState(null);
-
-  const [repairStep, setRepairStep] = useState(1);
-
-  const updateRepairData = (val) => {
-    setRepairData({ ...val });
+  const fetchCustomers = () => {
+    setShowLoad(true);
+    if (socket) {
+      socket.emit("getCustomers", {}, (res) => {
+        if (res && res.res === 200) {
+          setCustomers(res.data);
+        }
+        setShowLoad(false);
+      });
+    }
   };
 
-  const contIntake = (repair) => {
-    setrepairID(repair._id);
-    updateRepairData({ customer: repair.Customer._id, pev: repair.pev._id });
-    setNewRepair(true);
-    setRepairStep(3);
-  };
+  useEffect(() => {
+    if (socket) {
+      fetchCustomers();
+    }
+  }, [socket]);
 
-  const { columns, rows, reRender, filter, resetFilter, repairs, myFilters } =
-    customersTableData(contIntake);
+  const filteredCustomers = useMemo(() => {
+    return customers.filter((customer) => {
+      if (!customer.given_name && !customer.email_address && !customer.phone_number) {
+        return false;
+      }
+
+      const searchLower = searchText.toLowerCase();
+      const firstName = customer.given_name?.toLowerCase() || "";
+      const lastName = customer.family_name?.toLowerCase() || "";
+      const email = customer.email_address?.toLowerCase() || "";
+      const phone = customer.phone_number?.toLowerCase() || "";
+
+      return (
+        firstName.includes(searchLower) ||
+        lastName.includes(searchLower) ||
+        email.includes(searchLower) ||
+        phone.includes(searchLower)
+      );
+    });
+  }, [customers, searchText]);
+
+  const columns = [
+    {
+      name: "Name",
+      selector: (row) => [row.given_name, row.family_name].filter(Boolean).join(" "),
+      sortable: true,
+    },
+    {
+      name: "Email",
+      selector: (row) => row.email_address,
+      sortable: true,
+    },
+    {
+      name: "Phone",
+      selector: (row) => row.phone_number,
+      sortable: true,
+    },
+    {
+      name: "City",
+      selector: (row) => row.address?.locality || "",
+      sortable: true,
+    },
+    {
+      name: "State",
+      selector: (row) => row.address?.administrative_district_level_1 || "",
+      sortable: true,
+    },
+  ];
 
   return (
     <DashboardLayout>
@@ -94,27 +125,29 @@ const Customers = () => {
                 borderRadius="lg"
                 coloredShadow="info"
               >
-                <Grid container>
-                  <Grid item xs={12} md={4} alignItems="center" textAlign="right">
+                <MDTypography variant="h6" color="white">
+                  Customers
+                </MDTypography>
+              </MDBox>
+              <MDBox pt={3} px={2}>
+                <Grid container spacing={2} mb={3}>
+                  <Grid item xs={12} md={4}>
                     <TextField
-                      label="Search"
-                      InputProps={{ className: classes.input }}
+                      label="Search Customers"
+                      variant="outlined"
                       fullWidth
-                      value={myFilters}
-                      onChange={(e) => {
-                        filter(e.target.value);
-                      }}
+                      value={searchText}
+                      onChange={(e) => setSearchText(e.target.value)}
                     />
                   </Grid>
-                  <Grid item md={8} alignItems="center"></Grid>
                 </Grid>
-              </MDBox>
-              <MDBox pt={3}>
                 <DataTable
-                  table={{ columns, rows }}
-                  entriesPerPage={false}
-                  showTotalEntries={true}
-                  noEndBorder
+                  columns={columns}
+                  data={filteredCustomers}
+                  pagination
+                  onRowClicked={(row) => navigate(`/customer/${row._id}`)}
+                  pointerOnHover
+                  highlightOnHover
                 />
               </MDBox>
             </Card>
@@ -124,6 +157,6 @@ const Customers = () => {
       <Footer />
     </DashboardLayout>
   );
-};
+}
 
 export default Customers;

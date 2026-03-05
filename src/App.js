@@ -57,6 +57,7 @@ import { useMaterialUIController, setMiniSidenav, setOpenConfigurator } from "co
 import SignIn from "layouts/authentication/sign-in";
 import Cookies from "universal-cookie";
 import { useSocket } from "context/socket";
+import { useStats } from "context/stats";
 // Images
 import brandWhite from "assets/images/logos/Logo-Dark.png";
 import brandDark from "assets/images/logos/Logo-Light.png";
@@ -72,6 +73,11 @@ import SocketStatus from "components/SocketStatus";
 import SocketDisconnectBanner from "components/SocketDisconnectBanner";
 import PhoneRingingPopup from "components/PhoneRingingPopup";
 import UnacknowledgedEventsPopup from "components/UnacknowledgedEventsPopup";
+import SmsReceivedPopup from "components/SmsReceivedPopup";
+import InProgressRepairPopup from "components/InProgressRepairPopup";
+import ClosingTimeRepairPopup from "components/ClosingTimeRepairPopup";
+import AiChat from "components/AiChat";
+import UnreadMessagesFab from "components/UnreadMessagesFab";
 const style = {
   position: "absolute",
   top: "50%",
@@ -107,7 +113,8 @@ export function getCookie(name) {
 
 export default function App() {
   const { loginState, setLoginState, checkLogin } = useLoginState();
-  const { setSnackBar, RenderSb, LoadDialog, showVideoFeed } = globalFuncs();
+  const { setSnackBar, RenderSb, LoadDialog, showVideoFeed, setAsteriskStatus } = globalFuncs();
+  const { stats } = useStats();
 
   const [controller, dispatch] = useMaterialUIController();
   const {
@@ -138,33 +145,6 @@ export default function App() {
   const [user, setUser] = useState({});
   const [showWhatsNew, setShowWhatsNew] = useState(false);
   const [whatsNew, setWhatsNew] = useState("");
-  const [stats, setStats] = useState({
-    repairs: 0,
-    repairsPickup: 0,
-    repairsPaused: 0,
-    repairsParts: 0,
-    openOrders: 0,
-    repairChange: 0,
-    sales: {
-      labels: [],
-      datasets: { label: "Total Sales", data: [] },
-    },
-    salesChange: 0,
-    salesVolume: {
-      labels: [],
-      datasets: { label: "Total Sales", data: [] },
-    },
-    topSellersAll: {
-      labels: [],
-      datasets: { label: "Sales", data: [] },
-    },
-    topSellersSixty: {
-      labels: [],
-      datasets: { label: "Sales", data: [] },
-    },
-    mysales: { lastweek: 0, thisweek: 0 },
-    partsonorder: 0,
-  });
   const closeSuccessSB = () => setSuccessSB(false);
   const closeErrorSB = () => setErrorSB(false);
   let redirect = useNavigate();
@@ -215,74 +195,6 @@ export default function App() {
     />
   );
 
-  const getSales = (res) => {
-    if (res.res === 200) {
-      let monthlySales = [];
-      let saleMonths = [];
-      let mysalesVolume = [];
-      res.monthlySales.map((month) => {
-        saleMonths.push(month.Month);
-        mysalesVolume.push(month.totalsales);
-        monthlySales.push(month.sum / 100);
-      });
-      let salesItemsAll = [];
-      let salesItemAllVol = [];
-      res.topSellersAll.map((item, i) => {
-        if (item._id != "Labor" || item._id != "Gen Merch" || i < 10) {
-          salesItemsAll.push(item._id);
-          salesItemAllVol.push(item.sales);
-        }
-      });
-      let salesItemsSixty = [];
-      let salesItemAllSixty = [];
-      res.topSellersSixty.map((item, i) => {
-        if (item._id != "Labor" || item._id != "Gen Merch" || i < 10) {
-          salesItemsSixty.push(item._id);
-          salesItemAllSixty.push(item.sales);
-        }
-      });
-
-      setStats({
-        partsonorder: res.partsOnOrder,
-        repairs: res.repairsTotal,
-        repairsPickup: res.repairsPickup,
-        repairsPaused: res.repairsPaused,
-        repairsParts: res.repairsParts,
-        openOrders: res.openOrders,
-        repairChange:
-          ((res.repairs.find((x) => x._id == -30).count -
-            res.repairs.find((x) => x._id == -60).count) /
-            res.repairs.find((x) => x._id == -60).count) *
-          100,
-        sales: { labels: saleMonths, datasets: { data: monthlySales } },
-        salesVolume: { labels: saleMonths, datasets: { data: mysalesVolume } },
-        salesChange:
-          res.sales.find((x) => x._id == -7) != undefined
-            ? Math.round(
-                ((res.sales.find((x) => x._id == -7).sum -
-                  res.sales.find((x) => x._id == -14).sum) /
-                  res.sales.find((x) => x._id == -14).sum) *
-                  100
-              )
-            : -(res.sales.find((x) => x._id == -14).sum / 100),
-        topSellersAll: { labels: salesItemsAll, datasets: { data: salesItemAllVol } },
-        topSellersSixty: { labels: salesItemsSixty, datasets: { data: salesItemAllSixty } },
-        mysales:
-          res.sales.find((x) => x._id == -7) != undefined
-            ? res.sales.find((x) => x._id == -7).sum
-            : 0,
-      });
-    } else if (res.res === 401) {
-      setLoginState((s) => ({ ...s, loggedin: false }));
-      setSnackBar({
-        type: "error",
-        title: "Session expired",
-        message: "Please log in again.",
-        show: true,
-        icon: "error",
-      });
-    }
-  };
   const renderWhatsNew = (
     <Dialog open={showWhatsNew}>
       <DialogTitle>Whats New!</DialogTitle>
@@ -350,18 +262,18 @@ export default function App() {
   useEffect(() => {
     if (socket && loginState.loggedin) {
       getWhatsnew();
-      socket.on("stats", (data) => {
-        getSales(data);
-      });
-
       socket.on("update", () => {
         // getInitData();
         getWhatsnew();
       });
 
+      socket.on("asteriskStatus", (data) => {
+        setAsteriskStatus(data);
+      });
+
       return () => {
-        socket.off("stats");
         socket.off("update");
+        socket.off("asteriskStatus");
       };
     }
   }, [socket, loginState.loggedin]);
@@ -532,7 +444,12 @@ export default function App() {
               <SocketStatus />
               <SocketDisconnectBanner />
               <PhoneRingingPopup />
+              <SmsReceivedPopup />
               <UnacknowledgedEventsPopup />
+              <InProgressRepairPopup />
+              <ClosingTimeRepairPopup />
+              <AiChat />
+              <UnreadMessagesFab />
             </>
           )}
           {layout === "vr" && <Configurator />}
@@ -565,7 +482,12 @@ export default function App() {
             <SocketStatus />
             <SocketDisconnectBanner />
             <PhoneRingingPopup />
+            <SmsReceivedPopup />
             <UnacknowledgedEventsPopup />
+            <InProgressRepairPopup />
+            <ClosingTimeRepairPopup />
+            <AiChat />
+            <UnreadMessagesFab />
             <LoadDialog />
             {RenderSb}
             {renderSuccessSB}

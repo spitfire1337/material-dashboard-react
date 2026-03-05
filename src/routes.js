@@ -54,9 +54,13 @@ import PartsOnOrder from "layouts/partsOnOrder";
 import RepairGuides from "layouts/repairGuides";
 import ActiveRepairs from "layouts/activeRepairs";
 import CallHistoryReport from "layouts/reports/CallHistory";
-import BusinessEvents from "layouts/businessEvents";
-import BusinessEventInstancesReport from "layouts/reports/BusinessEventInstances";
 import Techs from "layouts/techs";
+import Messages from "layouts/messages";
+import Orders from "layouts/orders";
+import Logs from "layouts/logs";
+import OrderDetails from "layouts/oderDetails";
+import AppSettings from "layouts/appSettings";
+import SystemSettings from "layouts/systemSettings";
 // @mui icons
 import RepairReport from "layouts/reports/RepairReport";
 import SalesTrends from "layouts/reports/SalesTrends";
@@ -64,7 +68,11 @@ import TechEfficiency from "layouts/reports/TechEfficiency";
 import RepairTimeAnalysis from "layouts/reports/RepairTimeAnalysis";
 import RevenueByDevice from "layouts/reports/RevenueByDevice";
 import InventoryVelocity from "layouts/reports/InventoryVelocity";
+import WipAging from "layouts/reports/WipAging";
+import CustomerLoyalty from "layouts/reports/CustomerLoyalty";
+import TechRevenue from "layouts/reports/TechRevenue";
 import Icon from "@mui/material/Icon";
+import { Badge } from "@mui/material";
 import icon from "assets/theme/components/icon";
 const devRoutes = (stats) => {
   return [
@@ -92,11 +100,21 @@ const devRoutes = (stats) => {
     {
       type: "collapse",
       noCollapse: true,
-      name: `Orders (${stats.openOrders})`,
+      name: "Orders",
       key: "orders",
-      icon: <Icon fontSize="small">shopping_bag</Icon>,
-      route: "/consignments",
-      component: <Consignments />,
+      icon: (
+        <Badge badgeContent={stats.openOrders} color="error">
+          <Icon fontSize="small">shopping_bag</Icon>
+        </Badge>
+      ),
+      route: "/orders",
+      component: <Orders />,
+    },
+    {
+      name: "Order Details",
+      key: "order-details",
+      route: "/orders/:id",
+      component: <OrderDetails />,
     },
     {
       type: "collapse",
@@ -106,19 +124,27 @@ const devRoutes = (stats) => {
       collapse: [
         {
           type: "collapse",
-          name: `Repairs (${stats.repairs})`,
+          name: "Repairs",
           noCollapse: true,
           key: "repairs",
-          icon: <Icon fontSize="small">assignment</Icon>,
+          icon: (
+            <Badge badgeContent={stats.repairs} color="error">
+              <Icon fontSize="small">assignment</Icon>
+            </Badge>
+          ),
           route: "/repairs",
           component: <ActiveRepairs />,
         },
         {
           type: "collapse",
-          name: `Parts on Order (${stats.partsonorder})`,
+          name: "Parts on Order",
           key: "parts-on-order",
           noCollapse: true,
-          icon: <Icon fontSize="small">shopping_cart</Icon>,
+          icon: (
+            <Badge badgeContent={stats.partsonorder} color="error">
+              <Icon fontSize="small">shopping_cart</Icon>
+            </Badge>
+          ),
           route: "/parts-on-order",
           component: <PartsOnOrder />,
         },
@@ -141,6 +167,19 @@ const devRoutes = (stats) => {
       icon: <Icon fontSize="small">group</Icon>,
       route: "/Customers",
       component: <Customers />,
+    },
+    {
+      type: "collapse",
+      name: "Messages",
+      noCollapse: true,
+      key: "messages",
+      icon: (
+        <Badge badgeContent={stats.unreadSMS} color="error">
+          <Icon fontSize="small">message</Icon>
+        </Badge>
+      ),
+      route: "/messages",
+      component: <Messages />,
     },
     {
       type: "collapse",
@@ -227,6 +266,15 @@ const devRoutes = (stats) => {
               icon: <Icon fontSize="small">speed</Icon>,
               component: <InventoryVelocity />,
             },
+            {
+              type: "collapse",
+              name: "WIP Aging",
+              noCollapse: true,
+              key: "wipAging",
+              route: "/reports/wip-aging",
+              icon: <Icon fontSize="small">timelapse</Icon>,
+              component: <WipAging />,
+            },
           ],
         },
         {
@@ -253,6 +301,24 @@ const devRoutes = (stats) => {
               icon: <Icon fontSize="small">attach_money</Icon>,
               component: <RevenueByDevice />,
             },
+            {
+              type: "collapse",
+              name: "Customer Loyalty",
+              noCollapse: true,
+              key: "customerLoyalty",
+              route: "/reports/customer-loyalty",
+              icon: <Icon fontSize="small">loyalty</Icon>,
+              component: <CustomerLoyalty />,
+            },
+            {
+              type: "collapse",
+              name: "Tech Revenue",
+              noCollapse: true,
+              key: "techRevenue",
+              route: "/reports/tech-revenue",
+              icon: <Icon fontSize="small">monetization_on</Icon>,
+              component: <TechRevenue />,
+            },
           ],
         },
         {
@@ -263,15 +329,6 @@ const devRoutes = (stats) => {
           route: "/reports/call-history",
           component: <CallHistoryReport />,
           icon: <Icon fontSize="small">call</Icon>,
-        },
-        {
-          type: "collapse",
-          noCollapse: true,
-          name: "Event History",
-          key: "eventHistory",
-          route: "/reports/event-history",
-          component: <BusinessEventInstancesReport />,
-          icon: <Icon fontSize="small">event_note</Icon>,
         },
       ],
     },
@@ -308,15 +365,6 @@ const devRoutes = (stats) => {
       collapse: [
         {
           type: "collapse",
-          name: "Business Events",
-          noCollapse: true,
-          key: "businessEvents",
-          icon: <Icon fontSize="small">event</Icon>,
-          route: "/businessEvents",
-          component: <BusinessEvents />,
-        },
-        {
-          type: "collapse",
           name: "Checklist Questions",
           noCollapse: true,
           key: "checklist",
@@ -329,7 +377,7 @@ const devRoutes = (stats) => {
           name: "Manage Techs",
           noCollapse: true,
           key: "techs",
-          icon: <Icon fontSize="small">person</Icon>,
+          icon: <Icon fontSize="small">people</Icon>,
           route: "/techs",
           component: <Techs />,
         },
@@ -368,6 +416,33 @@ const devRoutes = (stats) => {
           route: "/WhatsNew",
           component: <WhatsNew />,
         },
+        {
+          type: "collapse",
+          noCollapse: true,
+          name: "Action Logs",
+          key: "logs",
+          icon: <Icon fontSize="small">plagiarism</Icon>,
+          route: "/logs",
+          component: <Logs />,
+        },
+        {
+          type: "collapse",
+          noCollapse: true,
+          name: "System Configuration",
+          key: "system-settings",
+          icon: <Icon fontSize="small">tune</Icon>,
+          route: "/settings/system",
+          component: <SystemSettings />,
+        },
+        {
+          type: "collapse",
+          noCollapse: true,
+          name: "App Settings Config",
+          key: "app-settings",
+          icon: <Icon fontSize="small">settings_applications</Icon>,
+          route: "/settings/app-settings",
+          component: <AppSettings />,
+        },
       ],
     },
     {
@@ -401,23 +476,50 @@ const adminRoutes = (stats) => {
       collapse: [
         {
           type: "collapse",
-          name: `Repairs (${stats.repairs})`,
+          name: "Repairs",
           noCollapse: true,
           key: "repairs",
-          icon: <Icon fontSize="small">assignment</Icon>,
+          icon: (
+            <Badge badgeContent={stats.repairs} color="error">
+              <Icon fontSize="small">assignment</Icon>
+            </Badge>
+          ),
           route: "/repairs",
           component: <ActiveRepairs />,
         },
         {
           type: "collapse",
-          name: `Parts on Order (${stats.partsonorder})`,
+          name: "Parts on Order",
           key: "parts-on-order",
           noCollapse: true,
-          icon: <Icon fontSize="small">shopping_cart</Icon>,
+          icon: (
+            <Badge badgeContent={stats.partsonorder} color="error">
+              <Icon fontSize="small">shopping_cart</Icon>
+            </Badge>
+          ),
           route: "/parts-on-order",
           component: <PartsOnOrder />,
         },
       ],
+    },
+    {
+      type: "collapse",
+      noCollapse: true,
+      name: "Orders",
+      key: "orders",
+      icon: (
+        <Badge badgeContent={stats.openOrders} color="error">
+          <Icon fontSize="small">shopping_bag</Icon>
+        </Badge>
+      ),
+      route: "/orders",
+      component: <Orders />,
+    },
+    {
+      name: "Order Details",
+      key: "order-details",
+      route: "/orders/:id",
+      component: <OrderDetails />,
     },
 
     {
@@ -428,6 +530,19 @@ const adminRoutes = (stats) => {
       icon: <Icon fontSize="small">group</Icon>,
       route: "/Customers",
       component: <Customers />,
+    },
+    {
+      type: "collapse",
+      name: "Messages",
+      noCollapse: true,
+      key: "messages",
+      icon: (
+        <Badge badgeContent={stats.unreadSMS} color="error">
+          <Icon fontSize="small">message</Icon>
+        </Badge>
+      ),
+      route: "/messages",
+      component: <Messages />,
     },
     {
       type: "collapse",
@@ -504,6 +619,15 @@ const adminRoutes = (stats) => {
               route: "/reports/repair-time-analysis",
               component: <RepairTimeAnalysis />,
             },
+            {
+              type: "collapse",
+              noCollapse: true,
+              name: "WIP Aging",
+              key: "wipAging",
+              icon: <Icon fontSize="small">timelapse</Icon>,
+              route: "/reports/wip-aging",
+              component: <WipAging />,
+            },
           ],
         },
         {
@@ -531,15 +655,6 @@ const adminRoutes = (stats) => {
           route: "/reports/call-history",
           component: <CallHistoryReport />,
           icon: <Icon fontSize="small">call</Icon>,
-        },
-        {
-          type: "collapse",
-          noCollapse: true,
-          name: "Event History",
-          key: "eventHistory",
-          route: "/reports/event-history",
-          component: <BusinessEventInstancesReport />,
-          icon: <Icon fontSize="small">event_note</Icon>,
         },
       ],
     },
@@ -571,15 +686,6 @@ const adminRoutes = (stats) => {
       collapse: [
         {
           type: "collapse",
-          name: "Business Events",
-          noCollapse: true,
-          key: "businessEvents",
-          icon: <Icon fontSize="small">event</Icon>,
-          route: "/businessEvents",
-          component: <BusinessEvents />,
-        },
-        {
-          type: "collapse",
           noCollapse: true,
           name: "Checklist Questions",
           key: "checklist",
@@ -592,7 +698,7 @@ const adminRoutes = (stats) => {
           name: "Manage Techs",
           noCollapse: true,
           key: "techs",
-          icon: <Icon fontSize="small">person</Icon>,
+          icon: <Icon fontSize="small">people</Icon>,
           route: "/techs",
           component: <Techs />,
         },
@@ -622,6 +728,24 @@ const adminRoutes = (stats) => {
             },
           ],
         },
+        {
+          type: "collapse",
+          noCollapse: true,
+          name: "System Configuration",
+          key: "system-settings",
+          icon: <Icon fontSize="small">tune</Icon>,
+          route: "/settings/system",
+          component: <SystemSettings />,
+        },
+        {
+          type: "collapse",
+          noCollapse: true,
+          name: "App Settings Config",
+          key: "app-settings",
+          icon: <Icon fontSize="small">settings_applications</Icon>,
+          route: "/settings/app-settings",
+          component: <AppSettings />,
+        },
       ],
     },
   ];
@@ -646,19 +770,27 @@ const techRoutes = (stats) => {
       collapse: [
         {
           type: "collapse",
-          name: `Repairs (${stats.repairs})`,
+          name: "Repairs",
           noCollapse: true,
           key: "repairs",
-          icon: <Icon fontSize="small">assignment</Icon>,
+          icon: (
+            <Badge badgeContent={stats.repairs} color="error">
+              <Icon fontSize="small">assignment</Icon>
+            </Badge>
+          ),
           route: "/repairs",
           component: <ActiveRepairs />,
         },
         {
           type: "collapse",
-          name: `Parts on Order (${stats.partsonorder})`,
+          name: "Parts on Order",
           key: "parts-on-order",
           noCollapse: true,
-          icon: <Icon fontSize="small">shopping_cart</Icon>,
+          icon: (
+            <Badge badgeContent={stats.partsonorder} color="error">
+              <Icon fontSize="small">shopping_cart</Icon>
+            </Badge>
+          ),
           route: "/parts-on-order",
           component: <PartsOnOrder />,
         },
@@ -672,6 +804,19 @@ const techRoutes = (stats) => {
           component: <RepairGuides />,
         },
       ],
+    },
+    {
+      type: "collapse",
+      name: "Messages",
+      noCollapse: true,
+      key: "messages",
+      icon: (
+        <Badge badgeContent={stats.unreadSMS} color="error">
+          <Icon fontSize="small">message</Icon>
+        </Badge>
+      ),
+      route: "/messages",
+      component: <Messages />,
     },
     {
       name: "Repairs",

@@ -47,217 +47,81 @@ const modalStyle = {
   overflowY: "auto",
 };
 
+const statusMap = {
+  0: { content: "Created", gradient: "linear-gradient(195deg, #FFFF00, #989845)", color: "#000" },
+  1: {
+    content: "Not started",
+    gradient: "linear-gradient(195deg, #ffae00, #B38D4C)",
+    color: "#000",
+  },
+  2: {
+    content: "In Progress",
+    gradient: "linear-gradient(195deg, #00BEFF, #4C99B3)",
+    color: "#000",
+  },
+  3: { content: "Paused", gradient: "linear-gradient(195deg, #3D8E8C, #00FFF9)", color: "#000" },
+  4: {
+    content: "Repair Complete",
+    gradient: "linear-gradient(195deg, #3C9041, #00FF0F)",
+    color: "#000",
+  },
+  5: {
+    content: "Invoice Created",
+    gradient: "linear-gradient(195deg, #8E833E, #FFDE03)",
+    color: "#000",
+  },
+  6: { content: "Complete", gradient: "linear-gradient(195deg, #329858, #00FF60)", color: "#000" },
+  11: {
+    content: "Paused - Awaiting parts",
+    gradient: "linear-gradient(195deg, #3D8E8C, #00FFF9)",
+    color: "#000",
+  },
+  12: {
+    content: "Paused - Parts delivered",
+    gradient: "linear-gradient(195deg, #3D8E8C, #00FFF9)",
+    color: "#000",
+  },
+  997: {
+    content: "Cancelled - Return to Customer",
+    gradient: "linear-gradient(195deg, #984742, #FB0F00)",
+    color: "#fff",
+  },
+  998: {
+    content: "Cancelled",
+    gradient: "linear-gradient(195deg, #984742, #FB0F00)",
+    color: "#fff",
+  },
+  999: {
+    content: "Unrepairable",
+    gradient: "linear-gradient(195deg, #9E3755, #F70048)",
+    color: "#fff",
+  },
+};
+
 const Status = ({ repairStatus }) => {
-  if (repairStatus == 0) {
-    return (
-      <MDBox ml={-1}>
-        <MDBadge
-          badgeContent="Created"
-          sx={{
-            "& .MuiBadge-badge": {
-              color: "#000",
-              backgroundColor: "green",
-              background: "linear-gradient(195deg, #FFFF00, #989845)",
-            },
-          }}
-          size="sm"
-          bg=""
-          container
-        />
-      </MDBox>
-    );
+  const statusInfo = statusMap[repairStatus];
+
+  if (!statusInfo) {
+    return null;
   }
-  if (repairStatus == 1) {
-    return (
-      <MDBox ml={-1}>
-        <MDBadge
-          badgeContent="Not started"
-          sx={{
-            "& .MuiBadge-badge": {
-              color: "#000",
-              backgroundColor: "green",
-              background: "linear-gradient(195deg, #ffae00, #B38D4C)",
-            },
-          }}
-          size="sm"
-          bg=""
-          container
-        />
-      </MDBox>
-    );
-  }
-  if (repairStatus == 2) {
-    return (
-      <MDBox ml={-1}>
-        <MDBadge
-          badgeContent="In Progress"
-          sx={{
-            "& .MuiBadge-badge": {
-              color: "#000",
-              backgroundColor: "green",
-              background: "linear-gradient(195deg, #00BEFF, #4C99B3)",
-            },
-          }}
-          size="sm"
-          bg=""
-          container
-        />
-      </MDBox>
-    );
-  }
-  if (repairStatus == 3) {
-    return (
-      <MDBox ml={-1}>
-        <MDBadge
-          badgeContent="Paused"
-          sx={{
-            "& .MuiBadge-badge": {
-              color: "#000",
-              backgroundColor: "green",
-              background: "linear-gradient(195deg, #3D8E8C, #00FFF9)",
-            },
-          }}
-          size="sm"
-          bg=""
-          container
-        />
-      </MDBox>
-    );
-  }
-  if (repairStatus == 4) {
-    return (
-      <MDBox ml={-1}>
-        <MDBadge
-          badgeContent="Repair Complete"
-          sx={{
-            "& .MuiBadge-badge": {
-              color: "#000",
-              backgroundColor: "green",
-              background: "linear-gradient(195deg, #3C9041, #00FF0F)",
-            },
-          }}
-          size="sm"
-          bg=""
-          container
-        />
-      </MDBox>
-    );
-  }
-  if (repairStatus == 5) {
-    return (
-      <MDBox ml={-1}>
-        <MDBadge
-          badgeContent="Invoice Created"
-          sx={{
-            "& .MuiBadge-badge": {
-              color: "#000",
-              backgroundColor: "green",
-              background: "linear-gradient(195deg, #8E833E, #FFDE03)",
-            },
-          }}
-          size="sm"
-          bg=""
-          container
-        />
-      </MDBox>
-    );
-  }
-  if (repairStatus == 11) {
-    return (
-      <MDBox ml={-1}>
-        <MDBadge
-          badgeContent="Paused - Awaiting parts"
-          sx={{
-            "& .MuiBadge-badge": {
-              color: "#000",
-              backgroundColor: "green",
-              background: "linear-gradient(195deg, #3D8E8C, #00FFF9)",
-            },
-          }}
-          size="sm"
-          bg=""
-          container
-        />
-      </MDBox>
-    );
-  }
-  if (repairStatus == 6) {
-    return (
-      <MDBox ml={-1}>
-        <MDBadge
-          badgeContent="Complete"
-          sx={{
-            "& .MuiBadge-badge": {
-              color: "#000",
-              backgroundColor: "green",
-              background: "linear-gradient(195deg, #329858, #00FF60)",
-            },
-          }}
-          size="sm"
-          bg=""
-          container
-        />
-      </MDBox>
-    );
-  }
-  if (repairStatus == 997) {
-    return (
-      <MDBox ml={-1}>
-        <MDBadge
-          badgeContent="Cancelled - Return to Customer"
-          sx={{
-            "& .MuiBadge-badge": {
-              color: "#fff",
-              backgroundColor: "green",
-              background: "linear-gradient(195deg, #984742, #FB0F00)",
-            },
-          }}
-          size="sm"
-          bg=""
-          container
-        />
-      </MDBox>
-    );
-  }
-  if (repairStatus == 998) {
-    return (
-      <MDBox ml={-1}>
-        <MDBadge
-          badgeContent="Cancelled"
-          sx={{
-            "& .MuiBadge-badge": {
-              color: "#fff",
-              backgroundColor: "green",
-              background: "linear-gradient(195deg, #984742, #FB0F00)",
-            },
-          }}
-          size="sm"
-          bg=""
-          container
-        />
-      </MDBox>
-    );
-  }
-  if (repairStatus == 999) {
-    return (
-      <MDBox ml={-1}>
-        <MDBadge
-          badgeContent="Unrepairable"
-          sx={{
-            "& .MuiBadge-badge": {
-              color: "#fff",
-              backgroundColor: "green",
-              background: "linear-gradient(195deg, #9E3755, #F70048)",
-            },
-          }}
-          size="sm"
-          bg=""
-          container
-        />
-      </MDBox>
-    );
-  }
-  return null;
+
+  return (
+    <MDBox ml={-1}>
+      <MDBadge
+        badgeContent={statusInfo.content}
+        sx={{
+          "& .MuiBadge-badge": {
+            color: statusInfo.color,
+            backgroundColor: "green",
+            background: statusInfo.gradient,
+          },
+        }}
+        size="sm"
+        bg=""
+        container
+      />
+    </MDBox>
+  );
 };
 
 const PhoneRingingPopup = () => {

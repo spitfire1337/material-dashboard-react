@@ -823,7 +823,7 @@ function Actions({
       </>
     );
   }
-  if (status == 3 || status == 11) {
+  if (status == 3 || status == 11 || status == 12) {
     return (
       <>
         <Grid container spacing={2} mb={3}>

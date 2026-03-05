@@ -14,7 +14,7 @@ Coded by www.creative-tim.com
 */
 // React components
 import { useState, React, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import RepairHistory from "./components/history";
 import Actions from "./components/actions";
 import NotesItem from "examples/Timeline/NotesItem";
@@ -44,6 +44,13 @@ import {
   OutlinedInput,
   keyframes,
   Pagination,
+  Autocomplete,
+  List,
+  ListItem,
+  ListItemText,
+  AppBar,
+  Tabs,
+  Tab,
 } from "@mui/material";
 
 // Material Dashboard 2 React components
@@ -106,205 +113,80 @@ const iconsStyle = ({ palette: { dark, white, text }, functions: { rgba } }) => 
   },
 });
 
+const statusMap = {
+  0: { content: "Created", gradient: "linear-gradient(195deg, #FFFF00, #989845)", color: "#000" },
+  1: {
+    content: "Not started",
+    gradient: "linear-gradient(195deg, #ffae00, #B38D4C)",
+    color: "#000",
+  },
+  2: {
+    content: "In Progress",
+    gradient: "linear-gradient(195deg, #00BEFF, #4C99B3)",
+    color: "#000",
+  },
+  3: { content: "Paused", gradient: "linear-gradient(195deg, #3D8E8C, #00FFF9)", color: "#000" },
+  4: {
+    content: "Repair Complete",
+    gradient: "linear-gradient(195deg, #3C9041, #00FF0F)",
+    color: "#000",
+  },
+  5: {
+    content: "Invoice Created",
+    gradient: "linear-gradient(195deg, #8E833E, #FFDE03)",
+    color: "#000",
+  },
+  6: { content: "Complete", gradient: "linear-gradient(195deg, #329858, #00FF60)", color: "#000" },
+  11: {
+    content: "Paused - Awaiting parts",
+    gradient: "linear-gradient(195deg, #3D8E8C, #00FFF9)",
+    color: "#000",
+  },
+  12: {
+    content: "Paused - Parts delivered",
+    gradient: "linear-gradient(195deg, #3D8E8C, #00FFF9)",
+    color: "#000",
+  },
+  997: {
+    content: "Cancelled - Return to Customer",
+    gradient: "linear-gradient(195deg, #984742, #FB0F00)",
+    color: "#fff",
+  },
+  998: {
+    content: "Cancelled",
+    gradient: "linear-gradient(195deg, #984742, #FB0F00)",
+    color: "#fff",
+  },
+  999: {
+    content: "Unrepairable",
+    gradient: "linear-gradient(195deg, #9E3755, #F70048)",
+    color: "#fff",
+  },
+};
+
 const Status = ({ repairStatus }) => {
-  if (repairStatus == 0) {
-    return (
-      <MDBox ml={-1}>
-        <MDBadge
-          badgeContent="Created"
-          sx={{
-            "& .MuiBadge-badge": {
-              color: "#000",
-              backgroundColor: "green",
-              background: "linear-gradient(195deg, #FFFF00, #989845)",
-            },
-          }}
-          size="sm"
-          bg=""
-        />
-      </MDBox>
-    );
+  const statusInfo = statusMap[repairStatus];
+
+  if (!statusInfo) {
+    return null;
   }
-  if (repairStatus == 1) {
-    return (
-      <MDBox ml={-1}>
-        <MDBadge
-          badgeContent="Not started"
-          sx={{
-            "& .MuiBadge-badge": {
-              color: "#000",
-              backgroundColor: "green",
-              background: "linear-gradient(195deg, #ffae00, #B38D4C)",
-            },
-          }}
-          size="sm"
-          bg=""
-        />
-      </MDBox>
-    );
-  }
-  if (repairStatus == 2) {
-    return (
-      <MDBox ml={-1}>
-        <MDBadge
-          badgeContent="In Progress"
-          sx={{
-            "& .MuiBadge-badge": {
-              color: "#000",
-              backgroundColor: "green",
-              background: "linear-gradient(195deg, #00BEFF, #4C99B3)",
-            },
-          }}
-          size="sm"
-          bg=""
-        />
-      </MDBox>
-    );
-  }
-  if (repairStatus == 3) {
-    return (
-      <MDBox ml={-1}>
-        <MDBadge
-          badgeContent="Paused"
-          sx={{
-            "& .MuiBadge-badge": {
-              color: "#000",
-              backgroundColor: "green",
-              background: "linear-gradient(195deg, #3D8E8C, #00FFF9)",
-            },
-          }}
-          size="sm"
-          bg=""
-        />
-      </MDBox>
-    );
-  }
-  if (repairStatus == 4) {
-    return (
-      <MDBox ml={-1}>
-        <MDBadge
-          badgeContent="Repair Complete"
-          sx={{
-            "& .MuiBadge-badge": {
-              color: "#000",
-              backgroundColor: "green",
-              background: "linear-gradient(195deg, #3C9041, #00FF0F)",
-            },
-          }}
-          size="sm"
-          bg=""
-        />
-      </MDBox>
-    );
-  }
-  if (repairStatus == 5) {
-    return (
-      <MDBox ml={-1}>
-        <MDBadge
-          badgeContent="Invoice Created"
-          sx={{
-            "& .MuiBadge-badge": {
-              color: "#000",
-              backgroundColor: "green",
-              background: "linear-gradient(195deg, #8E833E, #FFDE03)",
-            },
-          }}
-          size="sm"
-          bg=""
-        />
-      </MDBox>
-    );
-  }
-  if (repairStatus == 11) {
-    return (
-      <MDBox ml={-1}>
-        <MDBadge
-          badgeContent="Paused - Awaiting parts"
-          sx={{
-            "& .MuiBadge-badge": {
-              color: "#000",
-              backgroundColor: "green",
-              background: "linear-gradient(195deg, #3D8E8C, #00FFF9)",
-            },
-          }}
-          size="sm"
-          bg=""
-        />
-      </MDBox>
-    );
-  }
-  if (repairStatus == 6) {
-    return (
-      <MDBox ml={-1}>
-        <MDBadge
-          badgeContent="Complete"
-          sx={{
-            "& .MuiBadge-badge": {
-              color: "#000",
-              backgroundColor: "green",
-              background: "linear-gradient(195deg, #329858, #00FF60)",
-            },
-          }}
-          size="sm"
-          bg=""
-        />
-      </MDBox>
-    );
-  }
-  if (repairStatus == 997) {
-    return (
-      <MDBox ml={-1}>
-        <MDBadge
-          badgeContent="Cancelled - Return to Customer"
-          sx={{
-            "& .MuiBadge-badge": {
-              color: "#fff",
-              backgroundColor: "green",
-              background: "linear-gradient(195deg, #984742, #FB0F00)",
-            },
-          }}
-          size="sm"
-          bg=""
-        />
-      </MDBox>
-    );
-  }
-  if (repairStatus == 998) {
-    return (
-      <MDBox ml={-1}>
-        <MDBadge
-          badgeContent="Cancelled"
-          sx={{
-            "& .MuiBadge-badge": {
-              color: "#fff",
-              backgroundColor: "green",
-              background: "linear-gradient(195deg, #984742, #FB0F00)",
-            },
-          }}
-          size="sm"
-          bg=""
-        />
-      </MDBox>
-    );
-  }
-  if (repairStatus == 999) {
-    return (
-      <MDBox ml={-1}>
-        <MDBadge
-          badgeContent="Unrepairable"
-          sx={{
-            "& .MuiBadge-badge": {
-              color: "#fff",
-              backgroundColor: "green",
-              background: "linear-gradient(195deg, #9E3755, #F70048)",
-            },
-          }}
-          size="sm"
-          bg=""
-        />
-      </MDBox>
-    );
-  }
+
+  return (
+    <MDBox ml={-1}>
+      <MDBadge
+        badgeContent={statusInfo.content}
+        sx={{
+          "& .MuiBadge-badge": {
+            color: statusInfo.color,
+            backgroundColor: "green",
+            background: statusInfo.gradient,
+          },
+        }}
+        size="sm"
+        bg=""
+      />
+    </MDBox>
+  );
 };
 
 const ConfirmActionDialog = ({ title, content, action, openState, closeState }) => {
@@ -357,7 +239,8 @@ const PartsItem = ({ part, status, onDelete }) => {
   );
 };
 
-const PartsOrderedItem = ({ part, onReceive, onDelete }) => {
+const PartsOrderedItem = ({ part, onReceive, onDelete, onEdit, onViewTracking }) => {
+  console.log(part);
   const getTrackingLink = (trackingNumber) => {
     if (!trackingNumber) return null;
     const cleanNumber = trackingNumber.replace(/\s/g, "").toUpperCase();
@@ -403,11 +286,27 @@ const PartsOrderedItem = ({ part, onReceive, onDelete }) => {
           {part.vendor} {part.orderNumber ? `- ${part.orderNumber}` : ""}
         </MDTypography>
       </Grid>
-      <Grid item xs={2}>
+      <Grid item xs={1}>
         <MDTypography variant="body2">{part.quantity}</MDTypography>
       </Grid>
       <Grid item xs={4}>
-        {trackingLink ? (
+        {part.trackingInfo ? (
+          <MDBox>
+            <MDTypography
+              component="span"
+              variant="body2"
+              color="info"
+              sx={{ textDecoration: "underline", cursor: "pointer" }}
+              onClick={() => onViewTracking(part)}
+            >
+              {part.trackingNumber}
+            </MDTypography>
+            <MDTypography variant="caption" display="block" color="text">
+              {part.trackingInfo.tracking_status?.status_details ||
+                part.trackingInfo.tracking_status?.status}
+            </MDTypography>
+          </MDBox>
+        ) : trackingLink ? (
           <MDTypography
             component="a"
             href={trackingLink}
@@ -436,6 +335,13 @@ const PartsOrderedItem = ({ part, onReceive, onDelete }) => {
             Track on Amazon
           </MDTypography>
         )}
+      </Grid>
+      <Grid item xs={1}>
+        <Tooltip title="Edit Ordered Part">
+          <IconButton color="info" onClick={() => onEdit(part)}>
+            <Icon>edit</Icon>
+          </IconButton>
+        </Tooltip>
       </Grid>
       <Grid item xs={1}>
         <Tooltip title="Mark as Received">
@@ -631,7 +537,9 @@ const GuideDetail = ({ data }) => {
 
 // eslint-disable-next-line react/prop-types
 const RepairDetails = () => {
-  const { setSnackBar, setShowLoad } = globalFuncs();
+  const navigate = useNavigate();
+  const { setSnackBar, setShowLoad, asteriskStatus, setAiChatOpen, setAiChatMessage } =
+    globalFuncs();
   const socket = useSocket();
   const { loginState, setLoginState } = useLoginState();
   const { RepairRerender } = useTableState();
@@ -667,6 +575,11 @@ const RepairDetails = () => {
   const [newMinutes, setnewMinutes] = useState();
   const [questions, setQuestions] = useState([]);
   const [techs, setTechs] = useState([]);
+  const [vendors, setVendors] = useState([]);
+  const [showEditPartOrderedModal, setShowEditPartOrderedModal] = useState(false);
+  const [editingPartOrdered, setEditingPartOrdered] = useState(null);
+  const [showTrackingModal, setShowTrackingModal] = useState(false);
+  const [trackingPart, setTrackingPart] = useState(null);
 
   const [showGuidesModal, setShowGuidesModal] = useState(false);
   const [guides, setGuides] = useState([]);
@@ -686,6 +599,8 @@ const RepairDetails = () => {
   const [highlightUpdate, setHighlightUpdate] = useState(false);
   const [showEditDetailsModal, setShowEditDetailsModal] = useState(false);
   const [showEditCustomerModal, setShowEditCustomerModal] = useState(false);
+  const [tabValue, setTabValue] = useState(0);
+  const handleSetTabValue = (event, newValue) => setTabValue(newValue);
 
   const editor = useEditor({
     extensions: [
@@ -734,6 +649,83 @@ const RepairDetails = () => {
       });
     }
   }, [socket]);
+
+  const fetchVendors = async () => {
+    try {
+      const response = await fetch(`${vars.serverUrl}/square/getVendors`, {
+        credentials: "include",
+      });
+      const json = await response.json();
+      if (json.res === 200) {
+        setVendors(json.data);
+      }
+    } catch (e) {
+      console.error("Error fetching vendors", e);
+    }
+  };
+
+  const handleEditPartOrdered = (part) => {
+    setEditingPartOrdered(part);
+    setShowEditPartOrderedModal(true);
+    if (vendors.length === 0) fetchVendors();
+  };
+
+  const handleAddPartOrdered = () => {
+    setEditingPartOrdered({
+      repairId: repairID,
+      partName: "",
+      cost: "",
+      customerCost: "",
+      quantity: 1,
+      vendor: "",
+      orderNumber: "",
+      trackingNumber: "",
+    });
+    setShowEditPartOrderedModal(true);
+    if (vendors.length === 0) fetchVendors();
+  };
+
+  const handleViewTracking = (part) => {
+    setTrackingPart(part);
+    setShowTrackingModal(true);
+  };
+
+  const handleSavePartOrdered = () => {
+    if (!editingPartOrdered.partName || !editingPartOrdered.quantity) {
+      setSnackBar({
+        type: "error",
+        title: "Error",
+        message: "Part Name and Quantity are required",
+        show: true,
+        icon: "warning",
+      });
+      return;
+    }
+    setShowLoad(true);
+    if (socket) {
+      socket.emit("saveRepairPartOrdered", editingPartOrdered, (res) => {
+        setShowLoad(false);
+        if (res.res === 200) {
+          setSnackBar({
+            type: "success",
+            message: editingPartOrdered._id ? "Part updated" : "Part added",
+            show: true,
+            icon: "check",
+          });
+          setShowEditPartOrderedModal(false);
+          setEditingPartOrdered(null);
+          // The updatedRepair listener will handle state update
+        } else {
+          setSnackBar({
+            type: "error",
+            message: "Failed to update part",
+            show: true,
+            icon: "warning",
+          });
+        }
+      });
+    }
+  };
 
   const handlePlay = (url) => {
     setAudioSrc(url);
@@ -1308,6 +1300,21 @@ const RepairDetails = () => {
     setShowViewGuideModal(true);
   };
 
+  const handleAskAI = () => {
+    const brand = repairDetails.pev?.Brand?.name || "Unknown Brand";
+    const model = repairDetails.pev?.Model || "Unknown Model";
+    const issues = repairDetails.RepairType
+      ? repairDetails.RepairType.join(", ")
+      : "Unknown Issues";
+    const details = repairDetails.Details
+      ? repairDetails.Details.replace(/<[^>]*>?/gm, "")
+      : "No details provided";
+
+    const message = `Help me repair a ${brand} ${model} with the following types of issues ${issues} details of the issues are ${details}`;
+    setAiChatMessage(message);
+    setAiChatOpen(true);
+  };
+
   const { showUploadFunc, addPhotoModal, setRepairId } = AddPhotos({
     getRepair,
   });
@@ -1416,396 +1423,435 @@ const RepairDetails = () => {
       <MDBox pt={6} pb={3}>
         <Grid container spacing={1}>
           <Grid item xs={12} md={8}>
-            <Grid container spacing={1}>
-              {/* Customer info */}
-              <Grid item xs={12}>
-                <Card sx={cardAnimation}>
-                  <MDBox
-                    mx={1}
-                    mt={-3}
-                    py={2}
-                    px={1}
-                    variant="gradient"
-                    bgColor="info"
-                    borderRadius="lg"
-                    coloredShadow="info"
-                  >
-                    <Grid container>
-                      <Grid item xs={6} alignItems="center">
-                        <MDTypography variant="h6" color="white">
-                          Customer Details
-                        </MDTypography>
-                      </Grid>
-                      <Grid
-                        item
-                        xs={6}
-                        display="flex"
-                        alignItems="center"
-                        justifyContent="flex-end"
-                      >
-                        <IconButton
-                          onClick={() => setShowEditCustomerModal(true)}
-                          sx={{ color: "white", mr: 1 }}
+            <MDBox mb={2}>
+              <AppBar position="static">
+                <Tabs value={tabValue} onChange={handleSetTabValue}>
+                  <Tab label="Overview" />
+                  <Tab label="Work" />
+                  <Tab label="Parts & Media" />
+                  {(loginState.user?.isAdmin || loginState.user?.isDev) && (
+                    <Tab label="Call History" />
+                  )}
+                </Tabs>
+              </AppBar>
+            </MDBox>
+            {tabValue === 0 && (
+              <Grid container spacing={1}>
+                {/* Customer info */}
+                <Grid item xs={12}>
+                  <Card sx={cardAnimation}>
+                    <MDBox
+                      mx={1}
+                      mt={-3}
+                      py={2}
+                      px={1}
+                      variant="gradient"
+                      bgColor="info"
+                      borderRadius="lg"
+                      coloredShadow="info"
+                    >
+                      <Grid container>
+                        <Grid item xs={6} alignItems="center">
+                          <MDTypography variant="h6" color="white">
+                            Customer Details
+                          </MDTypography>
+                        </Grid>
+                        <Grid
+                          item
+                          xs={6}
+                          display="flex"
+                          alignItems="center"
+                          justifyContent="flex-end"
                         >
-                          <Icon>edit</Icon>
-                        </IconButton>
-                      </Grid>
-                    </Grid>
-                  </MDBox>
-                  <MDBox mx={2} py={3} px={2}>
-                    <MDTypography variant="subtitle2">
-                      {repairDetails.Customer.given_name} {repairDetails.Customer.family_name}
-                      {repairDetails.Customer.address != undefined
-                        ? [<br key="" />, repairDetails.Customer.address.address_line_1]
-                        : ""}
-                      {repairDetails.Customer.address != undefined
-                        ? repairDetails.Customer.address.address_line_2 != undefined
-                          ? [<br key="" />, repairDetails.Customer.address.address_line_2]
-                          : ""
-                        : ""}
-                      {repairDetails.Customer.address != undefined
-                        ? [
-                            <br key="" />,
-                            repairDetails.Customer.address.locality || "",
-                            ", ",
-                            repairDetails.Customer.address.administrative_district_level_1 || "",
-                            " ",
-                            repairDetails.Customer.address.postal_code || "",
-                          ]
-                        : ""}
-                      {repairDetails.Customer.email_address != undefined
-                        ? [<br key="" />, repairDetails.Customer.email_address]
-                        : ""}
-                      {repairDetails.Customer.phone_number != undefined ? (
-                        <>
-                          <br />
-                          {repairDetails.Customer.phone_number}
-                          <Tooltip title="Call Customer">
-                            <IconButton
-                              size="small"
-                              color="success"
-                              onClick={() =>
-                                handleCallCustomer(repairDetails.Customer.phone_number)
-                              }
-                              sx={{ ml: 1, padding: 0 }}
-                            >
-                              <Icon>call</Icon>
-                            </IconButton>
-                          </Tooltip>
-                        </>
-                      ) : (
-                        ""
-                      )}
-                    </MDTypography>
-                  </MDBox>
-                </Card>
-              </Grid>
-
-              {/* Repair Details */}
-              <Grid item xs={12}>
-                <Card sx={cardAnimation}>
-                  <MDBox
-                    mx={1}
-                    mt={-3}
-                    py={2}
-                    px={1}
-                    variant="gradient"
-                    bgColor="info"
-                    borderRadius="lg"
-                    coloredShadow="info"
-                  >
-                    <Grid container>
-                      <Grid item xs={6} alignItems="center">
-                        <MDTypography variant="h6" color="white">
-                          Repair Details
-                        </MDTypography>
-                      </Grid>
-                      <Grid
-                        item
-                        xs={6}
-                        display="flex"
-                        alignItems="center"
-                        justifyContent="flex-end"
-                      >
-                        <IconButton
-                          onClick={() => setShowEditDetailsModal(true)}
-                          sx={{ color: "white", mr: 1 }}
-                        >
-                          <Icon>edit</Icon>
-                        </IconButton>
-                        <Status repairStatus={repairDetails.status} />
-                      </Grid>
-                    </Grid>
-                  </MDBox>
-                  <MDBox mx={2} py={3} px={2}>
-                    <Grid container spacing={2} mb={2}>
-                      <Grid item xs={12} md={6}>
-                        <FormControl fullWidth variant="standard">
-                          <InputLabel>Assigned Tech</InputLabel>
-                          <Select
-                            value={
-                              repairDetails.assignedTech?._id || repairDetails.assignedTech || ""
-                            }
-                            onChange={handleAssignTech}
-                            label="Assigned Tech"
-                            disabled={!(loginState.user?.isAdmin || loginState.user?.isDev)}
+                          <IconButton
+                            onClick={() => setShowEditCustomerModal(true)}
+                            sx={{ color: "white", mr: 1 }}
                           >
-                            <MenuItem value="">
-                              <em>None</em>
-                            </MenuItem>
-                            {techs.map((tech) => (
-                              <MenuItem key={tech._id} value={tech._id}>
-                                {tech.displayName}
-                              </MenuItem>
-                            ))}
-                          </Select>
-                        </FormControl>
+                            <Icon>edit</Icon>
+                          </IconButton>
+                        </Grid>
                       </Grid>
-                      <Grid item xs={12} md={6}>
-                        <FormControl fullWidth variant="standard">
-                          <InputLabel>Priority</InputLabel>
-                          <Select
-                            value={repairDetails.priority || ""}
-                            onChange={handleUpdatePriority}
-                            disabled={!(loginState.user?.isAdmin || loginState.user?.isDev)}
-                          >
-                            {[...Array(10)].map((_, i) => (
-                              <MenuItem key={i + 1} value={i + 1}>
-                                {i + 1}
-                                {i === 0 ? " (Highest)" : ""}
-                              </MenuItem>
-                            ))}
-                          </Select>
-                        </FormControl>
-                      </Grid>
-                    </Grid>
-                    <MDBox display="flex" alignItems="center">
-                      <MDTypography variant="body1">
-                        {repairDetails.pev.Brand.name} {repairDetails.pev.Model}
-                      </MDTypography>
-                      <MDButton
-                        variant="text"
-                        color="info"
-                        onClick={handleOpenGuides}
-                        sx={{ ml: 2 }}
-                      >
-                        <Icon>menu_book</Icon>&nbsp;Troubleshooting & Guides ({guides.length})
-                      </MDButton>
                     </MDBox>
-                    <MDTypography variant="body1">Repair Type:</MDTypography>
-                    <MDTypography variant="body2">
-                      {repairDetails.RepairType.map((type) => {
-                        return ` ${type} `;
-                      })}
-                    </MDTypography>
-                    {repairDetails.warranty && (
-                      <MDTypography variant="body2" color="error" fontWeight="bold">
-                        Warranty Repair
-                      </MDTypography>
-                    )}
-                    {repairDetails.accessories && repairDetails.accessories.length > 0 && (
-                      <>
-                        <MDTypography variant="body1">Accessories:</MDTypography>
-                        <MDBox display="flex" gap={0.5} flexWrap="wrap" mb={1}>
-                          {repairDetails.accessories.map((acc, i) => (
-                            <Chip key={i} label={acc.name} size="small" />
-                          ))}
-                        </MDBox>
-                      </>
-                    )}
-                    <MDTypography variant="body1">Details:</MDTypography>
-                    <MDTypography variant="body2">{parse(repairDetails.Details)}</MDTypography>
-                  </MDBox>
-                </Card>
-              </Grid>
-              {/* Checklists */}
-              <Grid item xs={12}>
-                <Card sx={cardAnimation}>
-                  <MDBox
-                    mx={1}
-                    mt={-3}
-                    py={2}
-                    px={1}
-                    variant="gradient"
-                    bgColor="info"
-                    borderRadius="lg"
-                    coloredShadow="info"
-                  >
-                    <MDTypography variant="h6" color="white">
-                      Checklists
-                    </MDTypography>
-                  </MDBox>
-                  <MDBox mx={2} py={3} px={2}>
-                    <Grid container spacing={2}>
-                      <Grid item xs={12} md={4}>
-                        <MDTypography variant="h6" gutterBottom>
-                          Pre-Repair Checklist
+                    <MDBox mx={2} py={3} px={2}>
+                      <MDTypography variant="subtitle2">
+                        <MDTypography
+                          variant="inherit"
+                          component="span"
+                          color="info"
+                          sx={{ cursor: "pointer", textDecoration: "underline" }}
+                          onClick={() => navigate(`/customer/${repairDetails.Customer._id}`)}
+                        >
+                          {repairDetails.Customer.given_name || ""}{" "}
+                          {repairDetails.Customer.family_name || ""}
                         </MDTypography>
-                        {getApplicableQuestions("Pre-Repair").length > 0 ? (
-                          getApplicableQuestions("Pre-Repair").map((q) => {
-                            const answerObj = repairDetails.preRepairChecklist?.answers?.find(
-                              (a) => a.questionId === q._id
-                            );
-                            return (
-                              <ChecklistQuestion
-                                key={q._id}
-                                question={q}
-                                answerObj={answerObj}
-                                canEdit={repairDetails.status === 0 || repairDetails.status === 1}
-                                onSave={(qId, val) => updateChecklistAnswer("Pre-Repair", qId, val)}
-                              />
-                            );
-                          })
+                        {repairDetails.Customer.address != undefined
+                          ? [<br key="" />, repairDetails.Customer.address.address_line_1]
+                          : ""}
+                        {repairDetails.Customer.address != undefined
+                          ? repairDetails.Customer.address.address_line_2 != undefined
+                            ? [<br key="" />, repairDetails.Customer.address.address_line_2]
+                            : ""
+                          : ""}
+                        {repairDetails.Customer.address != undefined
+                          ? [
+                              <br key="" />,
+                              repairDetails.Customer.address.locality || "",
+                              ", ",
+                              repairDetails.Customer.address.administrative_district_level_1 || "",
+                              " ",
+                              repairDetails.Customer.address.postal_code || "",
+                            ]
+                          : ""}
+                        {repairDetails.Customer.email_address != undefined
+                          ? [<br key="" />, repairDetails.Customer.email_address]
+                          : ""}
+                        {repairDetails.Customer.phone_number != undefined ? (
+                          <>
+                            <br />
+                            {repairDetails.Customer.phone_number}
+                            <Tooltip
+                              title={asteriskStatus ? "Call Customer" : "PBX Server Offline"}
+                            >
+                              <MDBox component="span" display="inline-block">
+                                <IconButton
+                                  size="small"
+                                  color="success"
+                                  disabled={!asteriskStatus}
+                                  onClick={() =>
+                                    handleCallCustomer(repairDetails.Customer.phone_number)
+                                  }
+                                  sx={{ ml: 1, padding: 0 }}
+                                >
+                                  <Icon>call</Icon>
+                                </IconButton>
+                              </MDBox>
+                            </Tooltip>
+                          </>
                         ) : (
-                          <MDTypography variant="body2">No questions available.</MDTypography>
+                          ""
                         )}
+                      </MDTypography>
+                    </MDBox>
+                  </Card>
+                </Grid>
+
+                {/* Repair Details */}
+                <Grid item xs={12}>
+                  <Card sx={cardAnimation}>
+                    <MDBox
+                      mx={1}
+                      mt={-3}
+                      py={2}
+                      px={1}
+                      variant="gradient"
+                      bgColor="info"
+                      borderRadius="lg"
+                      coloredShadow="info"
+                    >
+                      <Grid container>
+                        <Grid item xs={6} alignItems="center">
+                          <MDTypography variant="h6" color="white">
+                            Repair Details
+                          </MDTypography>
+                        </Grid>
+                        <Grid
+                          item
+                          xs={6}
+                          display="flex"
+                          alignItems="center"
+                          justifyContent="flex-end"
+                        >
+                          <IconButton
+                            onClick={() => setShowEditDetailsModal(true)}
+                            sx={{ color: "white", mr: 1 }}
+                          >
+                            <Icon>edit</Icon>
+                          </IconButton>
+                          <Status repairStatus={repairDetails.status} />
+                        </Grid>
                       </Grid>
-                      <Grid item xs={12} md={4} id="in-progress-checklist">
-                        <MDTypography variant="h6" gutterBottom>
-                          In Progress Checklist
+                    </MDBox>
+                    <MDBox mx={2} py={3} px={2}>
+                      <Grid container spacing={2} mb={2}>
+                        <Grid item xs={12} md={6}>
+                          <FormControl fullWidth variant="standard">
+                            <InputLabel>Assigned Tech</InputLabel>
+                            <Select
+                              value={
+                                repairDetails.assignedTech?._id || repairDetails.assignedTech || ""
+                              }
+                              onChange={handleAssignTech}
+                              label="Assigned Tech"
+                              disabled={!(loginState.user?.isAdmin || loginState.user?.isDev)}
+                            >
+                              <MenuItem value="">
+                                <em>None</em>
+                              </MenuItem>
+                              {techs.map((tech) => (
+                                <MenuItem key={tech._id} value={tech._id}>
+                                  {tech.displayName}
+                                </MenuItem>
+                              ))}
+                            </Select>
+                          </FormControl>
+                        </Grid>
+                        <Grid item xs={12} md={6}>
+                          <FormControl fullWidth variant="standard">
+                            <InputLabel>Priority</InputLabel>
+                            <Select
+                              value={repairDetails.priority || ""}
+                              onChange={handleUpdatePriority}
+                              disabled={!(loginState.user?.isAdmin || loginState.user?.isDev)}
+                            >
+                              {[...Array(10)].map((_, i) => (
+                                <MenuItem key={i + 1} value={i + 1}>
+                                  {i + 1}
+                                  {i === 0 ? " (Highest)" : ""}
+                                </MenuItem>
+                              ))}
+                            </Select>
+                          </FormControl>
+                        </Grid>
+                      </Grid>
+                      <MDBox display="flex" alignItems="center">
+                        <MDTypography variant="body1">
+                          {repairDetails.pev.Brand.name} {repairDetails.pev.Model}
                         </MDTypography>
-                        {getApplicableQuestions("In Progress").length > 0 ? (
-                          getApplicableQuestions("In Progress").map((q) => {
-                            const answerObj =
-                              repairDetails.inprogressRepairChecklist?.answers?.find(
+                        <MDButton variant="text" color="info" onClick={handleAskAI} sx={{ ml: 2 }}>
+                          <Icon>auto_awesome</Icon>&nbsp;Ask AI
+                        </MDButton>
+                        <MDButton
+                          variant="text"
+                          color="info"
+                          onClick={handleOpenGuides}
+                          sx={{ ml: 2 }}
+                        >
+                          <Icon>menu_book</Icon>&nbsp;Troubleshooting & Guides ({guides.length})
+                        </MDButton>
+                      </MDBox>
+                      <MDTypography variant="body1">Repair Type:</MDTypography>
+                      <MDTypography variant="body2">
+                        {repairDetails.RepairType.map((type) => {
+                          return ` ${type} `;
+                        })}
+                      </MDTypography>
+                      {repairDetails.warranty && (
+                        <MDTypography variant="body2" color="error" fontWeight="bold">
+                          Warranty Repair
+                        </MDTypography>
+                      )}
+                      {repairDetails.accessories && repairDetails.accessories.length > 0 && (
+                        <>
+                          <MDTypography variant="body1">Accessories:</MDTypography>
+                          <MDBox display="flex" gap={0.5} flexWrap="wrap" mb={1}>
+                            {repairDetails.accessories.map((acc, i) => (
+                              <Chip key={i} label={acc.name} size="small" />
+                            ))}
+                          </MDBox>
+                        </>
+                      )}
+                      <MDTypography variant="body1">Details:</MDTypography>
+                      <MDTypography variant="body2">{parse(repairDetails.Details)}</MDTypography>
+                    </MDBox>
+                  </Card>
+                </Grid>
+              </Grid>
+            )}
+            {tabValue === 1 && (
+              <Grid container spacing={1}>
+                {/* Checklists */}
+                <Grid item xs={12}>
+                  <Card sx={cardAnimation}>
+                    <MDBox
+                      mx={1}
+                      mt={-3}
+                      py={2}
+                      px={1}
+                      variant="gradient"
+                      bgColor="info"
+                      borderRadius="lg"
+                      coloredShadow="info"
+                    >
+                      <MDTypography variant="h6" color="white">
+                        Checklists
+                      </MDTypography>
+                    </MDBox>
+                    <MDBox mx={2} py={3} px={2}>
+                      <Grid container spacing={2}>
+                        <Grid item xs={12} md={4}>
+                          <MDTypography variant="h6" gutterBottom>
+                            Pre-Repair Checklist
+                          </MDTypography>
+                          {getApplicableQuestions("Pre-Repair").length > 0 ? (
+                            getApplicableQuestions("Pre-Repair").map((q) => {
+                              const answerObj = repairDetails.preRepairChecklist?.answers?.find(
                                 (a) => a.questionId === q._id
                               );
-                            return (
-                              <ChecklistQuestion
-                                key={q._id}
-                                id={`question-${q._id}`}
-                                question={q}
-                                answerObj={answerObj}
-                                canEdit={
-                                  repairDetails.status === 2 ||
-                                  repairDetails.status === 3 ||
-                                  repairDetails.status === 11
-                                }
-                                onSave={(qId, val) =>
-                                  updateChecklistAnswer("In Progress", qId, val)
-                                }
-                              />
-                            );
-                          })
-                        ) : (
-                          <MDTypography variant="body2">No questions available.</MDTypography>
-                        )}
+                              return (
+                                <ChecklistQuestion
+                                  key={q._id}
+                                  question={q}
+                                  answerObj={answerObj}
+                                  canEdit={repairDetails.status === 0 || repairDetails.status === 1}
+                                  onSave={(qId, val) =>
+                                    updateChecklistAnswer("Pre-Repair", qId, val)
+                                  }
+                                />
+                              );
+                            })
+                          ) : (
+                            <MDTypography variant="body2">No questions available.</MDTypography>
+                          )}
+                        </Grid>
+                        <Grid item xs={12} md={4} id="in-progress-checklist">
+                          <MDTypography variant="h6" gutterBottom>
+                            In Progress Checklist
+                          </MDTypography>
+                          {getApplicableQuestions("In Progress").length > 0 ? (
+                            getApplicableQuestions("In Progress").map((q) => {
+                              const answerObj =
+                                repairDetails.inprogressRepairChecklist?.answers?.find(
+                                  (a) => a.questionId === q._id
+                                );
+                              return (
+                                <ChecklistQuestion
+                                  key={q._id}
+                                  id={`question-${q._id}`}
+                                  question={q}
+                                  answerObj={answerObj}
+                                  canEdit={
+                                    repairDetails.status === 2 ||
+                                    repairDetails.status === 3 ||
+                                    repairDetails.status === 11
+                                  }
+                                  onSave={(qId, val) =>
+                                    updateChecklistAnswer("In Progress", qId, val)
+                                  }
+                                />
+                              );
+                            })
+                          ) : (
+                            <MDTypography variant="body2">No questions available.</MDTypography>
+                          )}
+                        </Grid>
+                        <Grid item xs={12} md={4}>
+                          <MDTypography variant="h6" gutterBottom>
+                            Post-Repair Checklist
+                          </MDTypography>
+                          {getApplicableQuestions("Post-Repair").length > 0 ? (
+                            getApplicableQuestions("Post-Repair").map((q) => {
+                              const answerObj = repairDetails.postRepairChecklist?.answers?.find(
+                                (a) => a.questionId === q._id
+                              );
+                              return (
+                                <ChecklistQuestion
+                                  key={q._id}
+                                  question={q}
+                                  answerObj={answerObj}
+                                  canEdit={
+                                    repairDetails.status === 4 ||
+                                    repairDetails.status === 5 ||
+                                    repairDetails.status === 6
+                                  }
+                                  onSave={(qId, val) =>
+                                    updateChecklistAnswer("Post-Repair", qId, val)
+                                  }
+                                />
+                              );
+                            })
+                          ) : (
+                            <MDTypography variant="body2">No questions available.</MDTypography>
+                          )}
+                        </Grid>
                       </Grid>
-                      <Grid item xs={12} md={4}>
-                        <MDTypography variant="h6" gutterBottom>
-                          Post-Repair Checklist
-                        </MDTypography>
-                        {getApplicableQuestions("Post-Repair").length > 0 ? (
-                          getApplicableQuestions("Post-Repair").map((q) => {
-                            const answerObj = repairDetails.postRepairChecklist?.answers?.find(
-                              (a) => a.questionId === q._id
-                            );
-                            return (
-                              <ChecklistQuestion
-                                key={q._id}
-                                question={q}
-                                answerObj={answerObj}
-                                canEdit={
-                                  repairDetails.status === 4 ||
-                                  repairDetails.status === 5 ||
-                                  repairDetails.status === 6
-                                }
-                                onSave={(qId, val) =>
-                                  updateChecklistAnswer("Post-Repair", qId, val)
-                                }
-                              />
-                            );
-                          })
-                        ) : (
-                          <MDTypography variant="body2">No questions available.</MDTypography>
-                        )}
+                    </MDBox>
+                  </Card>
+                </Grid>
+                {/* Repair notes */}
+                <Grid item xs={12}>
+                  <Card sx={cardAnimation}>
+                    <MDBox
+                      mx={1}
+                      mt={-3}
+                      py={2}
+                      px={1}
+                      variant="gradient"
+                      bgColor="info"
+                      borderRadius="lg"
+                      coloredShadow="info"
+                    >
+                      <Grid container>
+                        <Grid item xs={6} alignItems="center">
+                          <MDTypography variant="h6" color="white">
+                            Notes
+                          </MDTypography>
+                        </Grid>
+                        <Grid item xs={6} alignItems="center" textAlign="right">
+                          <AddNotes repairId={repairDetails._id} size="full" callback={getRepair} />
+                        </Grid>
                       </Grid>
-                    </Grid>
-                  </MDBox>
-                </Card>
-              </Grid>
-              {/* Repair notes */}
-              <Grid item xs={12}>
-                <Card sx={cardAnimation}>
-                  <MDBox
-                    mx={1}
-                    mt={-3}
-                    py={2}
-                    px={1}
-                    variant="gradient"
-                    bgColor="info"
-                    borderRadius="lg"
-                    coloredShadow="info"
-                  >
-                    <Grid container>
-                      <Grid item xs={6} alignItems="center">
-                        <MDTypography variant="h6" color="white">
-                          Notes
-                        </MDTypography>
-                      </Grid>
-                      <Grid item xs={6} alignItems="center" textAlign="right">
-                        <AddNotes repairId={repairDetails._id} size="full" callback={getRepair} />
-                      </Grid>
-                    </Grid>
-                  </MDBox>
-                  <MDBox mx={2} py={3} px={2}>
-                    {AllRepairNotes.map((note) => {
-                      const isAuthor =
-                        loginState.user &&
-                        ((loginState.user.account &&
-                          loginState.user.account.localAccountId === note.userId) ||
-                          loginState.user.username === note.user);
-                      const canDelete = isAuthor || (loginState.user && loginState.user.isAdmin);
-                      return (
-                        <MDBox key={note._id} position="relative">
-                          <Grid container spacing={1}>
-                            <Grid
-                              item
-                              xs={canDelete && isAuthor ? 10 : canDelete || isAuthor ? 11 : 12}
-                            >
-                              <NotesItem
-                                user={note.user}
-                                notes={note.notes}
-                                dateTime={note.createdAt}
-                              />
-                            </Grid>
-                            {isAuthor && (
-                              <Grid item xs={1}>
-                                <AddNotes
-                                  repairId={repairID}
-                                  size="icon"
-                                  callback={getRepair}
-                                  initialNote={note.notes}
-                                  noteId={note._id}
-                                  editMode={true}
+                    </MDBox>
+                    <MDBox mx={2} py={3} px={2}>
+                      {AllRepairNotes.map((note) => {
+                        const isAuthor =
+                          loginState.user &&
+                          ((loginState.user.account &&
+                            loginState.user.account.localAccountId === note.userId) ||
+                            loginState.user.username === note.user);
+                        const canDelete = isAuthor || (loginState.user && loginState.user.isAdmin);
+                        return (
+                          <MDBox key={note._id} position="relative">
+                            <Grid container spacing={1}>
+                              <Grid
+                                item
+                                xs={canDelete && isAuthor ? 10 : canDelete || isAuthor ? 11 : 12}
+                              >
+                                <NotesItem
+                                  user={note.user}
+                                  notes={note.notes}
+                                  dateTime={note.createdAt}
                                 />
                               </Grid>
-                            )}
-                            {canDelete && (
-                              <Grid item xs={1}>
-                                <Tooltip title="Delete Note">
-                                  <IconButton
-                                    color="error"
-                                    onClick={() => {
-                                      setNoteToDelete(note._id);
-                                      toggleconfirmOpen({ ...confirmOpen, deleteNote: true });
-                                    }}
-                                  >
-                                    <Icon>delete</Icon>
-                                  </IconButton>
-                                </Tooltip>
-                              </Grid>
-                            )}
-                          </Grid>
-                        </MDBox>
-                      );
-                    })}
-                    <MDTypography variant="subtitle2"></MDTypography>
-                  </MDBox>
-                </Card>
+                              {isAuthor && (
+                                <Grid item xs={1}>
+                                  <AddNotes
+                                    repairId={repairID}
+                                    size="icon"
+                                    callback={getRepair}
+                                    initialNote={note.notes}
+                                    noteId={note._id}
+                                    editMode={true}
+                                  />
+                                </Grid>
+                              )}
+                              {canDelete && (
+                                <Grid item xs={1}>
+                                  <Tooltip title="Delete Note">
+                                    <IconButton
+                                      color="error"
+                                      onClick={() => {
+                                        setNoteToDelete(note._id);
+                                        toggleconfirmOpen({ ...confirmOpen, deleteNote: true });
+                                      }}
+                                    >
+                                      <Icon>delete</Icon>
+                                    </IconButton>
+                                  </Tooltip>
+                                </Grid>
+                              )}
+                            </Grid>
+                          </MDBox>
+                        );
+                      })}
+                      <MDTypography variant="subtitle2"></MDTypography>
+                    </MDBox>
+                  </Card>
+                </Grid>
               </Grid>
-              {/* Call History */}
-              {(loginState.user?.isAdmin || loginState.user?.isDev) && (
+            )}
+            {tabValue === 3 && (loginState.user?.isAdmin || loginState.user?.isDev) && (
+              <Grid container spacing={1}>
+                {/* Call History */}
                 <Grid item xs={12}>
                   <Card sx={cardAnimation}>
                     <MDBox
@@ -1911,45 +1957,11 @@ const RepairDetails = () => {
                     </MDBox>
                   </Card>
                 </Grid>
-              )}
-              {/* Repair pictures */}
-              <Grid item xs={12}>
-                <Card sx={cardAnimation}>
-                  <MDBox
-                    mx={1}
-                    mt={-3}
-                    py={2}
-                    px={1}
-                    variant="gradient"
-                    bgColor="info"
-                    borderRadius="lg"
-                    coloredShadow="info"
-                  >
-                    <Grid container>
-                      <Grid item xs={6} alignItems="center">
-                        <MDTypography variant="h6" color="white">
-                          Images
-                        </MDTypography>
-                      </Grid>
-                      <Grid item xs={6} alignItems="center" textAlign="right">
-                        <MDButton
-                          size="small"
-                          color="warning"
-                          variant="contained"
-                          onClick={() => showUploadFunc()}
-                        >
-                          Add Photo
-                        </MDButton>
-                      </Grid>
-                    </Grid>
-                  </MDBox>
-                  <MDBox mx={2} py={3} px={2}>
-                    <RepairImages itemData={repairImages} />
-                  </MDBox>
-                </Card>
               </Grid>
-              {/* Parts on Order */}
-              {partsOrdered && partsOrdered.length > 0 && (
+            )}
+            {tabValue === 2 && (
+              <Grid container spacing={1}>
+                {/* Repair pictures */}
                 <Grid item xs={12}>
                   <Card sx={cardAnimation}>
                     <MDBox
@@ -1962,118 +1974,164 @@ const RepairDetails = () => {
                       borderRadius="lg"
                       coloredShadow="info"
                     >
-                      <MDTypography variant="h6" color="white">
-                        Parts on Order
-                      </MDTypography>
+                      <Grid container>
+                        <Grid item xs={6} alignItems="center">
+                          <MDTypography variant="h6" color="white">
+                            Images
+                          </MDTypography>
+                        </Grid>
+                        <Grid item xs={6} alignItems="center" textAlign="right">
+                          <MDButton
+                            size="small"
+                            color="warning"
+                            variant="contained"
+                            onClick={() => showUploadFunc()}
+                          >
+                            Add Photo
+                          </MDButton>
+                        </Grid>
+                      </Grid>
+                    </MDBox>
+                    <MDBox mx={2} py={3} px={2}>
+                      <RepairImages itemData={repairImages} />
+                    </MDBox>
+                  </Card>
+                </Grid>
+                {/* Parts on Order */}
+                {partsOrdered && partsOrdered.length > 0 && (
+                  <Grid item xs={12}>
+                    <Card sx={cardAnimation}>
+                      <MDBox
+                        mx={1}
+                        mt={-3}
+                        py={2}
+                        px={1}
+                        variant="gradient"
+                        bgColor="info"
+                        borderRadius="lg"
+                        coloredShadow="info"
+                        display="flex"
+                        justifyContent="space-between"
+                        alignItems="center"
+                      >
+                        <MDTypography variant="h6" color="white">
+                          Parts on Order
+                        </MDTypography>
+                        <IconButton onClick={handleAddPartOrdered} sx={{ color: "white" }}>
+                          <Icon>add</Icon>
+                        </IconButton>
+                      </MDBox>
+                      <MDBox mx={2} py={3} px={2}>
+                        <Grid container spacing={1}>
+                          <Grid item xs={4}>
+                            <MDTypography variant="h6">Part Details</MDTypography>
+                          </Grid>
+                          <Grid item xs={1}>
+                            <MDTypography variant="h6">Qty</MDTypography>
+                          </Grid>
+                          <Grid item xs={4}>
+                            <MDTypography variant="h6">Tracking</MDTypography>
+                          </Grid>
+                          <Grid item xs={12} mb={-2} mt={-2}>
+                            <Divider fullWidth></Divider>
+                          </Grid>
+                          {partsOrdered.map((part, index) => (
+                            <PartsOrderedItem
+                              key={index}
+                              part={part}
+                              onReceive={receivePart}
+                              onEdit={handleEditPartOrdered}
+                              onViewTracking={handleViewTracking}
+                              onDelete={(p) => {
+                                setOrderedPartToDelete(p);
+                                toggleconfirmOpen({ ...confirmOpen, removeOrderedPart: true });
+                              }}
+                            />
+                          ))}
+                        </Grid>
+                      </MDBox>
+                    </Card>
+                  </Grid>
+                )}
+                {/* Repair parts */}
+                <Grid item xs={12}>
+                  <Card sx={cardAnimation}>
+                    <MDBox
+                      mx={1}
+                      mt={-3}
+                      py={2}
+                      px={1}
+                      variant="gradient"
+                      bgColor="info"
+                      borderRadius="lg"
+                      coloredShadow="info"
+                    >
+                      <Grid container>
+                        <Grid item xs={6} alignItems="center">
+                          <MDTypography variant="h6" color="white">
+                            Invoice summary
+                          </MDTypography>
+                        </Grid>
+                        <Grid item xs={6} alignItems="center" textAlign="right">
+                          {repairDetails.status == 2 ||
+                          repairDetails.status == 3 ||
+                          repairDetails.status == 4 ? (
+                            <PartsButton
+                              size="full"
+                              status={repairDetails.status}
+                              getRepair={getRepair}
+                              repairId={repairDetails._id}
+                            />
+                          ) : (
+                            ""
+                          )}
+                        </Grid>
+                      </Grid>
                     </MDBox>
                     <MDBox mx={2} py={3} px={2}>
                       <Grid container spacing={1}>
-                        <Grid item xs={4}>
-                          <MDTypography variant="h6">Part Details</MDTypography>
+                        <Grid
+                          item
+                          xs={repairDetails.status == 6 || repairDetails.status == 5 ? 8 : 6}
+                        >
+                          <MDTypography variant="h6">Item:</MDTypography>
                         </Grid>
                         <Grid item xs={2}>
-                          <MDTypography variant="h6">Qty</MDTypography>
+                          <MDTypography variant="h6">Qty:</MDTypography>
                         </Grid>
-                        <Grid item xs={6}>
-                          <MDTypography variant="h6">Tracking</MDTypography>
+                        <Grid item xs={2}>
+                          <MDTypography variant="h6">Cost (each):</MDTypography>
                         </Grid>
+                        {repairDetails.status == 6 || repairDetails.status == 5 ? (
+                          ""
+                        ) : (
+                          <Grid item xs={2}>
+                            <MDTypography variant="h6">Remove:</MDTypography>
+                          </Grid>
+                        )}
                         <Grid item xs={12} mb={-2} mt={-2}>
                           <Divider fullWidth></Divider>
                         </Grid>
-                        {partsOrdered.map((part, index) => (
-                          <PartsOrderedItem
-                            key={index}
-                            part={part}
-                            onReceive={receivePart}
-                            onDelete={(p) => {
-                              setOrderedPartToDelete(p);
-                              toggleconfirmOpen({ ...confirmOpen, removeOrderedPart: true });
-                            }}
-                          />
-                        ))}
+                        {allparts.lineItems.map((part) => {
+                          return (
+                            <PartsItem
+                              part={part}
+                              key={part.name}
+                              status={repairDetails.status}
+                              onDelete={(p) => {
+                                setPartid(p._id);
+                                toggleconfirmOpen({ removePart: true });
+                                setPartName(p.name);
+                              }}
+                            />
+                          );
+                        })}
                       </Grid>
                     </MDBox>
                   </Card>
                 </Grid>
-              )}
-              {/* Repair parts */}
-              <Grid item xs={12}>
-                <Card sx={cardAnimation}>
-                  <MDBox
-                    mx={1}
-                    mt={-3}
-                    py={2}
-                    px={1}
-                    variant="gradient"
-                    bgColor="info"
-                    borderRadius="lg"
-                    coloredShadow="info"
-                  >
-                    <Grid container>
-                      <Grid item xs={6} alignItems="center">
-                        <MDTypography variant="h6" color="white">
-                          Invoice summary
-                        </MDTypography>
-                      </Grid>
-                      <Grid item xs={6} alignItems="center" textAlign="right">
-                        {repairDetails.status == 2 ||
-                        repairDetails.status == 3 ||
-                        repairDetails.status == 4 ? (
-                          <PartsButton
-                            size="full"
-                            status={repairDetails.status}
-                            getRepair={getRepair}
-                            repairId={repairDetails._id}
-                          />
-                        ) : (
-                          ""
-                        )}
-                      </Grid>
-                    </Grid>
-                  </MDBox>
-                  <MDBox mx={2} py={3} px={2}>
-                    <Grid container spacing={1}>
-                      <Grid
-                        item
-                        xs={repairDetails.status == 6 || repairDetails.status == 5 ? 8 : 6}
-                      >
-                        <MDTypography variant="h6">Item:</MDTypography>
-                      </Grid>
-                      <Grid item xs={2}>
-                        <MDTypography variant="h6">Qty:</MDTypography>
-                      </Grid>
-                      <Grid item xs={2}>
-                        <MDTypography variant="h6">Cost (each):</MDTypography>
-                      </Grid>
-                      {repairDetails.status == 6 || repairDetails.status == 5 ? (
-                        ""
-                      ) : (
-                        <Grid item xs={2}>
-                          <MDTypography variant="h6">Remove:</MDTypography>
-                        </Grid>
-                      )}
-                      <Grid item xs={12} mb={-2} mt={-2}>
-                        <Divider fullWidth></Divider>
-                      </Grid>
-                      {allparts.lineItems.map((part) => {
-                        return (
-                          <PartsItem
-                            part={part}
-                            key={part.name}
-                            status={repairDetails.status}
-                            onDelete={(p) => {
-                              setPartid(p._id);
-                              toggleconfirmOpen({ removePart: true });
-                              setPartName(p.name);
-                            }}
-                          />
-                        );
-                      })}
-                    </Grid>
-                  </MDBox>
-                </Card>
               </Grid>
-            </Grid>
+            )}
           </Grid>
           {/* Repair Actions & History */}
           <Grid item xs={12} md={4}>
@@ -2417,6 +2475,194 @@ const RepairDetails = () => {
           </MDButton>
           <MDButton onClick={handleSaveGuide} color="success">
             Save Guide
+          </MDButton>
+        </DialogActions>
+      </Dialog>
+
+      {/* Edit Ordered Part Modal */}
+      <Dialog
+        open={showEditPartOrderedModal}
+        onClose={() => setShowEditPartOrderedModal(false)}
+        fullWidth
+        maxWidth="sm"
+      >
+        <DialogTitle>
+          {editingPartOrdered?._id ? "Edit Ordered Part" : "Add Ordered Part"}
+        </DialogTitle>
+        <DialogContent>
+          {editingPartOrdered && (
+            <Grid container spacing={2} pt={1}>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Part Name"
+                  value={editingPartOrdered.partName}
+                  onChange={(e) =>
+                    setEditingPartOrdered({ ...editingPartOrdered, partName: e.target.value })
+                  }
+                />
+              </Grid>
+              <Grid item xs={4}>
+                <TextField
+                  fullWidth
+                  label="Cost"
+                  type="number"
+                  value={editingPartOrdered.cost}
+                  onChange={(e) =>
+                    setEditingPartOrdered({ ...editingPartOrdered, cost: e.target.value })
+                  }
+                />
+              </Grid>
+              <Grid item xs={4}>
+                <TextField
+                  fullWidth
+                  label="Customer Cost"
+                  type="number"
+                  value={editingPartOrdered.customerCost}
+                  onChange={(e) =>
+                    setEditingPartOrdered({ ...editingPartOrdered, customerCost: e.target.value })
+                  }
+                />
+              </Grid>
+              <Grid item xs={4}>
+                <TextField
+                  fullWidth
+                  label="Quantity"
+                  type="number"
+                  value={editingPartOrdered.quantity}
+                  onChange={(e) =>
+                    setEditingPartOrdered({ ...editingPartOrdered, quantity: e.target.value })
+                  }
+                />
+              </Grid>
+              <Grid item xs={6}>
+                <Autocomplete
+                  freeSolo
+                  options={vendors.map((v) => v.name || v)}
+                  value={editingPartOrdered.vendor}
+                  onChange={(event, newValue) => {
+                    setEditingPartOrdered({ ...editingPartOrdered, vendor: newValue });
+                  }}
+                  onInputChange={(event, newInputValue) => {
+                    setEditingPartOrdered({ ...editingPartOrdered, vendor: newInputValue });
+                  }}
+                  renderInput={(params) => <TextField {...params} label="Vendor" fullWidth />}
+                />
+              </Grid>
+              <Grid item xs={6}>
+                <TextField
+                  fullWidth
+                  label="Order Number"
+                  value={editingPartOrdered.orderNumber}
+                  onChange={(e) =>
+                    setEditingPartOrdered({ ...editingPartOrdered, orderNumber: e.target.value })
+                  }
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Tracking Number"
+                  value={editingPartOrdered.trackingNumber}
+                  onChange={(e) =>
+                    setEditingPartOrdered({ ...editingPartOrdered, trackingNumber: e.target.value })
+                  }
+                />
+              </Grid>
+            </Grid>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <MDButton onClick={() => setShowEditPartOrderedModal(false)} color="secondary">
+            Cancel
+          </MDButton>
+          <MDButton onClick={handleSavePartOrdered} color="success">
+            Save
+          </MDButton>
+        </DialogActions>
+      </Dialog>
+
+      {/* Tracking Info Modal */}
+      <Dialog
+        open={showTrackingModal}
+        onClose={() => setShowTrackingModal(false)}
+        fullWidth
+        maxWidth="md"
+      >
+        <DialogTitle>Tracking Information - {trackingPart?.trackingNumber}</DialogTitle>
+        <DialogContent>
+          {trackingPart?.trackingInfo && (
+            <Grid container spacing={2} mt={1}>
+              <Grid item xs={12}>
+                <MDTypography variant="h6">
+                  Status: {trackingPart.trackingInfo.tracking_status?.status}
+                </MDTypography>
+                <MDTypography variant="body2">
+                  {trackingPart.trackingInfo.tracking_status?.status_details}
+                </MDTypography>
+                <MDTypography variant="caption" color="text">
+                  Last Updated:{" "}
+                  {new Date(
+                    trackingPart.trackingInfo.tracking_status?.status_date
+                  ).toLocaleString()}
+                </MDTypography>
+              </Grid>
+              {trackingPart.trackingInfo.eta && (
+                <Grid item xs={12}>
+                  <MDTypography variant="body2">
+                    ETA: {new Date(trackingPart.trackingInfo.eta).toLocaleString()}
+                  </MDTypography>
+                </Grid>
+              )}
+              {trackingPart.trackingInfo.servicelevel && (
+                <Grid item xs={12}>
+                  <MDTypography variant="body2">
+                    Service Level: {trackingPart.trackingInfo.servicelevel.name}
+                  </MDTypography>
+                </Grid>
+              )}
+              {trackingPart.trackingInfo.address_from && (
+                <Grid item xs={6}>
+                  <MDTypography variant="subtitle2">From:</MDTypography>
+                  <MDTypography variant="body2">
+                    {trackingPart.trackingInfo.address_from.city},{" "}
+                    {trackingPart.trackingInfo.address_from.state}{" "}
+                    {trackingPart.trackingInfo.address_from.zip}
+                  </MDTypography>
+                </Grid>
+              )}
+              {trackingPart.trackingInfo.address_to && (
+                <Grid item xs={6}>
+                  <MDTypography variant="subtitle2">To:</MDTypography>
+                  <MDTypography variant="body2">
+                    {trackingPart.trackingInfo.address_to.city},{" "}
+                    {trackingPart.trackingInfo.address_to.state}{" "}
+                    {trackingPart.trackingInfo.address_to.zip}
+                  </MDTypography>
+                </Grid>
+              )}
+              <Grid item xs={12}>
+                <Divider />
+                <MDTypography variant="h6">History</MDTypography>
+                <List dense>
+                  {trackingPart.trackingInfo.tracking_history?.map((history, index) => (
+                    <ListItem key={index}>
+                      <ListItemText
+                        primary={history.status_details || history.status}
+                        secondary={`${new Date(history.status_date).toLocaleString()} - ${
+                          history.location?.city
+                        }, ${history.location?.state}`}
+                      />
+                    </ListItem>
+                  ))}
+                </List>
+              </Grid>
+            </Grid>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <MDButton onClick={() => setShowTrackingModal(false)} color="secondary">
+            Close
           </MDButton>
         </DialogActions>
       </Dialog>

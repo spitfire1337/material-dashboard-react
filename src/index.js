@@ -20,6 +20,8 @@ import { TableStateProvider } from "context/tableState";
 import { LoginStateProvider } from "context/loginContext";
 import { GlobalProvider } from "context/global";
 import { SocketProvider } from "context/socket";
+import { StatsProvider } from "context/stats";
+import { AppSettingsProvider } from "context/appSettings";
 import App from "App";
 import { registerLicense } from "@syncfusion/ej2-base";
 import { AddToHomeScreen } from "react-pwa-add-to-homescreen";
@@ -39,7 +41,11 @@ root.render(
           <TableStateProvider>
             <AddToHomeScreen />
             <SocketProvider>
-              <App />
+              <StatsProvider>
+                <AppSettingsProvider>
+                  <App />
+                </AppSettingsProvider>
+              </StatsProvider>
             </SocketProvider>
           </TableStateProvider>
         </LoginStateProvider>

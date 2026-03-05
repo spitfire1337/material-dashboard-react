@@ -78,6 +78,13 @@ const Status = ({ repairStatus }) => {
       </MDBox>
     );
   }
+  if (repairStatus == 12) {
+    return (
+      <MDBox ml={-1}>
+        <MDBadge badgeContent="Paused - Parts delivered" color="secondary" container />
+      </MDBox>
+    );
+  }
   if (repairStatus == 6) {
     return (
       <MDBox ml={-1}>
@@ -238,7 +245,7 @@ function ActiveRepairs() {
   const { setSnackBar, setShowLoad } = globalFuncs();
   const socket = useSocket();
   const [searchParams] = useSearchParams();
-  const defaultStatusFilter = [1, 2, 3, 11, 4, 5];
+  const defaultStatusFilter = [1, 2, 3, 11, 12, 4, 5];
 
   const savedState = useMemo(() => {
     try {
@@ -271,6 +278,7 @@ function ActiveRepairs() {
     { value: 2, label: "In Progress" },
     { value: 3, label: "Paused" },
     { value: 11, label: "Paused - Awaiting Parts" },
+    { value: 12, label: "Paused - Parts delivered" },
     { value: 4, label: "Repair Complete" },
     { value: 5, label: "Invoice Created" },
     { value: 6, label: "Complete" },
@@ -347,7 +355,7 @@ function ActiveRepairs() {
   }, [searchText, repairTypeFilter, deviceTypeFilter, statusFilter, currentPage, techFilter]);
 
   const filteredRepairs = useMemo(() => {
-    return repairs.filter((repair) => {
+    const filtered = repairs.filter((repair) => {
       const matchesStatus =
         statusFilter.length === 0 || statusFilter.includes(parseInt(repair.status));
       const matchesRepairType =
@@ -373,6 +381,15 @@ function ActiveRepairs() {
         matchesStatus && matchesRepairType && matchesDeviceType && matchesSearch && matchesTech
       );
     });
+
+    return filtered.sort((a, b) => {
+      const priorityA = a.priority || 99;
+      const priorityB = b.priority || 99;
+      if (priorityA !== priorityB) {
+        return priorityA - priorityB;
+      }
+      return new Date(a.createdAt) - new Date(b.createdAt);
+    });
   }, [repairs, statusFilter, repairTypeFilter, deviceTypeFilter, searchText, techFilter]);
 
   const columns = [
@@ -381,6 +398,13 @@ function ActiveRepairs() {
       selector: (row) => row.repairID,
       sortable: true,
       width: "80px",
+    },
+    {
+      name: "Priority",
+      selector: (row) => row.priority,
+      sortable: true,
+      width: "100px",
+      center: true,
     },
     {
       name: "Assigned Tech",

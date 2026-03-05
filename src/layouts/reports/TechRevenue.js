@@ -5,16 +5,6 @@ import Footer from "examples/Footer";
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 import { Card, Grid, Menu, MenuItem } from "@mui/material";
-import {
-  Chart,
-  ArgumentAxis,
-  ValueAxis,
-  Title,
-  Legend,
-  Tooltip,
-} from "@devexpress/dx-react-chart-material-ui";
-import { LineSeries, EventTracker } from "@devexpress/dx-react-chart";
-import vars from "../../config";
 import { globalFuncs } from "../../context/global";
 import MDButton from "components/MDButton";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -22,23 +12,34 @@ import { useSocket } from "context/socket";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import dayjs from "dayjs";
+import DataTable from "react-data-table-component";
+import {
+  Chart,
+  ArgumentAxis,
+  ValueAxis,
+  Title,
+  Legend,
+  Tooltip,
+  BarSeries,
+} from "@devexpress/dx-react-chart-material-ui";
+import { Animation, EventTracker, Stack } from "@devexpress/dx-react-chart";
 
-function SalesTrends() {
+function TechRevenue() {
   const socket = useSocket();
   const chartRef = useRef(null);
-  const [anchorEl, setAnchorEl] = useState(null);
-  const [salesData, setSalesData] = useState([]);
+  const [revenueData, setRevenueData] = useState([]);
   const { setShowLoad } = globalFuncs();
-  const [startDate, setStartDate] = useState(dayjs().subtract(90, "day"));
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [startDate, setStartDate] = useState(dayjs().subtract(30, "day"));
   const [endDate, setEndDate] = useState(dayjs());
 
   useEffect(() => {
     if (socket) {
-      fetchSalesData();
+      fetchRevenueData();
     }
   }, [socket]);
 
-  const fetchSalesData = (start, end) => {
+  const fetchRevenueData = (start, end) => {
     if (!socket) return;
     setShowLoad(true);
     const s = start && start.toISOString ? start : startDate;
@@ -47,11 +48,11 @@ function SalesTrends() {
       startDate: s ? s.toISOString() : null,
       endDate: e ? e.toISOString() : null,
     };
-    socket.emit("getSalesTrend", query, (res) => {
+    socket.emit("getTechRevenue", query, (res) => {
       if (res.res === 200) {
-        setSalesData(res.data);
+        setRevenueData(res.data);
       } else {
-        console.error("Failed to fetch sales trends data");
+        console.error("Failed to fetch tech revenue data");
       }
       setShowLoad(false);
     });
@@ -79,7 +80,7 @@ function SalesTrends() {
       const html2canvas = (await import("html2canvas")).default;
       const doc = new jsPDF();
 
-      doc.text("Sales Trends Report", 14, 15);
+      doc.text("Technician Revenue Report", 14, 15);
       doc.setFontSize(10);
       doc.text(
         `Date Range: ${startDate.format("MM/DD/YYYY")} - ${endDate.format("MM/DD/YYYY")}`,
@@ -87,18 +88,18 @@ function SalesTrends() {
         22
       );
 
-      const tableColumn = ["Date", "Sales"];
-      const tableRows = salesData.map((item) => [
-        dayjs(item.date).format("MM/DD/YYYY"),
-        formatCurrency(item.totalSales),
+      const tableColumn = ["Technician", "Labor Revenue", "Parts Revenue", "Total Revenue"];
+      const tableRows = revenueData.map((item) => [
+        item.technician,
+        formatCurrency(item.laborRevenue),
+        formatCurrency(item.partsRevenue),
+        formatCurrency(item.totalRevenue),
       ]);
 
       autoTable(doc, {
         head: [tableColumn],
         body: tableRows,
         startY: 30,
-        theme: "striped",
-        headStyles: { fillColor: [50, 50, 50] },
       });
 
       if (chartRef.current) {
@@ -106,7 +107,6 @@ function SalesTrends() {
         const imgData = canvas.toDataURL("image/png");
         const imgWidth = 180;
         const imgHeight = (canvas.height * imgWidth) / canvas.width;
-
         let finalY = doc.lastAutoTable.finalY + 10;
 
         if (finalY + imgHeight > doc.internal.pageSize.getHeight()) {
@@ -117,7 +117,7 @@ function SalesTrends() {
         doc.addImage(imgData, "PNG", 15, finalY, imgWidth, imgHeight);
       }
 
-      doc.save(`Sales_Trends_${dayjs().format("YYYY-MM-DD")}.pdf`);
+      doc.save(`Tech_Revenue_${dayjs().format("YYYY-MM-DD")}.pdf`);
     } catch (error) {
       console.error("Error exporting to PDF:", error);
     }
@@ -132,15 +132,22 @@ function SalesTrends() {
       const html2canvas = (await import("html2canvas")).default;
 
       const wb = new ExcelJS.Workbook();
-      const ws = wb.addWorksheet("Sales Trends");
+      const ws = wb.addWorksheet("Tech Revenue");
 
       ws.columns = [
-        { header: "Date", key: "date", width: 20 },
-        { header: "Sales", key: "sales", width: 20 },
+        { header: "Technician", key: "technician", width: 30 },
+        { header: "Labor Revenue", key: "laborRevenue", width: 20 },
+        { header: "Parts Revenue", key: "partsRevenue", width: 20 },
+        { header: "Total Revenue", key: "totalRevenue", width: 20 },
       ];
 
-      salesData.forEach((item) => {
-        ws.addRow({ date: dayjs(item.date).format("MM/DD/YYYY"), sales: item.totalSales });
+      revenueData.forEach((item) => {
+        ws.addRow({
+          technician: item.technician,
+          laborRevenue: item.laborRevenue,
+          partsRevenue: item.partsRevenue,
+          totalRevenue: item.totalRevenue,
+        });
       });
 
       if (chartRef.current) {
@@ -148,23 +155,49 @@ function SalesTrends() {
         const imgData = canvas.toDataURL("image/png");
         const imageId = wb.addImage({ base64: imgData, extension: "png" });
         ws.addImage(imageId, {
-          tl: { col: 0, row: salesData.length + 2 },
+          tl: { col: 0, row: revenueData.length + 2 },
           ext: { width: 800, height: 450 },
         });
       }
 
       const buffer = await wb.xlsx.writeBuffer();
-      saveAs(new Blob([buffer]), `Sales_Trends_${dayjs().format("YYYY-MM-DD")}.xlsx`);
+      saveAs(new Blob([buffer]), `Tech_Revenue_${dayjs().format("YYYY-MM-DD")}.xlsx`);
     } catch (error) {
       console.error("Error exporting to Excel:", error);
     }
   };
 
+  const columns = [
+    {
+      name: "Technician",
+      selector: (row) => row.technician,
+      sortable: true,
+    },
+    {
+      name: "Labor Revenue",
+      selector: (row) => row.laborRevenue,
+      sortable: true,
+      format: (row) => formatCurrency(row.laborRevenue),
+    },
+    {
+      name: "Parts Revenue",
+      selector: (row) => row.partsRevenue,
+      sortable: true,
+      format: (row) => formatCurrency(row.partsRevenue),
+    },
+    {
+      name: "Total Revenue",
+      selector: (row) => row.totalRevenue,
+      sortable: true,
+      format: (row) => formatCurrency(row.totalRevenue),
+    },
+  ];
+
   return (
     <DashboardLayout>
       <DashboardNavbar />
       <MDBox py={3}>
-        <Grid container spacing={3} mb={3}>
+        <Grid container spacing={3}>
           <Grid item xs={12}>
             <Card>
               <MDBox p={3}>
@@ -189,12 +222,12 @@ function SalesTrends() {
                         slotProps={{ textField: { fullWidth: true } }}
                       />
                     </Grid>
-
                     <Grid item xs={12} md={2}>
-                      <MDButton variant="contained" color="info" onClick={fetchSalesData}>
+                      <MDButton variant="contained" color="info" onClick={() => fetchRevenueData()}>
                         Apply Filters
                       </MDButton>
                     </Grid>
+                    {/* Quick Filters */}
                     <Grid item xs={12} md={2}>
                       <MDButton
                         color="info"
@@ -204,7 +237,7 @@ function SalesTrends() {
                           const end = dayjs();
                           setStartDate(start);
                           setEndDate(end);
-                          fetchSalesData(start, end);
+                          fetchRevenueData(start, end);
                         }}
                       >
                         Last 30 Days
@@ -219,7 +252,7 @@ function SalesTrends() {
                           const end = dayjs();
                           setStartDate(start);
                           setEndDate(end);
-                          fetchSalesData(start, end);
+                          fetchRevenueData(start, end);
                         }}
                       >
                         Last 60 Days
@@ -234,7 +267,7 @@ function SalesTrends() {
                           const end = dayjs();
                           setStartDate(start);
                           setEndDate(end);
-                          fetchSalesData(start, end);
+                          fetchRevenueData(start, end);
                         }}
                       >
                         Last 90 Days
@@ -249,7 +282,7 @@ function SalesTrends() {
                           const end = dayjs();
                           setStartDate(start);
                           setEndDate(end);
-                          fetchSalesData(start, end);
+                          fetchRevenueData(start, end);
                         }}
                       >
                         Last 6 Months
@@ -264,7 +297,7 @@ function SalesTrends() {
                           const end = dayjs();
                           setStartDate(start);
                           setEndDate(end);
-                          fetchSalesData(start, end);
+                          fetchRevenueData(start, end);
                         }}
                       >
                         Last Year
@@ -279,10 +312,10 @@ function SalesTrends() {
                           const end = dayjs().subtract(1, "year");
                           setStartDate(start);
                           setEndDate(end);
-                          fetchSalesData(start, end);
+                          fetchRevenueData(start, end);
                         }}
                       >
-                        Prior Year
+                        Previous Year
                       </MDButton>
                     </Grid>
                     <Grid item xs={12} md={2}>
@@ -303,39 +336,55 @@ function SalesTrends() {
               </MDBox>
             </Card>
           </Grid>
-        </Grid>
-        <MDBox ref={chartRef}>
-          <Grid container spacing={3}>
-            <Grid item xs={12}>
-              <Card>
-                <MDBox p={3}>
-                  <MDTypography variant="h6">Sales Trends</MDTypography>
-                  {salesData.length > 0 ? (
-                    <Chart data={salesData}>
+          <Grid item xs={12}>
+            <Card>
+              <MDBox p={3}>
+                <MDTypography variant="h6">Technician Revenue</MDTypography>
+                <MDBox ref={chartRef} mb={3}>
+                  {revenueData.length > 0 ? (
+                    <Chart data={revenueData}>
                       <ArgumentAxis />
                       <ValueAxis tickFormat={() => formatCurrency} />
-                      <LineSeries valueField="totalSales" argumentField="date" name="Sales" />
-                      <Title text="Sales Over Time" />
+                      <BarSeries
+                        valueField="laborRevenue"
+                        argumentField="technician"
+                        name="Labor"
+                      />
+                      <BarSeries
+                        valueField="partsRevenue"
+                        argumentField="technician"
+                        name="Parts"
+                      />
+                      <Stack />
+                      <Title text="Revenue by Technician (Labor vs Parts)" />
+                      <Animation />
                       <Legend />
                       <EventTracker />
                       <Tooltip
-                        contentComponent={(props) => (
-                          <Tooltip.Content {...props} text={formatCurrency(props.text)} />
-                        )}
+                        contentComponent={(props) => {
+                          const item = revenueData[props.targetItem.point];
+                          return (
+                            <Tooltip.Content
+                              {...props}
+                              text={`${props.targetItem.series}: ${formatCurrency(props.text)}`}
+                            />
+                          );
+                        }}
                       />
                     </Chart>
                   ) : (
-                    <MDTypography>No sales data available</MDTypography>
+                    <MDTypography>No data available</MDTypography>
                   )}
                 </MDBox>
-              </Card>
-            </Grid>
+                <DataTable columns={columns} data={revenueData} pagination persistTableHead />
+              </MDBox>
+            </Card>
           </Grid>
-        </MDBox>
+        </Grid>
       </MDBox>
       <Footer />
     </DashboardLayout>
   );
 }
 
-export default SalesTrends;
+export default TechRevenue;

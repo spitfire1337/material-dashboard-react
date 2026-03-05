@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import Footer from "examples/Footer";
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
-import { Card, Grid, FormControl, InputLabel, Select, MenuItem } from "@mui/material";
+import { Card, Grid, FormControl, InputLabel, Select, MenuItem, Menu } from "@mui/material";
 import {
   Chart,
   ArgumentAxis,
@@ -18,11 +18,15 @@ import vars from "../../config";
 import { globalFuncs } from "../../context/global";
 import MDButton from "components/MDButton";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { useSocket } from "context/socket";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import dayjs from "dayjs";
 
 function TechEfficiency() {
+  const socket = useSocket();
+  const chartRef = useRef(null);
+  const [anchorEl, setAnchorEl] = useState(null);
   const [techData, setTechData] = useState([]);
   const { setShowLoad } = globalFuncs();
   const [startDate, setStartDate] = useState(dayjs().subtract(30, "day"));
@@ -33,44 +37,140 @@ function TechEfficiency() {
   const deviceTypes = ["EUC", "Scooter", "OneWheel", "Ebike", "Emoto", "Eskate"];
 
   useEffect(() => {
-    fetchTechData();
-  }, []);
+    if (socket) {
+      fetchTechData();
+    }
+  }, [socket]);
 
-  const fetchTechData = async (start, end) => {
+  const fetchTechData = (start, end) => {
+    if (!socket) return;
     setShowLoad(true);
-    try {
-      let url = `${vars.serverUrl}/reports/techEfficiency`;
-      const params = new URLSearchParams();
-      const s = start && start.toISOString ? start : startDate;
-      const e = end && end.toISOString ? end : endDate;
-      if (s) params.append("startDate", s.toISOString());
-      if (e) params.append("endDate", e.toISOString());
-      if (repairType) params.append("repairType", repairType);
-      if (deviceType) params.append("deviceType", deviceType);
-
-      if ([...params].length > 0) {
-        url += `?${params.toString()}`;
-      }
-      const response = await fetch(url, {
-        credentials: "include",
-      });
-      const res = await response.json();
+    const s = start && start.toISOString ? start : startDate;
+    const e = end && end.toISOString ? end : endDate;
+    const query = {
+      startDate: s ? s.toISOString() : null,
+      endDate: e ? e.toISOString() : null,
+      repairType,
+      deviceType,
+    };
+    socket.emit("getTechEfficiency", query, (res) => {
       if (res.res === 200) {
         setTechData(res.data);
       } else {
         console.error("Failed to fetch tech efficiency data");
       }
+      setShowLoad(false);
+    });
+  };
+
+  const handleExportClick = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleExportClose = () => {
+    setAnchorEl(null);
+  };
+
+  const exportToPDF = async () => {
+    handleExportClose();
+    try {
+      const jsPDF = (await import("jspdf")).default;
+      const autoTable = (await import("jspdf-autotable")).default;
+      const html2canvas = (await import("html2canvas")).default;
+      const doc = new jsPDF();
+
+      doc.text("Technician Efficiency Report", 14, 15);
+      doc.setFontSize(10);
+      doc.text(
+        `Date Range: ${startDate.format("MM/DD/YYYY")} - ${endDate.format("MM/DD/YYYY")}`,
+        14,
+        22
+      );
+
+      const tableColumn = ["Technician", "Repairs Completed", "Avg Time (Hours)"];
+      const tableRows = techData.map((item) => [
+        item.technician,
+        item.totalRepairs,
+        item.averageRepairTime,
+      ]);
+
+      autoTable(doc, {
+        head: [tableColumn],
+        body: tableRows,
+        startY: 30,
+        theme: "striped",
+        headStyles: { fillColor: [50, 50, 50] },
+      });
+
+      if (chartRef.current) {
+        const canvas = await html2canvas(chartRef.current);
+        const imgData = canvas.toDataURL("image/png");
+        const imgWidth = 180;
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+        let finalY = doc.lastAutoTable.finalY + 10;
+
+        if (finalY + imgHeight > doc.internal.pageSize.getHeight()) {
+          doc.addPage();
+          finalY = 10;
+        }
+
+        doc.addImage(imgData, "PNG", 15, finalY, imgWidth, imgHeight);
+      }
+
+      doc.save(`Tech_Efficiency_${dayjs().format("YYYY-MM-DD")}.pdf`);
     } catch (error) {
-      console.error("Error fetching tech efficiency data:", error);
+      console.error("Error exporting to PDF:", error);
     }
-    setShowLoad(false);
+  };
+
+  const exportToExcel = async () => {
+    handleExportClose();
+    try {
+      const ExcelJS = (await import("exceljs")).default;
+      const fileSaver = await import("file-saver");
+      const saveAs = fileSaver.saveAs || fileSaver.default;
+      const html2canvas = (await import("html2canvas")).default;
+
+      const wb = new ExcelJS.Workbook();
+      const ws = wb.addWorksheet("Tech Efficiency");
+
+      ws.columns = [
+        { header: "Technician", key: "technician", width: 25 },
+        { header: "Repairs Completed", key: "totalRepairs", width: 20 },
+        { header: "Avg Time (Hours)", key: "averageRepairTime", width: 20 },
+      ];
+
+      techData.forEach((item) => {
+        ws.addRow({
+          technician: item.technician,
+          totalRepairs: item.totalRepairs,
+          averageRepairTime: item.averageRepairTime,
+        });
+      });
+
+      if (chartRef.current) {
+        const canvas = await html2canvas(chartRef.current);
+        const imgData = canvas.toDataURL("image/png");
+        const imageId = wb.addImage({ base64: imgData, extension: "png" });
+        ws.addImage(imageId, {
+          tl: { col: 0, row: techData.length + 2 },
+          ext: { width: 800, height: 450 },
+        });
+      }
+
+      const buffer = await wb.xlsx.writeBuffer();
+      saveAs(new Blob([buffer]), `Tech_Efficiency_${dayjs().format("YYYY-MM-DD")}.xlsx`);
+    } catch (error) {
+      console.error("Error exporting to Excel:", error);
+    }
   };
 
   return (
     <DashboardLayout>
       <DashboardNavbar />
       <MDBox py={3}>
-        <Grid container spacing={3}>
+        <Grid container spacing={3} mb={3}>
           <Grid item xs={12}>
             <Card>
               <MDBox p={3}>
@@ -227,62 +327,79 @@ function TechEfficiency() {
                         Prior Year
                       </MDButton>
                     </Grid>
+                    <Grid item xs={12} md={2}>
+                      <MDButton variant="contained" color="secondary" onClick={handleExportClick}>
+                        Export
+                      </MDButton>
+                      <Menu
+                        anchorEl={anchorEl}
+                        open={Boolean(anchorEl)}
+                        onClose={handleExportClose}
+                      >
+                        <MenuItem onClick={exportToPDF}>Export to PDF</MenuItem>
+                        <MenuItem onClick={exportToExcel}>Export to Excel</MenuItem>
+                      </Menu>
+                    </Grid>
                   </Grid>
                 </LocalizationProvider>
               </MDBox>
             </Card>
           </Grid>
-          <Grid item xs={12} md={6}>
-            <Card>
-              <MDBox p={3}>
-                <MDTypography variant="h6">Technician Efficiency</MDTypography>
-                {techData.length > 0 ? (
-                  <Chart data={techData}>
-                    <ArgumentAxis />
-                    <ValueAxis />
-                    <BarSeries
-                      valueField="totalRepairs"
-                      argumentField="technician"
-                      name="Repairs Completed"
-                    />
-                    <Title text="Repairs Completed per Technician" />
-                    <Animation />
-                    <Legend />
-                    <EventTracker />
-                    <Tooltip />
-                  </Chart>
-                ) : (
-                  <MDTypography>No data available</MDTypography>
-                )}
-              </MDBox>
-            </Card>
-          </Grid>
-          <Grid item xs={12} md={6}>
-            <Card>
-              <MDBox p={3}>
-                <MDTypography variant="h6">Average Repair Time</MDTypography>
-                {techData.length > 0 ? (
-                  <Chart data={techData}>
-                    <ArgumentAxis />
-                    <ValueAxis />
-                    <BarSeries
-                      valueField="averageRepairTime"
-                      argumentField="technician"
-                      name="Avg Time (Hours)"
-                    />
-                    <Title text="Average Repair Time per Technician" />
-                    <Animation />
-                    <Legend />
-                    <EventTracker />
-                    <Tooltip />
-                  </Chart>
-                ) : (
-                  <MDTypography>No data available</MDTypography>
-                )}
-              </MDBox>
-            </Card>
-          </Grid>
         </Grid>
+        <MDBox ref={chartRef}>
+          <Grid container spacing={3}>
+            <Grid item xs={12} md={6}>
+              <Card>
+                <MDBox p={3}>
+                  <MDTypography variant="h6">Technician Efficiency</MDTypography>
+                  {techData.length > 0 ? (
+                    <Chart data={techData}>
+                      <ArgumentAxis />
+                      <ValueAxis />
+                      <BarSeries
+                        valueField="totalRepairs"
+                        argumentField="technician"
+                        name="Repairs Completed"
+                      />
+                      <Title text="Repairs Completed per Technician" />
+                      <Animation />
+                      <Legend />
+                      <EventTracker />
+                      <Tooltip />
+                    </Chart>
+                  ) : (
+                    <MDTypography>No data available</MDTypography>
+                  )}
+                </MDBox>
+              </Card>
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <Card>
+                <MDBox p={3}>
+                  <MDTypography variant="h6">Average Repair Time</MDTypography>
+                  {techData.length > 0 ? (
+                    <Chart data={techData}>
+                      <ArgumentAxis />
+                      <ValueAxis />
+                      <BarSeries
+                        valueField="averageRepairTime"
+                        argumentField="technician"
+                        name="Avg Time (Hours)"
+                      />
+                      <Title text="Average Repair Time per Technician" />
+                      <Animation />
+                      <Legend />
+                      <EventTracker />
+                      <Tooltip />
+                    </Chart>
+                  ) : (
+                    <MDTypography>No data available</MDTypography>
+                  )}
+                </MDBox>
+              </Card>
+            </Grid>
+          </Grid>
+        </MDBox>
       </MDBox>
       <Footer />
     </DashboardLayout>
