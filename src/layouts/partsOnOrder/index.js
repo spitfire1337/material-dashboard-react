@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-
+import moment from "moment";
 // Material Dashboard 2 React components
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
@@ -195,6 +195,11 @@ function PartsOnOrder() {
               <MDTypography variant="caption" display="block" color="text">
                 {row.trackingInfo.tracking_status?.status_details ||
                   row.trackingInfo.tracking_status?.status}
+              </MDTypography>
+              <MDTypography variant="caption" display="block" color="text">
+                {row.trackingInfo.eta
+                  ? `ETA: ${moment(row.trackingInfo.eta).format("dddd, MMMM Do YYYY")}`
+                  : ""}
               </MDTypography>
             </MDBox>
           );

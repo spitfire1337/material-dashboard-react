@@ -602,7 +602,9 @@ function Actions({
         variant="contained"
         p={3}
         disabled={!repairOrderReady}
-        onClick={() => setState((s) => ({ ...s, showInvoice: true }))}
+        onClick={() =>
+          setState((s) => ({ ...s, showInvoice: true, timeUsed: repairTime.toFixed(2) }))
+        }
       >
         <Icon>receipt</Icon>
       </MDButton>

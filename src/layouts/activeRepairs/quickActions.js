@@ -695,7 +695,10 @@ function Actions({
         variant="contained"
         p={3}
         disabled={!repairOrderReady}
-        onClick={() => setShowInvoice(true)}
+        onClick={() => {
+          setLaborTime(repairTime.toFixed(2));
+          setShowInvoice(true);
+        }}
       >
         <Icon>receipt</Icon>
       </MDButton>
@@ -823,7 +826,7 @@ function Actions({
       </>
     );
   }
-  if (status == 3 || status == 11 || status == 12) {
+  if (status == 3 || status == 11) {
     return (
       <>
         <Grid container spacing={2} mb={3}>

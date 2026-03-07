@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import Footer from "examples/Footer";
@@ -29,6 +30,7 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 
 const CallHistoryReport = () => {
+  const navigate = useNavigate();
   const socket = useSocket();
   const { setSnackBar, setShowLoad } = globalFuncs();
   const [calls, setCalls] = useState([]);
@@ -171,9 +173,23 @@ const CallHistoryReport = () => {
       name: "From",
       selector: (row) =>
         row.caller_customer != null
-          ? `${row.caller_id} (${row.caller_customer.given_name} ${row.caller_customer.family_name}`
+          ? `${row.caller_id} (${row.caller_customer.given_name} ${row.caller_customer.family_name})`
           : row.caller_id,
       sortable: true,
+      cell: (row) =>
+        row.caller_customer ? (
+          <MDTypography
+            variant="caption"
+            fontWeight="medium"
+            color="info"
+            sx={{ cursor: "pointer", textDecoration: "underline" }}
+            onClick={() => navigate(`/customer/${row.caller_customer._id}`)}
+          >
+            {row.caller_id} ({row.caller_customer.given_name} {row.caller_customer.family_name})
+          </MDTypography>
+        ) : (
+          row.caller_id
+        ),
     },
     {
       name: "To",
@@ -182,6 +198,21 @@ const CallHistoryReport = () => {
           ? `${row.destination} (${row.destination_customer.given_name} ${row.destination_customer.family_name})`
           : row.destination,
       sortable: true,
+      cell: (row) =>
+        row.destination_customer ? (
+          <MDTypography
+            variant="caption"
+            fontWeight="medium"
+            color="info"
+            sx={{ cursor: "pointer", textDecoration: "underline" }}
+            onClick={() => navigate(`/customer/${row.destination_customer._id}`)}
+          >
+            {row.destination} ({row.destination_customer.given_name}{" "}
+            {row.destination_customer.family_name})
+          </MDTypography>
+        ) : (
+          row.destination
+        ),
     },
     {
       name: "Duration",

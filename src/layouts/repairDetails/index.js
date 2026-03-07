@@ -15,6 +15,7 @@ Coded by www.creative-tim.com
 // React components
 import { useState, React, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import moment from "moment";
 import RepairHistory from "./components/history";
 import Actions from "./components/actions";
 import NotesItem from "examples/Timeline/NotesItem";
@@ -304,6 +305,11 @@ const PartsOrderedItem = ({ part, onReceive, onDelete, onEdit, onViewTracking })
             <MDTypography variant="caption" display="block" color="text">
               {part.trackingInfo.tracking_status?.status_details ||
                 part.trackingInfo.tracking_status?.status}
+            </MDTypography>
+            <MDTypography variant="caption" display="block" color="text">
+              {part.trackingInfo?.eta
+                ? `ETA: ${moment(part.trackingInfo.eta).format("dddd, MMMM Do YYYY")}`
+                : ""}
             </MDTypography>
           </MDBox>
         ) : trackingLink ? (
@@ -665,13 +671,24 @@ const RepairDetails = () => {
   };
 
   const handleEditPartOrdered = (part) => {
-    setEditingPartOrdered(part);
+    setEditingPartOrdered({
+      _id: part._id,
+      repairId: part.repairId,
+      partName: part.partName,
+      cost: part.cost,
+      customerCost: part.customerCost,
+      quantity: part.quantity,
+      vendor: part.vendor,
+      orderNumber: part.orderNumber,
+      trackingNumber: part.trackingNumber,
+    });
     setShowEditPartOrderedModal(true);
     if (vendors.length === 0) fetchVendors();
   };
 
   const handleAddPartOrdered = () => {
     setEditingPartOrdered({
+      _id: undefined,
       repairId: repairID,
       partName: "",
       cost: "",
@@ -2611,6 +2628,14 @@ const RepairDetails = () => {
                 <Grid item xs={12}>
                   <MDTypography variant="body2">
                     ETA: {new Date(trackingPart.trackingInfo.eta).toLocaleString()}
+                  </MDTypography>
+                </Grid>
+              )}
+              {trackingPart.trackingInfo.original_eta && (
+                <Grid item xs={12}>
+                  <MDTypography variant="body2">
+                    Estimated delivery date:{" "}
+                    {new Date(trackingPart.trackingInfo.original_eta).toLocaleString()}
                   </MDTypography>
                 </Grid>
               )}
