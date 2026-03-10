@@ -19,7 +19,16 @@ import { useSocket } from "context/socket";
 // @mui material components
 import Grid from "@mui/material/Grid";
 import Card from "@mui/material/Card";
-import { TextField, Autocomplete } from "@mui/material";
+import {
+  TextField,
+  Autocomplete,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Icon,
+  IconButton,
+} from "@mui/material";
 
 // Material Dashboard 2 React components
 import MDBox from "components/MDBox";
@@ -38,6 +47,8 @@ function Logs() {
   const [logs, setLogs] = useState([]);
   const [filters, setFilters] = useState({ module: [], action: [], status: [], user: [] });
   const [loading, setLoading] = useState(false);
+  const [selectedLog, setSelectedLog] = useState(null);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
 
   // Filter states
   const [startDate, setStartDate] = useState(
@@ -74,6 +85,11 @@ function Logs() {
       fetchLogs();
     }
   }, [socket, moduleFilter, actionFilter, statusFilter, userFilter]);
+
+  const handleRowClick = (row) => {
+    setSelectedLog(row);
+    setShowDetailsModal(true);
+  };
 
   const columns = [
     {
@@ -226,6 +242,9 @@ function Logs() {
                   progressPending={loading}
                   persistTableHead
                   dense
+                  onRowClicked={handleRowClick}
+                  pointerOnHover
+                  highlightOnHover
                 />
               </MDBox>
             </Card>
@@ -233,6 +252,86 @@ function Logs() {
         </Grid>
       </MDBox>
       <Footer />
+      {selectedLog && (
+        <Dialog
+          open={showDetailsModal}
+          onClose={() => setShowDetailsModal(false)}
+          fullWidth
+          maxWidth="md"
+        >
+          <DialogTitle>
+            <MDBox display="flex" justifyContent="space-between" alignItems="center">
+              <MDTypography variant="h6">Log Details</MDTypography>
+              <IconButton onClick={() => setShowDetailsModal(false)}>
+                <Icon>close</Icon>
+              </IconButton>
+            </MDBox>
+          </DialogTitle>
+          <DialogContent dividers>
+            <Grid container spacing={1}>
+              <Grid item xs={12} sm={6}>
+                <MDTypography variant="body2">
+                  <strong>ID:</strong> {selectedLog._id}
+                </MDTypography>
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <MDTypography variant="body2">
+                  <strong>Date:</strong> {new Date(selectedLog.createdAt).toLocaleString()}
+                </MDTypography>
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <MDTypography variant="body2">
+                  <strong>User:</strong> {selectedLog.user}
+                </MDTypography>
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <MDTypography variant="body2">
+                  <strong>Module:</strong> {selectedLog.module}
+                </MDTypography>
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <MDTypography variant="body2">
+                  <strong>Action:</strong> {selectedLog.action}
+                </MDTypography>
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <MDTypography variant="body2">
+                  <strong>Status:</strong> {selectedLog.status}
+                </MDTypography>
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <MDTypography variant="body2">
+                  <strong>IP Address:</strong> {selectedLog.ip || "N/A"}
+                </MDTypography>
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <MDTypography variant="body2">
+                  <strong>Server:</strong> {selectedLog.server || "N/A"}
+                </MDTypography>
+              </Grid>
+              {selectedLog.errorMessage && (
+                <Grid item xs={12}>
+                  <MDTypography variant="h6" color="error" mt={2}>
+                    <strong>Error Message:</strong>
+                  </MDTypography>
+                  <MDTypography variant="body2">{selectedLog.errorMessage}</MDTypography>
+                </Grid>
+              )}
+              <Grid item xs={12}>
+                <MDTypography variant="body2" mt={2}>
+                  <strong>Details:</strong>
+                </MDTypography>
+                <MDBox
+                  component="pre"
+                  sx={{ p: 1, background: "#f0f0f0", borderRadius: "4px", whiteSpace: "pre-wrap" }}
+                >
+                  {JSON.stringify(selectedLog.details, null, 2)}
+                </MDBox>
+              </Grid>
+            </Grid>
+          </DialogContent>
+        </Dialog>
+      )}
     </DashboardLayout>
   );
 }

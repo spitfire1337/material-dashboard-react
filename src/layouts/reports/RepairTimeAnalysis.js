@@ -5,7 +5,7 @@ import Footer from "examples/Footer";
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 import colors from "assets/theme/base/colors";
-import { Card, Grid, Menu, MenuItem } from "@mui/material";
+import { Card, Grid, Menu, MenuItem, Icon } from "@mui/material";
 import {
   Chart,
   ArgumentAxis,
@@ -30,7 +30,7 @@ function RepairTimeAnalysis() {
   const chartRef = useRef(null);
   const [anchorEl, setAnchorEl] = useState(null);
   const [timeData, setTimeData] = useState({});
-  const { setShowLoad } = globalFuncs();
+  const { setShowLoad, setAiChatOpen, setAiLoading, setSnackBar } = globalFuncs();
   const { gradients } = colors;
   const [startDate, setStartDate] = useState(dayjs().subtract(90, "day"));
   const [endDate, setEndDate] = useState(dayjs());
@@ -57,6 +57,29 @@ function RepairTimeAnalysis() {
         console.error("Failed to fetch repair time analysis data");
       }
       setShowLoad(false);
+    });
+  };
+
+  const handleAiAnalysis = () => {
+    if (!socket) return;
+    setAiChatOpen(true);
+    setAiLoading(true);
+    const query = {
+      startDate: startDate.toISOString(),
+      endDate: endDate.toISOString(),
+    };
+    socket.emit("analyzeReport", { reportType: "repairTimeStats", query: query }, (res) => {
+      if (res.res !== 200) {
+        setAiChatOpen(false);
+        setAiLoading(false);
+        setSnackBar({
+          type: "error",
+          title: "Error",
+          message: res.message || "Error analyzing report",
+          show: true,
+          icon: "warning",
+        });
+      }
     });
   };
 
@@ -105,11 +128,17 @@ function RepairTimeAnalysis() {
       if (timeData.byDeviceType && timeData.byDeviceType.length > 0) {
         addTable(
           "By Device Type",
-          ["Device Type", "Avg Turnaround (Hours)", "Avg Dwell (Hours)"],
+          [
+            "Device Type",
+            "Avg Turnaround (Hours)",
+            "Avg Repair Dwell (Hours)",
+            "Avg Pickup Dwell (Hours)",
+          ],
           timeData.byDeviceType.map((item) => [
             item.deviceType,
             item.avgTurnaroundHours,
-            item.avgDwellHours,
+            item.avgRepairDwellHours,
+            item.avgPickupDwellHours,
           ])
         );
       }
@@ -117,11 +146,17 @@ function RepairTimeAnalysis() {
       if (timeData.byRepairType && timeData.byRepairType.length > 0) {
         addTable(
           "By Repair Type",
-          ["Repair Type", "Avg Turnaround (Hours)", "Avg Dwell (Hours)"],
+          [
+            "Repair Type",
+            "Avg Turnaround (Hours)",
+            "Avg Repair Dwell (Hours)",
+            "Avg Pickup Dwell (Hours)",
+          ],
           timeData.byRepairType.map((item) => [
             item.repairType,
             item.avgTurnaroundHours,
-            item.avgDwellHours,
+            item.avgRepairDwellHours,
+            item.avgPickupDwellHours,
           ])
         );
       }
@@ -129,8 +164,18 @@ function RepairTimeAnalysis() {
       if (timeData.byBrand && timeData.byBrand.length > 0) {
         addTable(
           "By Brand",
-          ["Brand", "Avg Turnaround (Hours)", "Avg Dwell (Hours)"],
-          timeData.byBrand.map((item) => [item.brand, item.avgTurnaroundHours, item.avgDwellHours])
+          [
+            "Brand",
+            "Avg Turnaround (Hours)",
+            "Avg Repair Dwell (Hours)",
+            "Avg Pickup Dwell (Hours)",
+          ],
+          timeData.byBrand.map((item) => [
+            item.brand,
+            item.avgTurnaroundHours,
+            item.avgRepairDwellHours,
+            item.avgPickupDwellHours,
+          ])
         );
       }
 
@@ -169,7 +214,8 @@ function RepairTimeAnalysis() {
         ws.columns = [
           { header: "Device Type", key: "deviceType", width: 25 },
           { header: "Avg Turnaround", key: "avgTurnaroundHours", width: 20 },
-          { header: "Avg Dwell", key: "avgDwellHours", width: 20 },
+          { header: "Avg Repair Dwell", key: "avgRepairDwellHours", width: 20 },
+          { header: "Avg Pickup Dwell", key: "avgPickupDwellHours", width: 20 },
         ];
         timeData.byDeviceType.forEach((i) => ws.addRow(i));
       }
@@ -178,7 +224,8 @@ function RepairTimeAnalysis() {
         ws.columns = [
           { header: "Repair Type", key: "repairType", width: 25 },
           { header: "Avg Turnaround", key: "avgTurnaroundHours", width: 20 },
-          { header: "Avg Dwell", key: "avgDwellHours", width: 20 },
+          { header: "Avg Repair Dwell", key: "avgRepairDwellHours", width: 20 },
+          { header: "Avg Pickup Dwell", key: "avgPickupDwellHours", width: 20 },
         ];
         timeData.byRepairType.forEach((i) => ws.addRow(i));
       }
@@ -187,7 +234,8 @@ function RepairTimeAnalysis() {
         ws.columns = [
           { header: "Brand", key: "brand", width: 25 },
           { header: "Avg Turnaround", key: "avgTurnaroundHours", width: 20 },
-          { header: "Avg Dwell", key: "avgDwellHours", width: 20 },
+          { header: "Avg Repair Dwell", key: "avgRepairDwellHours", width: 20 },
+          { header: "Avg Pickup Dwell", key: "avgPickupDwellHours", width: 20 },
         ];
         timeData.byBrand.forEach((i) => ws.addRow(i));
       }
@@ -345,6 +393,11 @@ function RepairTimeAnalysis() {
                         <MenuItem onClick={exportToExcel}>Export to Excel</MenuItem>
                       </Menu>
                     </Grid>
+                    <Grid item xs={12} md={2}>
+                      <MDButton variant="gradient" color="info" onClick={handleAiAnalysis}>
+                        <Icon>auto_awesome</Icon>&nbsp;AI Analysis
+                      </MDButton>
+                    </Grid>
                   </Grid>
                 </LocalizationProvider>
               </MDBox>
@@ -364,14 +417,19 @@ function RepairTimeAnalysis() {
                       <BarSeries
                         valueField="avgTurnaroundHours"
                         argumentField="deviceType"
-                        name="Average Turnaround Time"
+                        name="Avg Turnaround"
                       />
                       <BarSeries
-                        valueField="avgDwellHours"
+                        valueField="avgRepairDwellHours"
                         argumentField="deviceType"
-                        name="Average Dwell Time"
+                        name="Avg Repair Dwell"
                       />
-                      <Title text="Average Repair Turnaround and Dwell Time (Hours)" />
+                      <BarSeries
+                        valueField="avgPickupDwellHours"
+                        argumentField="deviceType"
+                        name="Avg Pickup Dwell"
+                      />
+                      <Title text="Average Repair Time Stats (Hours)" />
                       <Animation />
                       <Legend />
                       <EventTracker />
@@ -387,7 +445,10 @@ function RepairTimeAnalysis() {
                                 Avg Turnaround: {item.avgTurnaroundHours} hrs
                               </MDTypography>
                               <MDTypography variant="body2">
-                                Avg Dwell: {item.avgDwellHours} hrs
+                                Avg Repair Dwell: {item.avgRepairDwellHours} hrs
+                              </MDTypography>
+                              <MDTypography variant="body2">
+                                Avg Pickup Dwell: {item.avgPickupDwellHours} hrs
                               </MDTypography>
                             </MDBox>
                           );
@@ -411,14 +472,19 @@ function RepairTimeAnalysis() {
                       <BarSeries
                         valueField="avgTurnaroundHours"
                         argumentField="repairType"
-                        name="Average Turnaround Time"
+                        name="Avg Turnaround"
                       />
                       <BarSeries
-                        valueField="avgDwellHours"
+                        valueField="avgRepairDwellHours"
                         argumentField="repairType"
-                        name="Average Dwell Time"
+                        name="Avg Repair Dwell"
                       />
-                      <Title text="Average Repair Turnaround and Dwell Time (Hours)" />
+                      <BarSeries
+                        valueField="avgPickupDwellHours"
+                        argumentField="repairType"
+                        name="Avg Pickup Dwell"
+                      />
+                      <Title text="Average Repair Time Stats (Hours)" />
                       <Animation />
                       <Legend />
                       <EventTracker />
@@ -434,7 +500,10 @@ function RepairTimeAnalysis() {
                                 Avg Turnaround: {item.avgTurnaroundHours} hrs
                               </MDTypography>
                               <MDTypography variant="body2">
-                                Avg Dwell: {item.avgDwellHours} hrs
+                                Avg Repair Dwell: {item.avgRepairDwellHours} hrs
+                              </MDTypography>
+                              <MDTypography variant="body2">
+                                Avg Pickup Dwell: {item.avgPickupDwellHours} hrs
                               </MDTypography>
                             </MDBox>
                           );
@@ -458,14 +527,19 @@ function RepairTimeAnalysis() {
                       <BarSeries
                         valueField="avgTurnaroundHours"
                         argumentField="brand"
-                        name="Average Turnaround Time"
+                        name="Avg Turnaround"
                       />
                       <BarSeries
-                        valueField="avgDwellHours"
+                        valueField="avgRepairDwellHours"
                         argumentField="brand"
-                        name="Average Dwell Time"
+                        name="Avg Repair Dwell"
                       />
-                      <Title text="Average Repair Turnaround and Dwell Time (Hours)" />
+                      <BarSeries
+                        valueField="avgPickupDwellHours"
+                        argumentField="brand"
+                        name="Avg Pickup Dwell"
+                      />
+                      <Title text="Average Repair Time Stats (Hours)" />
                       <Animation />
                       <Legend />
                       <EventTracker />
@@ -481,7 +555,10 @@ function RepairTimeAnalysis() {
                                 Avg Turnaround: {item.avgTurnaroundHours} hrs
                               </MDTypography>
                               <MDTypography variant="body2">
-                                Avg Dwell: {item.avgDwellHours} hrs
+                                Avg Repair Dwell: {item.avgRepairDwellHours} hrs
+                              </MDTypography>
+                              <MDTypography variant="body2">
+                                Avg Pickup Dwell: {item.avgPickupDwellHours} hrs
                               </MDTypography>
                             </MDBox>
                           );

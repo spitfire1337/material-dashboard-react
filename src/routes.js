@@ -61,6 +61,7 @@ import Logs from "layouts/logs";
 import OrderDetails from "layouts/oderDetails";
 import AppSettings from "layouts/appSettings";
 import SystemSettings from "layouts/systemSettings";
+import AverageLaborCost from "layouts/reports/AverageLaborCost";
 // @mui icons
 import RepairReport from "layouts/reports/RepairReport";
 import SalesTrends from "layouts/reports/SalesTrends";
@@ -274,6 +275,15 @@ const devRoutes = (stats) => {
               route: "/reports/wip-aging",
               icon: <Icon fontSize="small">timelapse</Icon>,
               component: <WipAging />,
+            },
+            {
+              type: "collapse",
+              name: "Avg Labor Cost",
+              noCollapse: true,
+              key: "avgLaborCost",
+              route: "/reports/avg-labor-cost",
+              icon: <Icon fontSize="small">attach_money</Icon>,
+              component: <AverageLaborCost />,
             },
           ],
         },
@@ -628,6 +638,15 @@ const adminRoutes = (stats) => {
               route: "/reports/wip-aging",
               component: <WipAging />,
             },
+            {
+              type: "collapse",
+              name: "Avg Labor Cost",
+              noCollapse: true,
+              key: "avgLaborCost",
+              route: "/reports/avg-labor-cost",
+              icon: <Icon fontSize="small">attach_money</Icon>,
+              component: <AverageLaborCost />,
+            },
           ],
         },
         {
@@ -817,6 +836,31 @@ const techRoutes = (stats) => {
       ),
       route: "/messages",
       component: <Messages />,
+    },
+    {
+      type: "collapse",
+      name: "Reports",
+      key: "reports",
+      icon: <Icon fontSize="small">insights</Icon>,
+      collapse: [
+        {
+          type: "collapse",
+          name: "Repairs",
+          key: "repairReports",
+          icon: <Icon fontSize="small">build</Icon>,
+          collapse: [
+            {
+              type: "collapse",
+              name: "Avg Labor Cost",
+              noCollapse: true,
+              key: "avgLaborCost",
+              route: "/reports/avg-labor-cost",
+              icon: <Icon fontSize="small">attach_money</Icon>,
+              component: <AverageLaborCost />,
+            },
+          ],
+        },
+      ],
     },
     {
       name: "Repairs",

@@ -4,7 +4,7 @@ import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import Footer from "examples/Footer";
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
-import { Card, Grid, Menu, MenuItem } from "@mui/material";
+import { Card, Grid, Menu, MenuItem, Icon } from "@mui/material";
 import { globalFuncs } from "../../context/global";
 import MDButton from "components/MDButton";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -17,7 +17,7 @@ import DataTable from "react-data-table-component";
 function CustomerLoyalty() {
   const socket = useSocket();
   const [loyaltyData, setLoyaltyData] = useState([]);
-  const { setShowLoad } = globalFuncs();
+  const { setShowLoad, setAiChatOpen, setAiLoading, setSnackBar } = globalFuncs();
   const [anchorEl, setAnchorEl] = useState(null);
   const [startDate, setStartDate] = useState(dayjs().subtract(1, "year"));
   const [endDate, setEndDate] = useState(dayjs());
@@ -59,6 +59,29 @@ function CustomerLoyalty() {
 
   const handleExportClose = () => {
     setAnchorEl(null);
+  };
+
+  const handleAiAnalysis = () => {
+    if (!socket) return;
+    setAiChatOpen(true);
+    setAiLoading(true);
+    const query = {
+      startDate: startDate.toISOString(),
+      endDate: endDate.toISOString(),
+    };
+    socket.emit("analyzeReport", { reportType: "customerLoyalty", query: query }, (res) => {
+      if (res.res !== 200) {
+        setAiChatOpen(false);
+        setAiLoading(false);
+        setSnackBar({
+          type: "error",
+          title: "Error",
+          message: res.message || "Error analyzing report",
+          show: true,
+          icon: "warning",
+        });
+      }
+    });
   };
 
   const exportToPDF = async () => {
@@ -306,6 +329,11 @@ function CustomerLoyalty() {
                         <MenuItem onClick={exportToPDF}>Export to PDF</MenuItem>
                         <MenuItem onClick={exportToExcel}>Export to Excel</MenuItem>
                       </Menu>
+                    </Grid>
+                    <Grid item xs={12} md={2}>
+                      <MDButton variant="gradient" color="info" onClick={handleAiAnalysis}>
+                        <Icon>auto_awesome</Icon>&nbsp;AI Analysis
+                      </MDButton>
                     </Grid>
                   </Grid>
                 </LocalizationProvider>

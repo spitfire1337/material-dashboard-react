@@ -242,7 +242,7 @@ const ExpandedComponent = ({ data, fetchRepairs }) => {
 };
 
 function ActiveRepairs() {
-  const { setSnackBar, setShowLoad } = globalFuncs();
+  const { setSnackBar, setShowLoad, setAiChatOpen, setAiLoading } = globalFuncs();
   const socket = useSocket();
   const [searchParams] = useSearchParams();
   const defaultStatusFilter = [1, 2, 3, 11, 12, 4, 5];
@@ -289,6 +289,32 @@ function ActiveRepairs() {
 
   const repairTypes = ["Tire Change", "Tube Change", "Power issue", "Mechanical Repair", "Other"];
   const deviceTypes = ["EUC", "Scooter", "OneWheel", "Ebike", "Emoto", "Eskate"];
+
+  const handleAiAnalysis = () => {
+    if (!socket) return;
+    setAiChatOpen(true);
+    setAiLoading(true);
+    const query = {
+      searchText,
+      repairTypeFilter,
+      deviceTypeFilter,
+      techFilter,
+      statusFilter,
+    };
+    socket.emit("analyzeReport", { reportType: "currentActiveRepairs", query: query }, (res) => {
+      if (res.res !== 200) {
+        setAiChatOpen(false);
+        setAiLoading(false);
+        setSnackBar({
+          type: "error",
+          title: "Error",
+          message: res.message || "Error analyzing report",
+          show: true,
+          icon: "warning",
+        });
+      }
+    });
+  };
 
   const fetchRepairs = () => {
     setShowLoad(true);
@@ -581,6 +607,11 @@ function ActiveRepairs() {
                         ))}
                       </Select>
                     </FormControl>
+                  </Grid>
+                  <Grid item xs={12} md={2}>
+                    <MDButton variant="gradient" color="info" onClick={handleAiAnalysis} fullWidth>
+                      <Icon>auto_awesome</Icon>&nbsp;AI Analysis
+                    </MDButton>
                   </Grid>
                 </Grid>
                 <DataTable

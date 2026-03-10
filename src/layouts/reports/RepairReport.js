@@ -4,7 +4,7 @@ import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import Footer from "examples/Footer";
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
-import { Card, Grid, Menu, MenuItem } from "@mui/material";
+import { Card, Grid, Menu, MenuItem, Icon } from "@mui/material";
 import { Chart, Title, Legend, Tooltip } from "@devexpress/dx-react-chart-material-ui";
 import { Animation, PieSeries, EventTracker } from "@devexpress/dx-react-chart";
 import vars from "../../config";
@@ -26,7 +26,7 @@ function RepairReport() {
     brand: [],
     model: [],
   });
-  const { setShowLoad } = globalFuncs();
+  const { setShowLoad, setAiChatOpen, setAiLoading, setSnackBar } = globalFuncs();
   const [startDate, setStartDate] = useState(dayjs().subtract(90, "day"));
   const [endDate, setEndDate] = useState(dayjs());
 
@@ -80,6 +80,29 @@ function RepairReport() {
 
   const handleExportClose = () => {
     setAnchorEl(null);
+  };
+
+  const handleAiAnalysis = () => {
+    if (!socket) return;
+    setAiChatOpen(true);
+    setAiLoading(true);
+    const query = {
+      startDate: startDate.toISOString(),
+      endDate: endDate.toISOString(),
+    };
+    socket.emit("analyzeReport", { reportType: "repairFrequency", query: query }, (res) => {
+      if (res.res !== 200) {
+        setAiChatOpen(false);
+        setAiLoading(false);
+        setSnackBar({
+          type: "error",
+          title: "Error",
+          message: res.message || "Error analyzing report",
+          show: true,
+          icon: "warning",
+        });
+      }
+    });
   };
 
   const exportToPDF = async () => {
@@ -344,6 +367,11 @@ function RepairReport() {
                         <MenuItem onClick={exportToPDF}>Export to PDF</MenuItem>
                         <MenuItem onClick={exportToExcel}>Export to Excel</MenuItem>
                       </Menu>
+                    </Grid>
+                    <Grid item xs={12} md={2}>
+                      <MDButton variant="gradient" color="info" onClick={handleAiAnalysis}>
+                        <Icon>auto_awesome</Icon>&nbsp;AI Analysis
+                      </MDButton>
                     </Grid>
                   </Grid>
                 </LocalizationProvider>

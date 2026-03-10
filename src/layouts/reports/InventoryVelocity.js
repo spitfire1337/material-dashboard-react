@@ -4,7 +4,7 @@ import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import Footer from "examples/Footer";
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
-import { Card, Grid, FormControl, InputLabel, Select, MenuItem, Menu } from "@mui/material";
+import { Card, Grid, FormControl, InputLabel, Select, MenuItem, Menu, Icon } from "@mui/material";
 import {
   Chart,
   ArgumentAxis,
@@ -28,7 +28,7 @@ function InventoryVelocity() {
   const chartRef = useRef(null);
   const [anchorEl, setAnchorEl] = useState(null);
   const [inventoryData, setInventoryData] = useState([]);
-  const { setShowLoad } = globalFuncs();
+  const { setShowLoad, setAiChatOpen, setAiLoading, setSnackBar } = globalFuncs();
   const [startDate, setStartDate] = useState(dayjs().subtract(90, "day"));
   const [endDate, setEndDate] = useState(dayjs());
   const [repairType, setRepairType] = useState("");
@@ -60,6 +60,31 @@ function InventoryVelocity() {
         console.error("Failed to fetch inventory velocity data");
       }
       setShowLoad(false);
+    });
+  };
+
+  const handleAiAnalysis = () => {
+    if (!socket) return;
+    setAiChatOpen(true);
+    setAiLoading(true);
+    const query = {
+      startDate: startDate.toISOString(),
+      endDate: endDate.toISOString(),
+      repairType,
+      deviceType,
+    };
+    socket.emit("analyzeReport", { reportType: "inventoryVelocity", query: query }, (res) => {
+      if (res.res !== 200) {
+        setAiChatOpen(false);
+        setAiLoading(false);
+        setSnackBar({
+          type: "error",
+          title: "Error",
+          message: res.message || "Error analyzing report",
+          show: true,
+          icon: "warning",
+        });
+      }
     });
   };
 
@@ -332,6 +357,11 @@ function InventoryVelocity() {
                         <MenuItem onClick={exportToPDF}>Export to PDF</MenuItem>
                         <MenuItem onClick={exportToExcel}>Export to Excel</MenuItem>
                       </Menu>
+                    </Grid>
+                    <Grid item xs={12} md={2}>
+                      <MDButton variant="gradient" color="info" onClick={handleAiAnalysis}>
+                        <Icon>auto_awesome</Icon>&nbsp;AI Analysis
+                      </MDButton>
                     </Grid>
                   </Grid>
                 </LocalizationProvider>

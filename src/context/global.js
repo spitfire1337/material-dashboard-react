@@ -21,6 +21,7 @@ export const GlobalProvider = ({ children }) => {
   const [asteriskStatus, setAsteriskStatus] = useState(false);
   const [aiChatOpen, setAiChatOpen] = useState(false);
   const [aiChatMessage, setAiChatMessage] = useState("");
+  const [aiLoading, setAiLoading] = useState(false);
   const RenderSb = (
     <MDSnackbar
       color={snackBar.type}
@@ -65,6 +66,8 @@ export const GlobalProvider = ({ children }) => {
         setAiChatOpen,
         aiChatMessage,
         setAiChatMessage,
+        aiLoading,
+        setAiLoading,
       }}
     >
       {children}

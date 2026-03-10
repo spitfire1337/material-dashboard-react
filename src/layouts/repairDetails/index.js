@@ -1318,17 +1318,18 @@ const RepairDetails = () => {
   };
 
   const handleAskAI = () => {
-    const brand = repairDetails.pev?.Brand?.name || "Unknown Brand";
-    const model = repairDetails.pev?.Model || "Unknown Model";
-    const issues = repairDetails.RepairType
-      ? repairDetails.RepairType.join(", ")
-      : "Unknown Issues";
-    const details = repairDetails.Details
-      ? repairDetails.Details.replace(/<[^>]*>?/gm, "")
-      : "No details provided";
+    // const brand = repairDetails.pev?.Brand?.name || "Unknown Brand";
+    // const model = repairDetails.pev?.Model || "Unknown Model";
+    // const issues = repairDetails.RepairType
+    //   ? repairDetails.RepairType.join(", ")
+    //   : "Unknown Issues";
+    // const details = repairDetails.Details
+    //   ? repairDetails.Details.replace(/<[^>]*>?/gm, "")
+    //   : "No details provided";
 
-    const message = `Help me repair a ${brand} ${model} with the following types of issues ${issues} details of the issues are ${details}`;
-    setAiChatMessage(message);
+    // const message = `Help me repair a ${brand} ${model} with the following types of issues ${issues} details of the issues are ${details}`;
+    // setAiChatMessage(message);
+    socket.emit("analyzeRepair", { id: repairID });
     setAiChatOpen(true);
   };
 

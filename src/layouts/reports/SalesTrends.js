@@ -4,7 +4,7 @@ import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import Footer from "examples/Footer";
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
-import { Card, Grid, Menu, MenuItem } from "@mui/material";
+import { Card, Grid, Menu, MenuItem, Icon } from "@mui/material";
 import {
   Chart,
   ArgumentAxis,
@@ -28,7 +28,7 @@ function SalesTrends() {
   const chartRef = useRef(null);
   const [anchorEl, setAnchorEl] = useState(null);
   const [salesData, setSalesData] = useState([]);
-  const { setShowLoad } = globalFuncs();
+  const { setShowLoad, setAiChatOpen, setAiLoading, setSnackBar } = globalFuncs();
   const [startDate, setStartDate] = useState(dayjs().subtract(90, "day"));
   const [endDate, setEndDate] = useState(dayjs());
 
@@ -54,6 +54,29 @@ function SalesTrends() {
         console.error("Failed to fetch sales trends data");
       }
       setShowLoad(false);
+    });
+  };
+
+  const handleAiAnalysis = () => {
+    if (!socket) return;
+    setAiChatOpen(true);
+    setAiLoading(true);
+    const query = {
+      startDate: startDate ? startDate.toISOString() : null,
+      endDate: endDate ? endDate.toISOString() : null,
+    };
+    socket.emit("analyzeReport", { reportType: "salesTrends", query: query }, (res) => {
+      if (res.res !== 200) {
+        setAiChatOpen(false);
+        setAiLoading(false);
+        setSnackBar({
+          type: "error",
+          title: "Error",
+          message: res.message || "Error analyzing report",
+          show: true,
+          icon: "warning",
+        });
+      }
     });
   };
 
@@ -297,6 +320,11 @@ function SalesTrends() {
                         <MenuItem onClick={exportToPDF}>Export to PDF</MenuItem>
                         <MenuItem onClick={exportToExcel}>Export to Excel</MenuItem>
                       </Menu>
+                    </Grid>
+                    <Grid item xs={12} md={2}>
+                      <MDButton variant="gradient" color="info" onClick={handleAiAnalysis}>
+                        <Icon>auto_awesome</Icon>&nbsp;AI Analysis
+                      </MDButton>
                     </Grid>
                   </Grid>
                 </LocalizationProvider>
