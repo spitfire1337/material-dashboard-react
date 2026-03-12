@@ -24,9 +24,8 @@ import { FormControlLabel, Checkbox, Chip, Grid, TextField } from "@mui/material
 import vars from "../../config";
 import { useSocket } from "context/socket";
 
-const Step3 = ({ repairID, nextRepairStep, setDisablePrint }) => {
+const Step3 = ({ repairID, nextRepairStep, setDisablePrint, updateRepairData }) => {
   const { setSnackBar, setShowLoad } = globalFuncs();
-  const socket = useSocket();
   const [repairType, setRepairType] = useState([]);
   const [warranty, setWarranty] = useState(false);
   const [accessories, setAccessories] = useState([]);
@@ -35,42 +34,16 @@ const Step3 = ({ repairID, nextRepairStep, setDisablePrint }) => {
   const editor = useEditor({ extensions: [StarterKit, Link], content: "" });
 
   const updateRepair = () => {
-    setShowLoad(true);
     try {
       let postData = {
-        _id: repairID,
         Details: editor ? editor.getHTML() : "",
         RepairType: repairType,
         warranty: warranty,
         accessories: accessories,
       };
-      if (socket) {
-        socket.emit("updateRepair", postData, (json) => {
-          if (json.res === 200) {
-            setDisablePrint(false);
-            nextRepairStep(4);
-          } else if (json.res === 501) {
-            setSnackBar({
-              type: "warning",
-              message: json.message,
-              show: true,
-              icon: "warning",
-            });
-            setDisablePrint(true);
-            nextRepairStep(4);
-          } else {
-            setSnackBar({
-              type: "error",
-              message: "Error saving repair progress.",
-              show: true,
-              icon: "warning",
-            });
-          }
-          setShowLoad(false);
-        });
-      } else {
-        throw new Error("Socket not connected");
-      }
+      updateRepairData(postData);
+      setDisablePrint(false);
+      nextRepairStep(4);
     } catch (e) {
       setSnackBar({
         type: "error",

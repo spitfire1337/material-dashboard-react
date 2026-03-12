@@ -222,7 +222,15 @@ export default function App() {
       </DialogActions>
     </Dialog>
   );
-
+  const checkSquare = async () => {
+    const response = await fetch(`${vars.serverUrl}/square/checkconfig`, {
+      credentials: "include",
+    });
+    const res = await response.json();
+    if (res.res === 401) {
+    } else {
+    }
+  };
   const getWhatsnew = () => {
     if (loginState.loggedin && socket) {
       socket.emit("getWhatsNew", {}, (res) => {
@@ -262,6 +270,7 @@ export default function App() {
   useEffect(() => {
     if (socket && loginState.loggedin) {
       getWhatsnew();
+      checkSquare();
       socket.on("update", () => {
         // getInitData();
         getWhatsnew();

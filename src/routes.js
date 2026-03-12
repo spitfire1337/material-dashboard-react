@@ -62,6 +62,8 @@ import OrderDetails from "layouts/oderDetails";
 import AppSettings from "layouts/appSettings";
 import SystemSettings from "layouts/systemSettings";
 import AverageLaborCost from "layouts/reports/AverageLaborCost";
+import GeneralLabelEditor from "layouts/pdfGenerate/General";
+import PrinterSetup from "layouts/printerSetup";
 // @mui icons
 import RepairReport from "layouts/reports/RepairReport";
 import SalesTrends from "layouts/reports/SalesTrends";
@@ -438,6 +440,15 @@ const devRoutes = (stats) => {
         {
           type: "collapse",
           noCollapse: true,
+          name: "PDF Templates",
+          key: "pdf-templates",
+          icon: <Icon fontSize="small">picture_as_pdf</Icon>,
+          route: "/settings/pdf-templates",
+          component: <GeneralLabelEditor />,
+        },
+        {
+          type: "collapse",
+          noCollapse: true,
           name: "System Configuration",
           key: "system-settings",
           icon: <Icon fontSize="small">tune</Icon>,
@@ -452,6 +463,15 @@ const devRoutes = (stats) => {
           icon: <Icon fontSize="small">settings_applications</Icon>,
           route: "/settings/app-settings",
           component: <AppSettings />,
+        },
+        {
+          type: "collapse",
+          noCollapse: true,
+          name: "Printer Setup",
+          key: "printer-setup",
+          icon: <Icon fontSize="small">print</Icon>,
+          route: "/settings/printer-setup",
+          component: <PrinterSetup />,
         },
       ],
     },
@@ -764,6 +784,24 @@ const adminRoutes = (stats) => {
           icon: <Icon fontSize="small">settings_applications</Icon>,
           route: "/settings/app-settings",
           component: <AppSettings />,
+        },
+        {
+          type: "collapse",
+          noCollapse: true,
+          name: "PDF Templates",
+          key: "pdf-templates",
+          icon: <Icon fontSize="small">picture_as_pdf</Icon>,
+          route: "/settings/pdf-templates",
+          component: <GeneralLabelEditor />,
+        },
+        {
+          type: "collapse",
+          noCollapse: true,
+          name: "Printer Setup",
+          key: "printer-setup",
+          icon: <Icon fontSize="small">print</Icon>,
+          route: "/settings/printer-setup",
+          component: <PrinterSetup />,
         },
       ],
     },

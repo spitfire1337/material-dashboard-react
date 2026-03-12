@@ -31,6 +31,8 @@ const Step2 = ({ repairData, updateRepairData, setrepairID, nextRepairStep }) =>
     Motor: "",
     BatterySize: "",
   });
+  const [customerPevs, setCustomerPevs] = useState([]);
+  const [selectedCustomerPev, setSelectedCustomerPev] = useState(null);
 
   useEffect(() => {
     if (socket) {
@@ -47,6 +49,33 @@ const Step2 = ({ repairData, updateRepairData, setrepairID, nextRepairStep }) =>
       });
     }
   }, [socket]);
+
+  useEffect(() => {
+    if (socket && repairData.Customer) {
+      socket.emit("getCustomerPevs", { id: repairData.Customer }, (res) => {
+        if (res.res === 200) {
+          setCustomerPevs(res.data);
+        }
+      });
+    }
+  }, [socket, repairData.Customer]);
+
+  const handleCustomerPevChange = (event, newValue) => {
+    setSelectedCustomerPev(newValue);
+    if (newValue) {
+      const brandName =
+        newValue.Brand?.name || (typeof newValue.Brand === "string" ? newValue.Brand : "") || "";
+      setSelectedBrand(brandName);
+      setSelectedModel(newValue);
+      setPevDetails({
+        ...pevDetails,
+        ...newValue,
+        Brand: { name: brandName },
+        Model: newValue.Model,
+        _id: newValue._id,
+      });
+    }
+  };
 
   const handleBrandChange = (event, newValue) => {
     const brandName = typeof newValue === "string" ? newValue : newValue?.inputValue || newValue;
@@ -161,6 +190,21 @@ const Step2 = ({ repairData, updateRepairData, setrepairID, nextRepairStep }) =>
   return (
     <MDBox mt={2}>
       <Grid container spacing={2}>
+        {customerPevs.length > 0 && (
+          <Grid item xs={12}>
+            <Autocomplete
+              options={customerPevs}
+              getOptionLabel={(option) =>
+                `${option.Brand?.name || option.Brand || ""} ${option.Model}`
+              }
+              value={selectedCustomerPev}
+              onChange={handleCustomerPevChange}
+              renderInput={(params) => (
+                <TextField {...params} label="Select Customer Device" fullWidth />
+              )}
+            />
+          </Grid>
+        )}
         <Grid item xs={12} md={6}>
           <Autocomplete
             freeSolo

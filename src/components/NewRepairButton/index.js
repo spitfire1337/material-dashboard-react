@@ -12,14 +12,17 @@ import {
 import MDBox from "components/MDBox";
 import MDButton from "components/MDButton";
 import MDTypography from "components/MDTypography";
+import { useSocket } from "context/socket";
 
 // Steps
 import Step1 from "./Step1";
 import Step2 from "./Step2";
 import Step3 from "./Step3";
 import Step4 from "./Step4";
+import StepAgreement from "./StepAgreement";
 
 function NewRepairButton({ reRender, size = "full" }) {
+  const socket = useSocket();
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState(1);
   const [repairData, setRepairData] = useState({});
@@ -42,7 +45,12 @@ function NewRepairButton({ reRender, size = "full" }) {
     if (step === 1 && data) {
       setRepairData((prev) => ({ ...prev, Customer: data }));
     }
-    if (nextStep === 5) {
+    if (step === 5) {
+      if (socket && repairID) {
+        socket.emit("updateRepair", repairData);
+      }
+    }
+    if (nextStep === 6) {
       handleClose();
       if (reRender) reRender();
     } else {
@@ -108,13 +116,29 @@ function NewRepairButton({ reRender, size = "full" }) {
               <Step3
                 repairID={repairID}
                 nextRepairStep={nextRepairStep}
+                updateRepairData={updateRepairData}
                 setDisablePrint={setDisablePrint}
               />
             )}
             {step === 4 && (
-              <Step4
+              <StepAgreement
                 repairID={repairID}
                 nextRepairStep={nextRepairStep}
+                repairData={repairData}
+                updateRepairData={updateRepairData}
+              />
+            )}
+            {step === 5 && (
+              <Step4
+                repairID={repairID}
+                nextRepairStep={(val, data) => {
+                  // If Step4 (now Step 5) tries to go back to 3, route it to Agreement (4)
+                  if (val === 3) return nextRepairStep(4, data);
+                  // If Step4 tries to finish (5), route it to Close (6)
+                  if (val === 5) return nextRepairStep(6, data);
+                  // Otherwise pass through
+                  return nextRepairStep(val, data);
+                }}
                 reRender={reRender}
                 setNewRepair={setOpen}
                 disablePrint={disablePrint}
